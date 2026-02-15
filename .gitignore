@@ -1,0 +1,52 @@
+# Large data / asset folders
+data/VLKEB/VLKEB_images/
+data/VLKEB/mmkb_images/
+data/easy-edit-mm/val2014/
+data/easy-edit-mm/images/
+
+# Downloaded model weights (optional: uncomment if you don't want to track them)
+# models/
+
+# Training / evaluation outputs
+records/
+eval_results/
+*.ckpt
+*.pth
+*.pt
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Virtual / conda
+.env
+.venv
+venv/
+env/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Logs
+*.log
+logs/
+
+# Misc
+*.bak
+*.tmp
