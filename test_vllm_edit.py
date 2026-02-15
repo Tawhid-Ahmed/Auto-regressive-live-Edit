@@ -15,6 +15,9 @@ def get_attr():
     parser.add_argument('-dn', '--data_name', type=str, required = True, help = 'Evaluating dataset, including EVQA, EIC.')
     parser.add_argument('-dsn', '--data_sample_n', type=int, default = None, help = 'Sample number for evaluation.')
     args = parser.parse_args()
+    # Treat common sentinels as "no checkpoint"
+    if isinstance(args.editor_ckpt_path, str) and args.editor_ckpt_path.strip().lower() in {"none", "null", ""}:
+        args.editor_ckpt_path = None
     return args
  
 class cfg:
@@ -45,17 +48,17 @@ if __name__ == '__main__':
     if cfg.data_name == 'EVQA':
         from dataset.vllm import EVQA
         data_path = os.path.join(ROOT_PATH, 'data/easy-edit-mm/vqa/vqa_eval.json')
-        img_root_dir = os.path.join(ROOT_PATH, 'data/easy-edit-mm/images')
+        img_root_dir = os.path.join(ROOT_PATH, 'data/easy-edit-mm')
         eval_data = EVQA(data_path, img_root_dir, cfg.data_sample_n)
     elif cfg.data_name == 'EIC':
         from dataset.vllm import EIC
         data_path = os.path.join(ROOT_PATH, 'data/easy-edit-mm/caption/caption_eval_edit.json')
-        img_root_dir = os.path.join(ROOT_PATH, 'data/easy-edit-mm/images')
+        img_root_dir = os.path.join(ROOT_PATH, 'data/easy-edit-mm')
         eval_data = EIC(data_path, img_root_dir, cfg.data_sample_n)
     elif cfg.data_name == 'VLKEB':
         from dataset.vllm import VLKEB
         data_path = os.path.join(ROOT_PATH, 'data/VLKEB/eval.json')
-        img_root_dir = os.path.join(ROOT_PATH, 'data/VLKEB/mmkb_images')
+        img_root_dir = os.path.join(ROOT_PATH, 'data/VLKEB/VLKEB_images')
         eval_data = VLKEB(data_path, img_root_dir, cfg.data_sample_n)
     # evaluate
     ev = VLLMEditorEvaluation(editor, eval_data, cfg.evaluation_name, 'eval_results')

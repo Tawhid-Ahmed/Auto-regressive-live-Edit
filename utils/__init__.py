@@ -123,17 +123,52 @@ def load_vllm_for_edit(model_name:str, device:str)->BaseVLLMForEdit:
         return MiniGPT4ForEdit(model_path, device, True)
     raise BaseException('Have not write `BaseVLLMForEdit` for `%s`.'%model_name)
 
-def load_vllm_editor(editor_name:str, edit_model_name:str, device:int, 
+def load_vllm_editor(editor_name:str, edit_model_name:str, device, 
         extra_devices:List[int] = [1], editor_ckpt_path = None, for_train = False):
     '''`for_train`: set features of some editors for training during initializing.'''
     editor_name = editor_name.lower()
     config_path = get_editor_config_path(editor_name, edit_model_name)
-    vllm = load_vllm_for_edit(edit_model_name, device)
+    try:
+        print(f"Loading main model on device: {device}")
+        vllm = load_vllm_for_edit(edit_model_name, device)
+        print(f"Main model loaded successfully")
+    except Exception as e:
+        print(f"ERROR: Failed to load main model: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
     # load editor
     if editor_name == 'liveedit':
         from editor.vllm_editors.liveedit.liveedit import LiveEdit, LiveEditConfig
-        data_proc_device = 'cuda:%s'%extra_devices[0] if for_train else None
-        vllm_data_proc = load_vllm_for_edit(edit_model_name, data_proc_device) if for_train else None
+        # Use CPU for data processing if extra_devices[0] is same as main device (to avoid OOM)
+        if for_train:
+            # Parse device string to get GPU index
+            if isinstance(device, str) and ':' in device:
+                main_device_idx = int(device.split(':')[-1])
+            elif isinstance(device, int):
+                main_device_idx = device
+            else:
+                main_device_idx = 0
+            
+            if extra_devices[0] == main_device_idx:
+                # Same GPU - reuse the same model for data processing to avoid loading a second model
+                print(f"Warning: Reusing main model for data processing to avoid OOM (both models would use same GPU)")
+                vllm_data_proc = vllm  # Reuse the same model
+                data_proc_device = device  # Use same device
+            else:
+                data_proc_device = 'cuda:%s'%extra_devices[0]
+                try:
+                    print(f"Loading data processing model on device: {data_proc_device}")
+                    vllm_data_proc = load_vllm_for_edit(edit_model_name, data_proc_device)
+                    print(f"Data processing model loaded successfully")
+                except Exception as e:
+                    print(f"ERROR: Failed to load data processing model: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    raise
+        else:
+            vllm_data_proc = None
+            data_proc_device = None
         config = LiveEditConfig.from_yaml(config_path)
         editor = LiveEdit(vllm, config, device, vllm_data_proc, data_proc_device) 
     elif editor_name == 'ft_vl':

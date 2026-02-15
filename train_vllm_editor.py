@@ -58,17 +58,20 @@ if __name__ == '__main__':
     if cfg.data_name == 'EVQA':
         from dataset.vllm import EVQA
         data_path = os.path.join(ROOT_PATH, 'data/easy-edit-mm/vqa/vqa_train.json')
-        img_root_dir = os.path.join(ROOT_PATH, 'data/easy-edit-mm/images')
+        # In this repo, COCO images live directly under data/easy-edit-mm/val2014 (not data/easy-edit-mm/images/val2014).
+        # The JSON stores paths like "val2014/COCO_val2014_....jpg", so root should be data/easy-edit-mm.
+        img_root_dir = os.path.join(ROOT_PATH, 'data/easy-edit-mm')
         train_data = EVQA(data_path, img_root_dir, cfg.data_n)
     elif cfg.data_name == 'EIC':
         from dataset.vllm import EIC
         data_path = os.path.join(ROOT_PATH, 'data/easy-edit-mm/caption/caption_train_edit.json')
-        img_root_dir = os.path.join(ROOT_PATH, 'data/easy-edit-mm/images')
+        img_root_dir = os.path.join(ROOT_PATH, 'data/easy-edit-mm')
         train_data = EIC(data_path, img_root_dir, cfg.data_n)
     elif cfg.data_name == 'VLKEB':
         from dataset.vllm import VLKEB
         data_path = os.path.join(ROOT_PATH, 'data/VLKEB/train.json')
-        img_root_dir = os.path.join(ROOT_PATH, 'data/VLKEB/mmkb_images')
+        # VLKEB images are stored under data/VLKEB/VLKEB_images/mmkb_images in this repo snapshot.
+        img_root_dir = os.path.join(ROOT_PATH, 'data/VLKEB/VLKEB_images')
         train_data = VLKEB(data_path, img_root_dir, cfg.data_n)
     # initialize and train
     editor.train_init(train_data, cfg.batch_size, train_name_prefix = cfg.train_name_prefix,

@@ -8,7 +8,36 @@ class BLIP2OPTForEdit(BaseVLLMForEdit):
     '''For blip2-opt 2.7b'''
     def __init__(self, model_path:str, device = 'cuda') -> None:
         from transformers import Blip2Processor, Blip2ForConditionalGeneration
-        self.model = Blip2ForConditionalGeneration.from_pretrained(model_path, device_map = device)
+        import torch
+        # Load model without device_map to avoid hanging, then move to device manually
+        # This is more reliable and gives better error messages
+        print(f"Loading BLIP2 model from {model_path}...")
+        try:
+            # Load on CPU first to avoid OOM during loading
+            # Use float32 (not float16) to avoid dtype mismatches with processor outputs
+            self.model = Blip2ForConditionalGeneration.from_pretrained(
+                model_path, 
+                device_map=None,  # Don't use device_map to avoid hanging
+                torch_dtype=torch.float32  # Use float32 to match processor output dtype
+            )
+            print("Model loaded, moving to device...")
+            # Move to target device
+            if device == 'cpu':
+                device_obj = torch.device('cpu')
+                self.model = self.model.to(device_obj)
+            else:
+                # Extract device index if it's a string like "cuda:0"
+                if isinstance(device, str) and ':' in device:
+                    device_obj = torch.device(device)
+                else:
+                    device_obj = torch.device(device if isinstance(device, str) else f'cuda:{device}')
+                self.model = self.model.to(device_obj)
+            print(f"Model moved to {device_obj}")
+        except Exception as e:
+            print(f"ERROR loading BLIP2 model: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
         self.processor = Blip2Processor.from_pretrained(model_path)
         self.model = self.model.eval().requires_grad_(False)
         super().__init__(self.model, device, False)
@@ -52,6 +81,9 @@ class BLIP2OPTForEdit(BaseVLLMForEdit):
         if imgs != None:
             inpt = self.processor(imgs, texts, return_tensors = 'pt', padding = True)
             inpt = {k: v.to(self.device) if hasattr(v, 'to') else v for k, v in inpt.items()}
+            # Ensure pixel_values match model dtype (float32)
+            if 'pixel_values' in inpt:
+                inpt['pixel_values'] = inpt['pixel_values'].to(torch.float32)
             llm_inpt = get_blip2_llm_inpt(inpt['pixel_values'], inpt['input_ids'], inpt['attention_mask'])
         else:
             inpt = self.get_llm_tokenizer()(texts, return_tensors = 'pt', padding = True).to(self.device)

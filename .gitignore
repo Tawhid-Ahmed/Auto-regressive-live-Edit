@@ -2,6 +2,7 @@
 data/VLKEB/VLKEB_images/
 data/VLKEB/mmkb_images/
 data/easy-edit-mm/val2014/
+data/easy-edit-mm/val2014_image_rephrase/
 data/easy-edit-mm/images/
 
 # Downloaded model weights (optional: uncomment if you don't want to track them)

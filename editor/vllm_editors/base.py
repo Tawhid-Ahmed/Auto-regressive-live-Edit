@@ -151,9 +151,23 @@ class VLLMBaseEditorWithTraining(VLLMBaseEditor):
         self.other_train_init_begin()
         # initialize data generator
         def get_data_by_ids_func(ids):
-            a_batch_of_training_data = [training_data[i] for i in ids]
-            a_batch_of_organized_training_data = self.organize_batch_data(a_batch_of_training_data)
-            return a_batch_of_organized_training_data
+            """
+            Wrapper used by ParallelDataset to build a batch from indices.
+            We add explicit error logging here so that failures in the
+            background data-loading thread are visible instead of silently
+            hanging with \"Waiting data\".
+            """
+            try:
+                a_batch_of_training_data = [training_data[i] for i in ids]
+                a_batch_of_organized_training_data = self.organize_batch_data(a_batch_of_training_data)
+                return a_batch_of_organized_training_data
+            except Exception as e:
+                import traceback
+                print("\n[ERROR in get_data_by_ids_func]")
+                print("Batch ids:", ids)
+                traceback.print_exc()
+                # Re-raise so the caller is aware something went wrong
+                raise
         assert isinstance(vllm_edit_data, BaseVLLMEditData)
         training_data = self.preprocess_train_data(vllm_edit_data)
         self.data_generator = ParallelDataset(len(training_data), get_data_by_ids_func, 

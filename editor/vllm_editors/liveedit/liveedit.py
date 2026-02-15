@@ -75,6 +75,7 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         self.instant_reps_norm = nn.LayerNorm(self.cfg.llm_mid_dim).to(self.device)
         # for inference & other hyper-parameters
         self.edit_layer_path = self.cfg.llm_layer_tmp.format(self.cfg.edit_layer_i)
+        self.train_edit_residual = None  # Set in train_a_batch; hook must not assume it exists during data prep
         self.wrap_and_hook()
         self.restore_to_original_model()
         self.set_train(False)
@@ -109,7 +110,7 @@ class LiveEdit(VLLMBaseEditorWithTraining):
                 outpt = outpt + edit_residual
             return outpt
         def edit_with_moes(module, args, output):
-            if self.is_train:
+            if self.is_train and getattr(self, 'train_edit_residual', None) is not None:
                 output = apply_edit_residual(output, self.train_edit_residual)
                 self.train_edit_residual = None
             elif (not self.is_editing and len(self.eqr_pool) > 0 and self.now_infer_vt_range != None):
