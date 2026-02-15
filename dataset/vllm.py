@@ -46,7 +46,9 @@ class BaseVLLMEditData(BaseEditData):
             for k in d.keys():
                 if k == 'image':
                     if d[k] != None:
-                        d[k] = Image.open(d[k]) 
+                        # Copy image data into memory and close file handle immediately.
+                        with Image.open(d[k]) as img:
+                            d[k] = img.copy()
                 else:
                     self.__load_imgs_for_data_with_img_path__(d[k])
         elif isinstance(d, list):
