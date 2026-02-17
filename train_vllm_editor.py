@@ -27,6 +27,10 @@ def get_attr():
     parser.add_argument('-ea', '--ema_alpha', type=float, default=0.1, help = 'EMA loss alpha.')
     parser.add_argument('-rs', '--random_seed', type=int, default=None, help = 'Random seed.')
     parser.add_argument('-dbs', '--data_buffer_size', type=int, default=4, help = 'Buffer size of data generator.')
+    # AR-LiveEdit (no behavior change when ar_mode=False)
+    parser.add_argument('--ar_mode', action='store_true', help='Enable autoregressive chunk-wise edit mode.')
+    parser.add_argument('--chunk_size', type=int, default=16, help='Target chunk size in tokens for AR mode.')
+    parser.add_argument('--max_chunks', type=int, default=None, help='Optional max chunks per target in AR mode (default: unlimited).')
     args = parser.parse_args()
     return args
 
@@ -47,6 +51,10 @@ class cfg:
     ema_alpha = 0.1
     random_seed = 1
     data_buffer_size = 4
+    # AR-LiveEdit
+    ar_mode = False
+    chunk_size = 16
+    max_chunks = None
 
 
 if __name__ == '__main__':
@@ -71,8 +79,12 @@ if __name__ == '__main__':
         from dataset.vllm import VLKEB
         data_path = os.path.join(ROOT_PATH, 'data/VLKEB/train.json')
         # VLKEB images are stored under data/VLKEB/VLKEB_images/mmkb_images in this repo snapshot.
-        img_root_dir = os.path.join(ROOT_PATH, 'data/VLKEB/VLKEB_images')
+        img_root_dir = os.path.join(ROOT_PATH, 'data/VLKEB/VLKEB_images/mmkb_images')
         train_data = VLKEB(data_path, img_root_dir, cfg.data_n)
+    # AR-LiveEdit: pass AR config into editor for batch organization (Task 3)
+    editor.ar_mode = getattr(cfg, 'ar_mode', False)
+    editor.chunk_size = getattr(cfg, 'chunk_size', 16)
+    editor.max_chunks = getattr(cfg, 'max_chunks', None)
     # initialize and train
     editor.train_init(train_data, cfg.batch_size, train_name_prefix = cfg.train_name_prefix,
         load_ckpt_path = cfg.load_ckpt_path, save_ckpt_per_i = cfg.save_ckpt_per_i, 

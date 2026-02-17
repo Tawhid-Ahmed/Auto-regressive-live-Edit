@@ -2,9 +2,10 @@ from ...vllms_for_edit.base import BaseVLLMForEdit
 from ..base import VLLMBaseEditorWithTraining
 from utils import find_module, move_to_device
 from torch.nn.utils.rnn import pad_sequence
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Optional
 from dataset.vllm import BaseVLLMEditData
 from .modules import QVExtractor, LowRankGenerator
+from .chunk_utils import split_target_into_chunks
 from dataclasses import dataclass
 from ...base import BaseConfig
 from torch.optim import Adam
@@ -348,16 +349,31 @@ class LiveEdit(VLLMBaseEditorWithTraining):
             gn, ln = get_rand_gn_ln()
             d = [[packed_rel_data[-1], packed_gen_data[gn][-1]][self.rng_data_proc.integers(0, 2)], packed_loc_data[ln][-1]][1-n][j][1:3]
             batch_retr_prot_data[1].append(d)
-        a_batch_organized_data = (batch_size, batch_edit_signal, rel_moe_mask, gen_moe_mask, loc_moe_mask, 
-            packed_rel_data, packed_gen_data, packed_loc_data, batch_retr_neib_data, batch_retr_prot_data)
+        # AR mode: attach chunk metadata per request when ar_mode=True (Task 3)
+        batch_ar_chunks: Optional[List[List[List[List[int]]]]] = None  # [batch][request][chunk][token_id]
+        if getattr(self, 'ar_mode', False):
+            tokenizer = vllm.get_llm_tokenizer()
+            chunk_size = getattr(self, 'chunk_size', 16)
+            max_chunks = getattr(self, 'max_chunks', None)
+            batch_ar_chunks = []
+            for d in a_batch_raw_data:
+                request_chunks = [
+                    split_target_into_chunks(tokenizer, r['target_new'], chunk_size, max_chunks)
+                    for r in d['requests']
+                ]
+                batch_ar_chunks.append(request_chunks)
+        a_batch_organized_data = (batch_size, batch_edit_signal, rel_moe_mask, gen_moe_mask, loc_moe_mask,
+            packed_rel_data, packed_gen_data, packed_loc_data, batch_retr_neib_data, batch_retr_prot_data,
+            batch_ar_chunks)
         return move_to_device(a_batch_organized_data, self.device)
         
     def train_a_batch(self, a_batch_organized_data):
         eps = 1e-8
         vllm = self.vllm
-        (batch_size, batch_edit_signal, rel_moe_mask, gen_moe_mask, loc_moe_mask, 
-            packed_rel_data, packed_gen_data, packed_loc_data, batch_retr_neib_data, 
-            batch_retr_prot_data) = a_batch_organized_data
+        (batch_size, batch_edit_signal, rel_moe_mask, gen_moe_mask, loc_moe_mask,
+            packed_rel_data, packed_gen_data, packed_loc_data, batch_retr_neib_data,
+            batch_retr_prot_data, batch_ar_chunks) = a_batch_organized_data
+        # batch_ar_chunks is set when ar_mode=True (Task 3); used by AR training loop in Task 4
         # initialize losses
         loss = 0
         log_dict = {}

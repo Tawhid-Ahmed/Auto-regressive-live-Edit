@@ -14,6 +14,10 @@ def get_attr():
     parser.add_argument('-ckpt', '--editor_ckpt_path', type=str, default = None, help='For Editors that needs training.')
     parser.add_argument('-dn', '--data_name', type=str, required = True, help = 'Evaluating dataset, including EVQA, EIC.')
     parser.add_argument('-dsn', '--data_sample_n', type=int, default = None, help = 'Sample number for evaluation.')
+    # AR-LiveEdit (no behavior change when ar_mode=False)
+    parser.add_argument('--ar_mode', action='store_true', help='Enable autoregressive chunk-wise edit mode.')
+    parser.add_argument('--chunk_size', type=int, default=16, help='Target chunk size in tokens for AR mode.')
+    parser.add_argument('--max_chunks', type=int, default=None, help='Optional max chunks per target in AR mode (default: unlimited).')
     args = parser.parse_args()
     # Treat common sentinels as "no checkpoint"
     if isinstance(args.editor_ckpt_path, str) and args.editor_ckpt_path.strip().lower() in {"none", "null", ""}:
@@ -29,6 +33,10 @@ class cfg:
     editor_ckpt_path = 'records/...'
     data_name = 'EVQA' # 'EVQA', 'EIC'
     data_sample_n = 100 # 231, 530, 1300, 3000
+    # AR-LiveEdit
+    ar_mode = False
+    chunk_size = 16
+    max_chunks = None
 
 if __name__ == '__main__':
     cfg = get_attr()
