@@ -1,36 +1,128 @@
 from typing import List, Union, Optional
+import os
+from pathlib import Path
 from ..base import BaseVLLMForEdit
 from PIL.Image import Image as ImageClass
 from transformers import  AutoTokenizer
 import torch
 
+def _load_blip2_from_local_dir(model_path: str, device: str):
+    """Load BLIP2 model and processor from a local directory without using the Hub (avoids HFValidationError on Windows paths)."""
+    from transformers import Blip2Config, Blip2ForConditionalGeneration, Blip2Processor
+    try:
+        from huggingface_hub.errors import HFValidationError
+    except ImportError:
+        from huggingface_hub import HFValidationError
+
+    model_path = str(Path(model_path).resolve())
+    config_path = os.path.join(model_path, "config.json")
+    if not os.path.isfile(config_path):
+        raise FileNotFoundError(f"BLIP2 config not found: {config_path}")
+
+    # Load config from file (no Hub call)
+    config = Blip2Config.from_json_file(config_path)
+    # Create model and load weights from local file(s)
+    model = Blip2ForConditionalGeneration(config)
+    # Weights: try safetensors first, then pytorch_model.bin
+    weights_path = None
+    for name in ("model.safetensors", "pytorch_model.bin"):
+        p = os.path.join(model_path, name)
+        if os.path.isfile(p):
+            weights_path = p
+            break
+    if weights_path is None:
+        # Sharded safetensors
+        idx_path = os.path.join(model_path, "model.safetensors.index.json")
+        if os.path.isfile(idx_path):
+            import json
+            with open(idx_path) as f:
+                index = json.load(f)
+            state_dict = {}
+            for fn in index.get("weight_map", {}).values():
+                fp = os.path.join(model_path, fn)
+                if os.path.isfile(fp):
+                    try:
+                        from safetensors.torch import load_file
+                        state_dict.update(load_file(fp))
+                    except Exception:
+                        try:
+                            state_dict.update(torch.load(fp, map_location="cpu", weights_only=True))
+                        except TypeError:
+                            state_dict.update(torch.load(fp, map_location="cpu"))
+            if state_dict:
+                model.load_state_dict(state_dict, strict=False)
+                weights_path = "(sharded)"
+    if weights_path and weights_path != "(sharded)":
+        if weights_path.endswith(".safetensors"):
+            from safetensors.torch import load_file
+            state_dict = load_file(weights_path)
+        else:
+            try:
+                state_dict = torch.load(weights_path, map_location="cpu", weights_only=True)
+            except TypeError:
+                state_dict = torch.load(weights_path, map_location="cpu")
+        model.load_state_dict(state_dict, strict=False)
+
+    # Processor: try from_pretrained first; on HFValidationError load from local files
+    try:
+        processor = Blip2Processor.from_pretrained(model_path, local_files_only=True)
+    except HFValidationError:
+        # Load processor from local files without passing directory path to Hub
+        image_processor_path = os.path.join(model_path, "preprocessor_config.json")
+        if os.path.isfile(image_processor_path):
+            from transformers import Blip2ImageProcessor
+            image_processor = Blip2ImageProcessor.from_json_file(image_processor_path)
+        else:
+            from transformers import Blip2ImageProcessor
+            image_processor = Blip2ImageProcessor()
+        # Tokenizer from tokenizer.json file (no Hub path)
+        tokenizer_json = os.path.join(model_path, "tokenizer.json")
+        if not os.path.isfile(tokenizer_json):
+            raise FileNotFoundError(f"Processor fallback requires {tokenizer_json}")
+        from transformers import PreTrainedTokenizerFast
+        tokenizer = PreTrainedTokenizerFast(tokenizer_file=tokenizer_json)
+        processor = Blip2Processor(image_processor=image_processor, tokenizer=tokenizer)
+    return model, processor
+
+
 class BLIP2OPTForEdit(BaseVLLMForEdit):
     '''For blip2-opt 2.7b'''
     def __init__(self, model_path:str, device = 'cuda') -> None:
         from transformers import Blip2Processor, Blip2ForConditionalGeneration
-        import torch
-        # Load model without device_map to avoid hanging, then move to device manually
-        # This is more reliable and gives better error messages
-        print(f"Loading BLIP2 model from {model_path}...")
         try:
-            # Load on CPU first to avoid OOM during loading
-            # Use float32 (not float16) to avoid dtype mismatches with processor outputs
-            self.model = Blip2ForConditionalGeneration.from_pretrained(
-                model_path, 
-                device_map=None,  # Don't use device_map to avoid hanging
-                torch_dtype=torch.float32  # Use float32 to match processor output dtype
-            )
-            print("Model loaded, moving to device...")
-            # Move to target device
+            from huggingface_hub.errors import HFValidationError
+        except ImportError:
+            from huggingface_hub import HFValidationError
+        import torch
+        model_path = str(Path(model_path).resolve())
+        print(f"Loading BLIP2 model from {model_path}...")
+        config_json = os.path.join(model_path, "config.json")
+        _p = Path(model_path)
+        is_local_path = os.path.sep in model_path or (getattr(_p, "drive", "") != "")
+        try:
+            # Local path (e.g. Windows): load from files to avoid Hub repo_id validation
+            if os.path.isfile(config_json):
+                self.model, self.processor = _load_blip2_from_local_dir(model_path, device)
+            elif is_local_path or os.path.isdir(model_path):
+                raise FileNotFoundError(
+                    f"Model directory not found or missing config.json: {model_path}. "
+                    "Download the BLIP2 model (e.g. Salesforce/blip2-opt-2.7b) into this path."
+                )
+            else:
+                # Hub repo id
+                self.model = Blip2ForConditionalGeneration.from_pretrained(
+                    model_path,
+                    local_files_only=False,
+                    device_map=None,
+                    torch_dtype=torch.float32
+                )
+                self.processor = Blip2Processor.from_pretrained(model_path, local_files_only=False)
+            # Move model to device
             if device == 'cpu':
                 device_obj = torch.device('cpu')
                 self.model = self.model.to(device_obj)
             else:
-                # Extract device index if it's a string like "cuda:0"
-                if isinstance(device, str) and ':' in device:
-                    device_obj = torch.device(device)
-                else:
-                    device_obj = torch.device(device if isinstance(device, str) else f'cuda:{device}')
+                device_obj = torch.device(device) if isinstance(device, str) and ':' in device else torch.device(device if isinstance(device, str) else f'cuda:{device}')
                 self.model = self.model.to(device_obj)
             print(f"Model moved to {device_obj}")
         except Exception as e:
@@ -38,7 +130,6 @@ class BLIP2OPTForEdit(BaseVLLMForEdit):
             import traceback
             traceback.print_exc()
             raise
-        self.processor = Blip2Processor.from_pretrained(model_path)
         self.model = self.model.eval().requires_grad_(False)
         super().__init__(self.model, device, False)
 

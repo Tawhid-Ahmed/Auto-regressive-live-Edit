@@ -5,13 +5,15 @@ from torch.nn.utils.rnn import pad_sequence
 from typing import Any, Dict, List, Tuple, Optional
 from dataset.vllm import BaseVLLMEditData
 from .modules import QVExtractor, LowRankGenerator
-from .chunk_utils import split_target_into_chunks
+from .chunk_utils import split_target_into_chunks, reconstruct_text_from_chunks
 from dataclasses import dataclass
 from ...base import BaseConfig
 from torch.optim import Adam
 import torch, os, yaml
 from torch import nn
 import numpy as np
+import threading
+import time
 
 @dataclass
 class LiveEditConfig(BaseConfig):
@@ -77,6 +79,7 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         # for inference & other hyper-parameters
         self.edit_layer_path = self.cfg.llm_layer_tmp.format(self.cfg.edit_layer_i)
         self.train_edit_residual = None  # Set in train_a_batch; hook must not assume it exists during data prep
+        self._model_forward_lock = threading.Lock()  # avoid data-loader and train_a_batch running model concurrently
         self.wrap_and_hook()
         self.restore_to_original_model()
         self.set_train(False)
@@ -121,7 +124,10 @@ class LiveEdit(VLLMBaseEditorWithTraining):
                 vision_reps = reps[:, self.now_infer_vt_range[0]:self.now_infer_vt_range[1]]
                 query_reps = reps[:, self.now_infer_vt_range[1]:self.now_infer_query_pos_end] 
                 self.now_infer_inpt_embd_shape = self.now_infer_vt_range = self.now_infer_query_pos_end = None
-                moe_cs, moe_rs, fuse_coe = self.retrieve_moes(vision_reps, query_reps)
+                chunk_idx = getattr(self, 'current_infer_chunk_index', None)
+                if not getattr(self, 'ar_use_routing_gate', True):
+                    chunk_idx = None  # ablation: routing gate off = full pool
+                moe_cs, moe_rs, fuse_coe = self.retrieve_moes(vision_reps, query_reps, chunk_index=chunk_idx)
                 edit_residual = self.get_edit_residual(reps, moe_cs, moe_rs, fuse_coe)
                 output = apply_edit_residual(output, edit_residual)
             return output
@@ -131,23 +137,58 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         edit_layer.edit_layer_hooked = True
         edit_layer.register_forward_hook(edit_with_moes)
 
-    def retrieve_moes(self, vision_reps:torch.Tensor, query_reps:torch.Tensor, 
-                      return_retr_details = False):
-        '''Only for inference stage.'''
+    def retrieve_moes(self, vision_reps:torch.Tensor, query_reps:torch.Tensor,
+                      chunk_index: Optional[int] = None, return_retr_details: bool = False):
+        '''Only for inference stage. When chunk_index is set (AR mode), gate retrieval to pool entries with that chunk index.'''
+        t0 = time.perf_counter()
         # inpt_vision_reps: [b, l, hidden_size]
         assert len(vision_reps) == len(query_reps) == 1
-        # Get lora weights
+        m = self.evr_pool.shape[0]
+        pool_indices = torch.arange(m, device=vision_reps.device)
+        # Chunk-aware gate: restrict to experts with matching chunk index when provided
+        chunk_index_pool = getattr(self, 'chunk_index_pool', None)
+        if chunk_index is not None and chunk_index_pool and len(chunk_index_pool) == m:
+            gate = torch.tensor([ci == chunk_index for ci in chunk_index_pool], device=vision_reps.device, dtype=torch.bool)
+            if gate.any():
+                pool_indices = pool_indices[gate]
+                self.evr_pool_gated = self.evr_pool[gate]
+                self.eqr_pool_gated = self.eqr_pool[gate]
+                self.moe_cs_pool_gated = self.moe_cs_pool[gate]
+                self.moe_rs_pool_gated = self.moe_rs_pool[gate]
+            else:
+                pool_indices = torch.arange(m, device=vision_reps.device)
+                self.evr_pool_gated = self.evr_pool
+                self.eqr_pool_gated = self.eqr_pool
+                self.moe_cs_pool_gated = self.moe_cs_pool
+                self.moe_rs_pool_gated = self.moe_rs_pool
+        else:
+            self.evr_pool_gated = self.evr_pool
+            self.eqr_pool_gated = self.eqr_pool
+            self.moe_cs_pool_gated = self.moe_cs_pool
+            self.moe_rs_pool_gated = self.moe_rs_pool
+        # Get lora weights (same logic on gated or full pool)
         ivr = self.inpt_extractor.extract_vision(query_reps, vision_reps) # [1, eqe_n, module_dim]
-        vis_sim = torch.einsum('bed,med->bme', ivr, self.evr_pool).mean(2) * self.sim_scale # [1, m]
+        vis_sim = torch.einsum('bed,med->bme', ivr, self.evr_pool_gated).mean(2) * self.sim_scale # [1, m_gate]
         ivr_prot = self.inpt_extractor.extract_from_visprot(query_reps) # [1, eqe_n, module_dim]
         vis_sim_prot = torch.einsum('bed,bed->be', ivr, ivr_prot).mean(1, True) * self.sim_scale # [1, 1]
-        retrieval_map = (vis_sim > vis_sim_prot).to(torch.bool)[0] # [1, m] -> [m]
+        retrieval_map_gated = (vis_sim > vis_sim_prot).to(torch.bool)[0] # [m_gate]
+        # Map back to full pool indices for indexing moe_cs_pool / moe_rs_pool / eqr_pool
+        selected_gated = pool_indices[retrieval_map_gated]
+        retrieval_map = torch.zeros(m, dtype=torch.bool, device=vision_reps.device)
+        if len(selected_gated) > 0:
+            retrieval_map[selected_gated] = True
         moe_cs = self.moe_cs_pool[retrieval_map]
         moe_rs = self.moe_rs_pool[retrieval_map]
         # Get fuse coefficient
         iqr = self.inpt_extractor.extract_query(query_reps) # [1, eqe_n, module_dim]
         eqr = self.eqr_pool[retrieval_map] # [m, eqe_n, module_dim]
         fuse_coe = self.get_moe_fuse_coe(iqr, eqr)
+        elapsed = time.perf_counter() - t0
+        self._last_retrieval_time_ms = elapsed * 1000.0  # for eval/overhead logging
+        if getattr(self, 'verbose', False):
+            n_retr = int(retrieval_map.sum().item())
+            gate_used = chunk_index is not None and chunk_index_pool and len(chunk_index_pool) == m
+            print(f"[LiveEdit retrieval] chunk_index={chunk_index} gate_used={gate_used} n_retrieved={n_retr} time_ms={self._last_retrieval_time_ms:.2f}")
         if not return_retr_details:
             return moe_cs, moe_rs, fuse_coe
         else:
@@ -214,19 +255,78 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         self.evr_pool = torch.zeros([0, self.cfg.retrieval_editor.eqe_n, self.cfg.retrieval_editor.module_dim], device=self.device) # editing-relevant vision representation pool
         self.moe_cs_pool = torch.zeros([0, self.cfg.retrieval_editor.lora_rank, self.cfg.llm_mid_dim], device=self.device) # lora 1 column weights pool
         self.moe_rs_pool = torch.zeros([0, self.cfg.retrieval_editor.lora_rank, self.cfg.llm_mid_dim], device=self.device) # lora 1 row weights pool
+        # Chunk index per pool entry for AR routing gate (-1 = non-AR / single-pass)
+        self.chunk_index_pool: List[int] = []
 
     def edit_one_piece(self, request: Dict) -> None:
-        """request = {'image': PILImage, 'prompt': str, 'target_new': str, ...} """
+        """request = {'image': PILImage, 'prompt': str, 'target_new': str, ...}
+        In AR mode (ar_mode=True), performs chunk-wise edits and appends one edit per chunk;
+        on empty chunks or any failure, falls back to single-pass edit with full target_new.
+        """
         self.is_editing = True
-        self.requests_pool.append(request)
+        ar_mode = getattr(self, 'ar_mode', False)
+        if not ar_mode:
+            self._edit_one_piece_single(request)
+            self.is_editing = False
+            return
+        # AR path: chunk-wise edit loop with safe fallback
+        saved_len = len(self.requests_pool)
+        try:
+            tokenizer = self.vllm.get_llm_tokenizer()
+            chunk_size = getattr(self, 'chunk_size', 16)
+            max_chunks = getattr(self, 'max_chunks', None)
+            chunks = split_target_into_chunks(
+                tokenizer, request['target_new'], chunk_size, max_chunks
+            )
+            if not chunks:
+                raise ValueError("AR mode: no chunks from target_new")
+            for t in range(len(chunks)):
+                target_t = reconstruct_text_from_chunks(tokenizer, chunks[: t + 1])
+                r = {
+                    'prompt': request['prompt'],
+                    'image': request['image'],
+                    'target': target_t,
+                }
+                pre_vision_reps, vision_reps, query_reps, ans_reps = self.get_reps_for_edit(
+                    self.vllm, r
+                )
+                eqr, evr, moe_c, moe_r = self.get_new_edit(
+                    vision_reps, query_reps, ans_reps
+                )
+                self.requests_pool.append(request)
+                self.eqr_pool = torch.cat([self.eqr_pool, eqr], 0)
+                self.evr_pool = torch.cat([self.evr_pool, evr], 0)
+                self.moe_cs_pool = torch.cat([self.moe_cs_pool, moe_c], 0)
+                self.moe_rs_pool = torch.cat([self.moe_rs_pool, moe_r], 0)
+                chunk_index_pool = getattr(self, 'chunk_index_pool', None)
+                if chunk_index_pool is not None:
+                    self.chunk_index_pool.append(t)
+            self.is_editing = False
+            return
+        except Exception:
+            # Fallback: truncate any partial appends and do single-pass edit
+            self.requests_pool = self.requests_pool[:saved_len]
+            self.eqr_pool = self.eqr_pool[:saved_len]
+            self.evr_pool = self.evr_pool[:saved_len]
+            self.moe_cs_pool = self.moe_cs_pool[:saved_len]
+            self.moe_rs_pool = self.moe_rs_pool[:saved_len]
+            if getattr(self, 'chunk_index_pool', None) is not None:
+                self.chunk_index_pool = self.chunk_index_pool[:saved_len]
+        self._edit_one_piece_single(request)
+        self.is_editing = False
+
+    def _edit_one_piece_single(self, request: Dict) -> None:
+        """Single-pass edit: one (eqr, evr, moe_c, moe_r) for full target_new. Used by edit_one_piece."""
         r = {'prompt': request['prompt'], 'image': request['image'], 'target': request['target_new']}
         pre_vision_reps, vision_reps, query_reps, ans_reps = self.get_reps_for_edit(self.vllm, r)
-        eqr, evr, moe_c, moe_r =  self.get_new_edit(vision_reps, query_reps, ans_reps)
+        eqr, evr, moe_c, moe_r = self.get_new_edit(vision_reps, query_reps, ans_reps)
+        self.requests_pool.append(request)
         self.eqr_pool = torch.cat([self.eqr_pool, eqr], 0)
         self.evr_pool = torch.cat([self.evr_pool, evr], 0)
         self.moe_cs_pool = torch.cat([self.moe_cs_pool, moe_c], 0)
         self.moe_rs_pool = torch.cat([self.moe_rs_pool, moe_r], 0)
-        self.is_editing = False 
+        if getattr(self, 'chunk_index_pool', None) is not None:
+            self.chunk_index_pool.append(-1)  # non-AR 
 
     def edit_batch(self, requests: List[Dict]):
         raise
@@ -251,6 +351,10 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         
         
     def organize_batch_data(self, a_batch_raw_data:List):
+        with self._model_forward_lock:
+            return self._organize_batch_data_impl(a_batch_raw_data)
+
+    def _organize_batch_data_impl(self, a_batch_raw_data:List):
         vllm = self.vllm_data_proc # use the VLLM used to preprocess data
         batch_size = len(a_batch_raw_data)
         batch_edit_signal = []
@@ -279,6 +383,7 @@ class LiveEdit(VLLMBaseEditorWithTraining):
                 l = d['locality'][loc_name][i]
                 batch_loc_data[loc_name].append({'prompts': [l['prompt']], 'imgs': [l['image']], 'targets': [l['target']]})
         # Fuse moe masks
+        rel_edit_i_request_indices = list(rel_edit_i)  # [batch] request index per batch item (for AR chunk indexing)
         edit_ns = torch.tensor([len(bes) for bes in batch_edit_signal], device=self.device)
         cols = torch.sum(edit_ns)
         start_indices = torch.cumsum(torch.cat([torch.tensor([0], device=self.device), edit_ns[:-1]]), dim=0).unsqueeze(1)
@@ -365,15 +470,22 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         a_batch_organized_data = (batch_size, batch_edit_signal, rel_moe_mask, gen_moe_mask, loc_moe_mask,
             packed_rel_data, packed_gen_data, packed_loc_data, batch_retr_neib_data, batch_retr_prot_data,
             batch_ar_chunks)
+        if getattr(self, 'ar_mode', False):
+            a_batch_organized_data = (*a_batch_organized_data, rel_edit_i_request_indices)
         return move_to_device(a_batch_organized_data, self.device)
         
     def train_a_batch(self, a_batch_organized_data):
+        with self._model_forward_lock:
+            return self._train_a_batch_impl(a_batch_organized_data)
+
+    def _train_a_batch_impl(self, a_batch_organized_data):
         eps = 1e-8
         vllm = self.vllm
         (batch_size, batch_edit_signal, rel_moe_mask, gen_moe_mask, loc_moe_mask,
             packed_rel_data, packed_gen_data, packed_loc_data, batch_retr_neib_data,
-            batch_retr_prot_data, batch_ar_chunks) = a_batch_organized_data
-        # batch_ar_chunks is set when ar_mode=True (Task 3); used by AR training loop in Task 4
+            batch_retr_prot_data, batch_ar_chunks) = a_batch_organized_data[:11]
+        rel_edit_i = a_batch_organized_data[11] if len(a_batch_organized_data) > 11 else None
+        # batch_ar_chunks / rel_edit_i set when ar_mode=True (Task 3); AR loop in Task 4
         # initialize losses
         loss = 0
         log_dict = {}
@@ -384,20 +496,41 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         # evrs = torch.cat([ne[1] for ne in new_edit], 0) # [batch_request_n, eqe_n, d]
         moe_cs = torch.cat([ne[2] for ne in new_edit], 0) # [batch_request_n, rank_n, d1]
         moe_rs = torch.cat([ne[3] for ne in new_edit], 0) # [batch_request_n, rank_n, d2]
-        # Reliability edit loss
+        # Reliability edit loss (AR path: chunk-step loop with simple aggregate when ar_mode=True)
         rel_loss = 0
         rel_xyms, rel_mid_reps, rel_edit_reps = packed_rel_data
-        for xyms, mr, er, mm in zip(rel_xyms, rel_mid_reps, rel_edit_reps, rel_moe_mask):
-            (input_embeds, vt_range), label_ids, label_masks = xyms
-            pre_vision_reps, vision_reps, query_reps, ans_reps = er
-            iqr = self.inpt_extractor.extract_query(query_reps) # [1, eqe_n, module_dim]
-            fuse_coe = self.get_moe_fuse_coe(iqr, eqrs[mm]) # [1, selected_request_n]
-            self.train_edit_residual = self.get_edit_residual(torch.cat(er, 1), 
-                moe_cs[mm], moe_rs[mm], fuse_coe)
-            logits = vllm.forward_from_mid_layer(input_embeds, vt_range, 
-                mr, self.cfg.llm_layer_tmp, self.cfg.edit_layer_i).logits
-            rel_loss += vllm.label_loss(logits, label_ids, label_masks, True)
-        rel_loss /= batch_size
+        if getattr(self, 'ar_mode', False) and batch_ar_chunks is not None and rel_edit_i is not None:
+            for b, (xyms, mr, er, mm) in enumerate(zip(rel_xyms, rel_mid_reps, rel_edit_reps, rel_moe_mask)):
+                (input_embeds, vt_range), label_ids, label_masks = xyms
+                pre_vision_reps, vision_reps, query_reps, ans_reps = er
+                iqr = self.inpt_extractor.extract_query(query_reps)
+                fuse_coe = self.get_moe_fuse_coe(iqr, eqrs[mm])
+                self.train_edit_residual = self.get_edit_residual(torch.cat(er, 1), moe_cs[mm], moe_rs[mm], fuse_coe)
+                logits = vllm.forward_from_mid_layer(input_embeds, vt_range, mr, self.cfg.llm_layer_tmp, self.cfg.edit_layer_i).logits
+                chunks_b = batch_ar_chunks[b][rel_edit_i[b]]
+                if not chunks_b:
+                    continue
+                for t, chunk_t in enumerate(chunks_b):
+                    start_pos = sum(len(chunks_b[k]) for k in range(t))
+                    end_pos = start_pos + len(chunk_t)
+                    chunk_mask = torch.zeros_like(label_masks, device=label_masks.device, dtype=label_masks.dtype)
+                    chunk_mask[:, start_pos:end_pos] = label_masks[:, start_pos:end_pos]
+                    if chunk_mask.sum() == 0:
+                        continue
+                    rel_loss += vllm.label_loss(logits, label_ids, chunk_mask, True)
+            rel_loss = rel_loss / batch_size if batch_size > 0 else rel_loss
+        else:
+            for xyms, mr, er, mm in zip(rel_xyms, rel_mid_reps, rel_edit_reps, rel_moe_mask):
+                (input_embeds, vt_range), label_ids, label_masks = xyms
+                pre_vision_reps, vision_reps, query_reps, ans_reps = er
+                iqr = self.inpt_extractor.extract_query(query_reps) # [1, eqe_n, module_dim]
+                fuse_coe = self.get_moe_fuse_coe(iqr, eqrs[mm]) # [1, selected_request_n]
+                self.train_edit_residual = self.get_edit_residual(torch.cat(er, 1), 
+                    moe_cs[mm], moe_rs[mm], fuse_coe)
+                logits = vllm.forward_from_mid_layer(input_embeds, vt_range, 
+                    mr, self.cfg.llm_layer_tmp, self.cfg.edit_layer_i).logits
+                rel_loss += vllm.label_loss(logits, label_ids, label_masks, True)
+            rel_loss /= batch_size
         log_dict['Reliability loss'] = float(rel_loss)
         loss += rel_loss * self.cfg.train_cfg.rel_lambda
         # Generality edit losses

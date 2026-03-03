@@ -1,7 +1,7 @@
 #%%
 from utils.GLOBAL import ROOT_PATH
 from utils import load_vllm_editor
-import os, argparse
+import os, argparse, time, json
 
 
 def get_attr():
@@ -58,6 +58,7 @@ class cfg:
 
 
 if __name__ == '__main__':
+    t0 = time.time()
     cfg = get_attr()
     cfg.data_name = cfg.data_name.upper()
     # load editor
@@ -91,3 +92,10 @@ if __name__ == '__main__':
         log_per_i = cfg.log_per_i, ema_alpha = cfg.ema_alpha, random_seed = cfg.random_seed,
         data_buffer_size = cfg.data_buffer_size)
     editor.train(cfg.epochs)
+    elapsed = time.time() - t0
+    runtime = {"runtime_seconds": round(elapsed, 2), "runtime_minutes": round(elapsed / 60, 2)}
+    run_dir = os.path.dirname(editor.save_ckpt_dir)
+    runtime_path = os.path.join(run_dir, "runtime.json")
+    with open(runtime_path, "w") as f:
+        json.dump(runtime, f, indent=2)
+    print("[Timer] Total elapsed: %.2f s (%.2f min). Saved to %s" % (elapsed, elapsed / 60, runtime_path))

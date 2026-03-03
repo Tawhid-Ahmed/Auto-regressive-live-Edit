@@ -118,7 +118,14 @@ class Trace(contextlib.AbstractContextManager):
                 inpt = invoke_with_optional_args(edit_input, input=inpt, layer=self.layer)
             return inpt
 
-        def forward_hook_k(m, args, kargs, output):
+        def forward_hook_k(m, args, kargs_or_output, output=None):
+            # PyTorch normal path: hook(module, args, kwargs, result) (4 args).
+            # PyTorch always_call/exception path: hook(module, args, result) (3 args).
+            if output is None:
+                output = kargs_or_output
+                kargs = {}
+            else:
+                kargs = kargs_or_output
             return __forward_hook_func__(m, (args, kargs), output)
 
         def forward_hook(m, inputs, output):

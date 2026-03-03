@@ -39,12 +39,14 @@ def main():
     assert batch_ar_chunks is None, f"With ar_mode=False expected batch_ar_chunks None, got {type(batch_ar_chunks)}"
     print("  [PASS] ar_mode=False: batch has 11 elements, batch_ar_chunks is None")
 
-    # Test 2: ar_mode=True -> batch_ar_chunks is list of chunk lists
+    # Test 2: ar_mode=True -> batch has 12 elements (batch_ar_chunks + rel_edit_i)
     editor.ar_mode = True
     batch_organized_ar = editor.organize_batch_data(a_batch_raw)
-    assert len(batch_organized_ar) == 11
+    assert len(batch_organized_ar) == 12, f"With ar_mode=True expected 12 elements, got {len(batch_organized_ar)}"
     batch_ar_chunks_ar = batch_organized_ar[10]
+    rel_edit_i = batch_organized_ar[11]
     assert batch_ar_chunks_ar is not None, "With ar_mode=True expected batch_ar_chunks non-None"
+    assert rel_edit_i is not None and len(rel_edit_i) == batch_size, "rel_edit_i should be list of length batch_size"
     assert len(batch_ar_chunks_ar) == batch_size, f"Expected {batch_size} batch items, got {len(batch_ar_chunks_ar)}"
     for i, request_chunks in enumerate(batch_ar_chunks_ar):
         assert isinstance(request_chunks, list), f"Batch item {i} should be list of request chunks"
@@ -52,7 +54,7 @@ def main():
             assert isinstance(chunks, list), f"Request {j} should be list of chunks"
             for c in chunks:
                 assert isinstance(c, list) and all(isinstance(t, int) for t in c), "Chunk should be list of token ids"
-    print("  [PASS] ar_mode=True: batch_ar_chunks has shape [batch][request][chunk][token_id]")
+    print("  [PASS] ar_mode=True: batch has 12 elements, batch_ar_chunks + rel_edit_i for Task 4")
 
     print("\nVerification passed: AR metadata is correctly attached in batch organization (Task 3).")
     return 0

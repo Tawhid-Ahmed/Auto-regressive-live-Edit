@@ -10,15 +10,61 @@ from tqdm import tqdm
 from time import time
 import numpy as np
 
+# Length-bin boundaries for AR-specific metrics (plan: <=16, 17-32, 33-64, 65+)
+LENGTH_BIN_EDGES = (16, 32, 64)  # bins: (0,16], (16,32], (32,64], (64,+inf)
+
+
+def _length_bin_name(num_tokens: int) -> str:
+    """Return bin name for a target token count."""
+    if num_tokens <= LENGTH_BIN_EDGES[0]:
+        return "<=16"
+    if num_tokens <= LENGTH_BIN_EDGES[1]:
+        return "17-32"
+    if num_tokens <= LENGTH_BIN_EDGES[2]:
+        return "33-64"
+    return "65+"
+
+
+def _chunk_em_f1(pre_y: torch.Tensor, label_ids: torch.Tensor, label_masks: torch.Tensor, chunk_size: int):
+    """
+    Compute per-chunk EM and token F1 over aligned prediction/label, then average.
+    pre_y, label_ids, label_masks: [1, L]. chunk_size: max tokens per chunk.
+    Returns (chunk_em, chunk_f1) in [0,1]; (0, 0) if no tokens.
+    """
+    L = label_ids.shape[1]
+    n = label_masks.sum().item()
+    if n == 0 or chunk_size <= 0:
+        return 0.0, 0.0
+    ems, f1s = [], []
+    for start in range(0, L, chunk_size):
+        end = min(start + chunk_size, L)
+        m = label_masks[:, start:end]
+        if m.sum() == 0:
+            continue
+        pred = pre_y[:, start:end]
+        ref = label_ids[:, start:end]
+        m_bool = m.bool() if m.dtype != torch.bool else m
+        chunk_em = ((pred == ref) | ~m_bool).all().item()
+        correct = ((pred == ref) * m).sum().item()
+        chunk_acc = correct / m.sum().item()
+        ems.append(float(chunk_em))
+        f1s.append(float(chunk_acc))
+    if not ems:
+        return 0.0, 0.0
+    return float(np.mean(ems)), float(np.mean(f1s))
+
+
 class VLLMEditorEvaluation():
     def __init__(self, editor:VLLMBaseEditor, eval_data:BaseVLLMEditData, 
-        evaluation_name = None, results_dir = 'eval_results') -> None:
+        evaluation_name = None, results_dir = 'eval_results', ar_chunk_size: int = 16) -> None:
         '''
         `results_dir` & `evaluation_name`: Used to create result directory.
             `evaluation_name` can be set as dataset name.
+        `ar_chunk_size`: Chunk size for AR-specific chunk EM/F1 (default 16).
         '''
         self.editor = editor
         self.eval_data = eval_data
+        self.ar_chunk_size = ar_chunk_size
         editor_name, model_name = editor.name_of_editor_and_model()
         t = datetime.now().strftime('%Y.%m.%d-%H.%M.%S')
         evaluation_name = evaluation_name if evaluation_name else t
@@ -142,26 +188,78 @@ class VLLMEditorEvaluation():
         def accuracy_and_prediction(input_embeds, vt_range, label_ids, label_masks):
             # label_ids/label_masks: [1, l2]
             assert len(label_ids) == 1 and len(label_masks) == 1
+            l2 = label_ids.shape[1]
             logits = vllm.get_llm_outpt(input_embeds, vt_range).logits # [1,l1,d]
             pre_y = torch.softmax(logits, -1).argmax(-1) # [1, l1]
-            pre_y = pre_y[:, -label_ids.shape[1]:] # [1, l2]
-            acc = ((pre_y == label_ids) * label_masks).sum()/label_masks.sum() 
+            pre_y = pre_y[:, -l2:]  # take last l2 positions
+            # align length: if model output was shorter than l2, pad on the left so indexing is safe
+            if pre_y.shape[1] < l2:
+                pad_len = l2 - pre_y.shape[1]
+                pre_y = torch.cat([
+                    torch.zeros(1, pad_len, dtype=pre_y.dtype, device=pre_y.device),
+                    pre_y
+                ], dim=1)
+            denom = label_masks.sum()
+            acc = ((pre_y == label_ids) * label_masks).sum() / denom if denom > 0 else 0.0
             return float(acc), pre_y
         tokenizer = vllm.get_llm_tokenizer()
+        chunk_size = getattr(self, 'ar_chunk_size', 16)
+        editor = getattr(self, 'editor', None)
         # reliability
         for rdr, edr in zip(rd['reliability'], ed['requests']):
             (input_embeds, vt_range), label_ids, label_masks = get_eval_xym(
                     edr['prompt'], edr['image'], edr['target_new'])
-            acc, pre_y = accuracy_and_prediction(input_embeds, vt_range, label_ids, label_masks)
-            rdr['predict_after_edit'] = tokenizer.decode(pre_y[label_masks.to(bool)])
+            # AR routing gate: set current_infer_chunk_index to last chunk of this request when gate on
+            if editor is not None and getattr(editor, 'ar_mode', False) and getattr(editor, 'ar_use_routing_gate', True):
+                from editor.vllm_editors.liveedit.chunk_utils import split_target_into_chunks
+                chunks = split_target_into_chunks(
+                    tokenizer, edr['target_new'],
+                    getattr(editor, 'chunk_size', 16),
+                    getattr(editor, 'max_chunks', None))
+                if chunks:
+                    editor.current_infer_chunk_index = len(chunks) - 1
+            try:
+                acc, pre_y = accuracy_and_prediction(input_embeds, vt_range, label_ids, label_masks)
+            finally:
+                if editor is not None and getattr(editor, 'ar_mode', False):
+                    editor.current_infer_chunk_index = None
+            # Move to CPU for indexing/compare; align to label length so boolean indexing is in bounds
+            pre_y = pre_y.to(torch.device('cpu'))
+            label_ids_c = label_ids.to(torch.device('cpu'))
+            label_masks_c = label_masks.to(torch.device('cpu'))
+            l2 = label_masks_c.shape[1]
+            if pre_y.shape[1] < l2:
+                pre_y = torch.cat([torch.zeros(1, l2 - pre_y.shape[1], dtype=pre_y.dtype), pre_y], dim=1)
+            elif pre_y.shape[1] > l2:
+                pre_y = pre_y[:, -l2:]
+            rdr['predict_after_edit'] = tokenizer.decode(pre_y[label_masks_c.to(bool)])
             rdr['acc'] = acc
+            # AR-specific: EM, target token count, chunk EM/F1
+            n_tok = label_masks_c.sum().item()
+            rdr['target_token_count'] = n_tok
+            if n_tok > 0:
+                pm = pre_y[label_masks_c.to(bool)]
+                lm = label_ids_c[label_masks_c.to(bool)]
+                em = (pm == lm).all().item() if pm.numel() == lm.numel() else False
+                rdr['em'] = float(em)
+                chunk_em, chunk_f1 = _chunk_em_f1(pre_y, label_ids_c, label_masks_c, chunk_size)
+                rdr['chunk_em'] = chunk_em
+                rdr['chunk_f1'] = chunk_f1
+            else:
+                rdr['em'] = 1.0
+                rdr['chunk_em'] = 0.0
+                rdr['chunk_f1'] = 0.0
         # generality
         for gen_name in ed['generality']:
             for rdg, edg in zip(rd['generality'][gen_name], ed['generality'][gen_name]):
                 (input_embeds, vt_range), label_ids, label_masks = get_eval_xym(
                     edg['prompt'], edg['image'], edg['target'])
                 acc, pre_y = accuracy_and_prediction(input_embeds, vt_range, label_ids, label_masks)
-                rdg['predict_after_edit'] = tokenizer.decode(pre_y[label_masks.to(bool)])
+                pre_y_c = pre_y.cpu()
+                label_masks_c = label_masks.cpu()
+                if pre_y_c.shape[1] != label_masks_c.shape[1]:
+                    pre_y_c = pre_y_c[:, -label_masks_c.shape[1]:] if pre_y_c.shape[1] >= label_masks_c.shape[1] else torch.cat([torch.zeros(1, label_masks_c.shape[1] - pre_y_c.shape[1], dtype=pre_y_c.dtype), pre_y_c], dim=1)
+                rdg['predict_after_edit'] = tokenizer.decode(pre_y_c[label_masks_c.to(bool)])
                 rdg['acc'] = acc
         # locality
         for loc_name in ed['locality']:
@@ -169,7 +267,11 @@ class VLLMEditorEvaluation():
                 (input_embeds, vt_range), _, label_masks = get_eval_xym(
                     edl['prompt'], edl['image'], edl['target'])
                 acc, pre_y = accuracy_and_prediction(input_embeds, vt_range, edl['before_edit_ids'], label_masks)
-                rdl['predict_after_edit'] = tokenizer.decode(pre_y[label_masks.to(bool)])
+                pre_y_c = pre_y.cpu()
+                label_masks_c = label_masks.cpu()
+                if pre_y_c.shape[1] != label_masks_c.shape[1]:
+                    pre_y_c = pre_y_c[:, -label_masks_c.shape[1]:] if pre_y_c.shape[1] >= label_masks_c.shape[1] else torch.cat([torch.zeros(1, label_masks_c.shape[1] - pre_y_c.shape[1], dtype=pre_y_c.dtype), pre_y_c], dim=1)
+                rdl['predict_after_edit'] = tokenizer.decode(pre_y_c[label_masks_c.to(bool)])
                 rdl['acc'] = acc
         return rd
 
@@ -225,6 +327,34 @@ class VLLMEditorEvaluation():
         for sub_metric in mean_res['locality'].keys():
             for value_name, value in mean_res['locality'][sub_metric].items():
                 mean_res['locality'][sub_metric][value_name] = value[0] / value[1]
+        # AR-specific: length-bin EM/F1 and chunk EM/F1 (bins: <=16, 17-32, 33-64, 65+)
+        bin_names = ["<=16", "17-32", "33-64", "65+"]
+        bin_agg = {b: {"em": [], "acc": [], "chunk_em": [], "chunk_f1": []} for b in bin_names}
+        for r in results:
+            for rr in r.get("reliability", []):
+                n = rr.get("target_token_count")
+                if n is None:
+                    continue
+                b = _length_bin_name(int(n))
+                if "em" in rr:
+                    bin_agg[b]["em"].append(rr["em"])
+                if "acc" in rr:
+                    bin_agg[b]["acc"].append(rr["acc"])
+                if "chunk_em" in rr:
+                    bin_agg[b]["chunk_em"].append(rr["chunk_em"])
+                if "chunk_f1" in rr:
+                    bin_agg[b]["chunk_f1"].append(rr["chunk_f1"])
+        mean_res["length_bin"] = {}
+        for b in bin_names:
+            arr = bin_agg[b]
+            count = len(arr["em"]) if arr["em"] else 0
+            mean_res["length_bin"][b] = {
+                "count": count,
+                "em": float(np.mean(arr["em"])) if arr["em"] else None,
+                "acc": float(np.mean(arr["acc"])) if arr["acc"] else None,
+                "chunk_em": float(np.mean(arr["chunk_em"])) if arr["chunk_em"] else None,
+                "chunk_f1": float(np.mean(arr["chunk_f1"])) if arr["chunk_f1"] else None,
+            }
         return mean_res
 
     def save_results(self, save_path:str, results:Dict, decimal = 4):

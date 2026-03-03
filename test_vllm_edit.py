@@ -2,7 +2,7 @@
 from utils import get_full_model_name, load_vllm_editor
 from evaluation.vllm_editor_eval import VLLMEditorEvaluation
 from utils.GLOBAL import ROOT_PATH
-import os, argparse, sys
+import os, argparse, sys, time, json
 
 def get_attr():
     parser = argparse.ArgumentParser()
@@ -14,6 +14,7 @@ def get_attr():
     parser.add_argument('-ckpt', '--editor_ckpt_path', type=str, default = None, help='For Editors that needs training.')
     parser.add_argument('-dn', '--data_name', type=str, required = True, help = 'Evaluating dataset, including EVQA, EIC.')
     parser.add_argument('-dsn', '--data_sample_n', type=int, default = None, help = 'Sample number for evaluation.')
+    parser.add_argument('-seed', '--eval_seed', type=int, default=None, help = 'Fixed seed for eval data shuffle (enables reproducible split for comparison).')
     # AR-LiveEdit (no behavior change when ar_mode=False)
     parser.add_argument('--ar_mode', action='store_true', help='Enable autoregressive chunk-wise edit mode.')
     parser.add_argument('--chunk_size', type=int, default=16, help='Target chunk size in tokens for AR mode.')
@@ -52,6 +53,11 @@ if __name__ == '__main__':
         sys.exit()
     print(cfg)
     editor = load_vllm_editor(cfg.editor_name, cfg.edit_model_name, cfg.device, None, cfg.editor_ckpt_path, False)
+    # AR-LiveEdit: set editor flags so edit_one_piece uses chunk-wise path when --ar_mode
+    if hasattr(editor, 'ar_mode'):
+        editor.ar_mode = getattr(cfg, 'ar_mode', False)
+        editor.chunk_size = getattr(cfg, 'chunk_size', 16)
+        editor.max_chunks = getattr(cfg, 'max_chunks', None)
     # load data
     if cfg.data_name == 'EVQA':
         from dataset.vllm import EVQA
@@ -68,7 +74,21 @@ if __name__ == '__main__':
         data_path = os.path.join(ROOT_PATH, 'data/VLKEB/eval.json')
         img_root_dir = os.path.join(ROOT_PATH, 'data/VLKEB/VLKEB_images')
         eval_data = VLKEB(data_path, img_root_dir, cfg.data_sample_n)
-    # evaluate
-    ev = VLLMEditorEvaluation(editor, eval_data, cfg.evaluation_name, 'eval_results')
-    ev.evaluate_sequential_edit(cfg.sequential_edit_n, False, None)
+    # evaluate (use fixed seed when provided for reproducible baseline vs AR comparison)
+    use_random = getattr(cfg, 'eval_seed', None) is not None
+    eval_seed = getattr(cfg, 'eval_seed', None)
+    ev = VLLMEditorEvaluation(editor, eval_data, cfg.evaluation_name, 'eval_results', ar_chunk_size=getattr(cfg, 'chunk_size', 16))
+    t0 = time.time()
+    ev.evaluate_sequential_edit(cfg.sequential_edit_n, use_random, eval_seed)
+    elapsed = time.time() - t0
+    mean_results_fname = ('seed_%s_mean_results.json' % eval_seed) if use_random else 'mean_results.json'
+    mean_results_path = os.path.join(ev.result_dir, 'sequential_edit_%s' % cfg.sequential_edit_n, mean_results_fname)
+    if os.path.exists(mean_results_path):
+        with open(mean_results_path, 'r') as f:
+            data = json.load(f)
+        data['runtime_seconds'] = round(elapsed, 2)
+        data['runtime_minutes'] = round(elapsed / 60, 2)
+        with open(mean_results_path, 'w') as f:
+            json.dump(data, f, indent=4)
+    print('[Timer] Total elapsed: %.2f s (%.2f min)' % (elapsed, elapsed / 60))
 
