@@ -2,14 +2,15 @@
 from utils import get_full_model_name, load_vllm_editor
 from evaluation.vllm_editor_eval import VLLMEditorEvaluation
 from utils.GLOBAL import ROOT_PATH
-import os, argparse, sys, time, json
+from datetime import datetime
+import os, argparse, time, json
 
 def get_attr():
     parser = argparse.ArgumentParser()
     parser.add_argument('-en', '--editor_name', type=str, help='Editor name: LiveEdit, FT_VL...', required=True)
     parser.add_argument('-mn', '--edit_model_name', type=str, help='Editing model name: llava...', required=True)
     parser.add_argument('-sen', '--sequential_edit_n', type=int, help='Edit number.', required=True)
-    parser.add_argument('-enp', '--eval_name_postfix', type=str, default = '', help='Postfix name of this evaluation.')
+    parser.add_argument('-enp', '--eval_name_postfix', type=str, default = '', help='Optional tag in the run folder name (each run also gets a timestamp).')
     parser.add_argument('-dvc', '--device', type=str, help='CUDA device for editing.', required=True)
     parser.add_argument('-ckpt', '--editor_ckpt_path', type=str, default = None, help='For Editors that needs training.')
     parser.add_argument('-dn', '--data_name', type=str, required = True, help = 'Evaluating dataset, including EVQA, EIC.')
@@ -43,14 +44,14 @@ if __name__ == '__main__':
     cfg = get_attr()
     cfg.editor_name = cfg.editor_name.lower()
     cfg.edit_model_name = get_full_model_name(cfg.edit_model_name)
-    cfg.evaluation_name = cfg.data_name.upper()
-    if cfg.eval_name_postfix != '':
-        cfg.evaluation_name = '%s-%s'%(cfg.evaluation_name, cfg.eval_name_postfix)
-    # if has evaluated, skip
-    eval_result_dir_path = os.path.join('eval_results', cfg.editor_name, cfg.edit_model_name, cfg.evaluation_name, 'single_edit')
-    if os.path.exists(eval_result_dir_path):
-        print('Has evaluated: %s'%eval_result_dir_path)
-        sys.exit()
+    # Unique folder per run: DATA[-tag][-ar]-YYYY.MM.DD-HH.MM.SS (matches training record style)
+    _parts = [cfg.data_name.upper()]
+    if cfg.ar_mode:
+        _parts.append('ar')
+    if cfg.eval_name_postfix:
+        _parts.append(cfg.eval_name_postfix)
+    _parts.append(datetime.now().strftime('%Y.%m.%d-%H.%M.%S'))
+    cfg.evaluation_name = '-'.join(_parts)
     print(cfg)
     editor = load_vllm_editor(cfg.editor_name, cfg.edit_model_name, cfg.device, None, cfg.editor_ckpt_path, False)
     # AR-LiveEdit: set editor flags so edit_one_piece uses chunk-wise path when --ar_mode
@@ -72,7 +73,7 @@ if __name__ == '__main__':
     elif cfg.data_name == 'VLKEB':
         from dataset.vllm import VLKEB
         data_path = os.path.join(ROOT_PATH, 'data/VLKEB/eval.json')
-        img_root_dir = os.path.join(ROOT_PATH, 'data/VLKEB/VLKEB_images')
+        img_root_dir = os.path.join(ROOT_PATH, 'data/VLKEB/VLKEB_images/mmkb_images')
         eval_data = VLKEB(data_path, img_root_dir, cfg.data_sample_n)
     # evaluate (use fixed seed when provided for reproducible baseline vs AR comparison)
     use_random = getattr(cfg, 'eval_seed', None) is not None

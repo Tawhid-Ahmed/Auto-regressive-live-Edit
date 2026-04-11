@@ -108,10 +108,11 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         # initialize for retrieval editor hooked into the VLLM
         def apply_edit_residual(outpt, edit_residual):
             if isinstance(outpt, (tuple, list)):
-                outpt = list(outpt) 
-                outpt[0] = outpt[0] + edit_residual
+                outpt = list(outpt)
+                er = edit_residual.to(dtype=outpt[0].dtype)
+                outpt[0] = outpt[0] + er
             else:
-                outpt = outpt + edit_residual
+                outpt = outpt + edit_residual.to(dtype=outpt.dtype)
             return outpt
         def edit_with_moes(module, args, output):
             if self.is_train and getattr(self, 'train_edit_residual', None) is not None:
@@ -121,14 +122,15 @@ class LiveEdit(VLLMBaseEditorWithTraining):
                 # inpt_reps = output[0] if isinstance(output, tuple) else output
                 reps = output[0] if isinstance(output, (tuple, list)) else output
                 assert reps.shape == self.now_infer_inpt_embd_shape 
-                vision_reps = reps[:, self.now_infer_vt_range[0]:self.now_infer_vt_range[1]]
-                query_reps = reps[:, self.now_infer_vt_range[1]:self.now_infer_query_pos_end] 
+                reps_f = reps.float()
+                vision_reps = reps_f[:, self.now_infer_vt_range[0]:self.now_infer_vt_range[1]]
+                query_reps = reps_f[:, self.now_infer_vt_range[1]:self.now_infer_query_pos_end]
                 self.now_infer_inpt_embd_shape = self.now_infer_vt_range = self.now_infer_query_pos_end = None
                 chunk_idx = getattr(self, 'current_infer_chunk_index', None)
                 if not getattr(self, 'ar_use_routing_gate', True):
                     chunk_idx = None  # ablation: routing gate off = full pool
                 moe_cs, moe_rs, fuse_coe = self.retrieve_moes(vision_reps, query_reps, chunk_index=chunk_idx)
-                edit_residual = self.get_edit_residual(reps, moe_cs, moe_rs, fuse_coe)
+                edit_residual = self.get_edit_residual(reps_f, moe_cs, moe_rs, fuse_coe)
                 output = apply_edit_residual(output, edit_residual)
             return output
         edit_layer = find_module(self.vllm.model, self.edit_layer_path)
@@ -203,11 +205,11 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         (input_embeds, vt_range), label_ids, label_masks = vllm.prompts_imgs_target_to_xym(
             [request['prompt']], [request['image']], [request['target']])
         edit_signal = vllm.get_mid_module_outpt(input_embeds, vt_range, self.edit_layer_path) 
-        pre_vision_reps = edit_signal[:, :vt_range[0]] # [1, l1, d]
-        vision_reps = edit_signal[:, vt_range[0]:vt_range[1]] # [1, l1, d]
-        query_reps = edit_signal[:, vt_range[1]:1 - label_masks.shape[1]] # [1, l2, d]
-        ans_reps = edit_signal[:, 1 - label_masks.shape[1]:] # [1, l3, d]
-        return pre_vision_reps, vision_reps, query_reps, ans_reps # Edit signals
+        pre_vision_reps = edit_signal[:, :vt_range[0]].float()
+        vision_reps = edit_signal[:, vt_range[0]:vt_range[1]].float()
+        query_reps = edit_signal[:, vt_range[1]:1 - label_masks.shape[1]].float()
+        ans_reps = edit_signal[:, 1 - label_masks.shape[1]:].float()
+        return pre_vision_reps, vision_reps, query_reps, ans_reps
 
     def get_new_edit(self, vision_reps:torch.Tensor, query_reps:torch.Tensor, ans_reps:torch.Tensor)->Tuple[torch.Tensor]:
         # vision_reps: [1, l1, d]; query_reps: [1, l2, d]; ans_reps: [1, l3, d]

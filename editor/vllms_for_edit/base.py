@@ -8,6 +8,8 @@ from abc import ABC, abstractmethod
 from torch import nn
 import torch
 
+from dataset.vllm import pil_image_from_path_or_pil
+
 
 def set_tokenizer_pad_id(tokenizer:AutoTokenizer, padding_side = 'right'):
     if tokenizer.pad_token_id == None:
@@ -44,7 +46,9 @@ class BaseVLLMForEdit(ABC):
             if not isinstance(imgs, (list, type(None))) or not isinstance(texts, list): 
                 raise BaseException('Not support type.')
             if isinstance(imgs, list) and all(i == None for i in imgs):
-                imgs = None 
+                imgs = None
+            elif isinstance(imgs, list):
+                imgs = [pil_image_from_path_or_pil(i) for i in imgs]
             ist_str = self.get_img_special_token_str()
             # auto add image special token for texts
             if self.auto_add_img_special_token and imgs != None and ist_str != None:

@@ -100,9 +100,48 @@ class BLIP2OPTForEdit(BaseVLLMForEdit):
         _p = Path(model_path)
         is_local_path = os.path.sep in model_path or (getattr(_p, "drive", "") != "")
         try:
-            # Local path (e.g. Windows): load from files to avoid Hub repo_id validation
+            device_map_loaded = False
+            # Local directory: use HF from_pretrained (avoids manual shard merge + .to(cuda) access violations on some Windows/GPU stacks).
             if os.path.isfile(config_json):
-                self.model, self.processor = _load_blip2_from_local_dir(model_path, device)
+                try:
+                    if device != "cpu" and torch.cuda.is_available():
+                        # fp16 + device_map: load weights directly on GPU (~half the VRAM of fp32 + avoids .to() peak).
+                        try:
+                            try:
+                                self.model = Blip2ForConditionalGeneration.from_pretrained(
+                                    model_path,
+                                    local_files_only=True,
+                                    device_map=device,
+                                    dtype=torch.float16,
+                                )
+                            except TypeError:
+                                self.model = Blip2ForConditionalGeneration.from_pretrained(
+                                    model_path,
+                                    local_files_only=True,
+                                    device_map=device,
+                                    torch_dtype=torch.float16,
+                                )
+                            device_map_loaded = True
+                        except Exception as e:
+                            print(
+                                "BLIP2 device_map fp16 load failed (%s: %s); falling back to CPU fp32 + .to(GPU)."
+                                % (type(e).__name__, e)
+                            )
+                            self.model = Blip2ForConditionalGeneration.from_pretrained(
+                                model_path, local_files_only=True
+                            )
+                    else:
+                        self.model = Blip2ForConditionalGeneration.from_pretrained(
+                            model_path, local_files_only=True
+                        )
+                    self.processor = Blip2Processor.from_pretrained(
+                        model_path, local_files_only=True
+                    )
+                except HFValidationError:
+                    self.model, self.processor = _load_blip2_from_local_dir(
+                        model_path, device
+                    )
+                    device_map_loaded = False
             elif is_local_path or os.path.isdir(model_path):
                 raise FileNotFoundError(
                     f"Model directory not found or missing config.json: {model_path}. "
@@ -117,14 +156,21 @@ class BLIP2OPTForEdit(BaseVLLMForEdit):
                     torch_dtype=torch.float32
                 )
                 self.processor = Blip2Processor.from_pretrained(model_path, local_files_only=False)
-            # Move model to device
-            if device == 'cpu':
-                device_obj = torch.device('cpu')
-                self.model = self.model.to(device_obj)
+            if device != "cpu" and torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            device_obj = (
+                torch.device(device)
+                if isinstance(device, str) and ":" in device
+                else torch.device(device if isinstance(device, str) else f"cuda:{device}")
+            )
+            if device_map_loaded:
+                print(f"Model on {device_obj} (device_map, fp16)")
+            elif device == "cpu":
+                self.model = self.model.to(torch.device("cpu"))
+                print("Model moved to cpu")
             else:
-                device_obj = torch.device(device) if isinstance(device, str) and ':' in device else torch.device(device if isinstance(device, str) else f'cuda:{device}')
                 self.model = self.model.to(device_obj)
-            print(f"Model moved to {device_obj}")
+                print(f"Model moved to {device_obj}")
         except Exception as e:
             print(f"ERROR loading BLIP2 model: {e}")
             import traceback
@@ -161,10 +207,13 @@ class BLIP2OPTForEdit(BaseVLLMForEdit):
             )
             query_output = query_outputs[0]
             # step 3: use the language model, conditioned on the query outputs and the prompt
-            language_model_inputs = self.model.language_projection(query_output)
+            proj = self.model.language_projection
+            qdtype = proj.weight.dtype
+            language_model_inputs = proj(query_output.to(dtype=qdtype))
             language_model_attention_mask = torch.ones(
                 language_model_inputs.size()[:-1], dtype=torch.long, device=self.device)
             inputs_embeds = self.model.language_model.get_input_embeddings()(input_ids)
+            inputs_embeds = inputs_embeds.to(dtype=language_model_inputs.dtype)
             inputs_embeds = torch.cat([language_model_inputs, inputs_embeds.to(self.device)], dim=1)
             attention_mask = torch.cat([language_model_attention_mask, attention_mask.to(self.device)], dim=1)
             inpt = {'attention_mask': attention_mask, 'inputs_embeds': inputs_embeds}
@@ -172,9 +221,9 @@ class BLIP2OPTForEdit(BaseVLLMForEdit):
         if imgs != None:
             inpt = self.processor(imgs, texts, return_tensors = 'pt', padding = True)
             inpt = {k: v.to(self.device) if hasattr(v, 'to') else v for k, v in inpt.items()}
-            # Ensure pixel_values match model dtype (float32)
             if 'pixel_values' in inpt:
-                inpt['pixel_values'] = inpt['pixel_values'].to(torch.float32)
+                model_dtype = next(self.model.parameters()).dtype
+                inpt['pixel_values'] = inpt['pixel_values'].to(dtype=model_dtype)
             llm_inpt = get_blip2_llm_inpt(inpt['pixel_values'], inpt['input_ids'], inpt['attention_mask'])
         else:
             inpt = self.get_llm_tokenizer()(texts, return_tensors = 'pt', padding = True).to(self.device)

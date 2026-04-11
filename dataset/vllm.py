@@ -7,6 +7,16 @@ from PIL import Image
 from tqdm import tqdm
 
 
+def pil_image_from_path_or_pil(image):
+    """Return a PIL Image; load from disk if ``image`` is a filesystem path string."""
+    if image is None:
+        return None
+    if isinstance(image, str):
+        with Image.open(image) as im:
+            return im.convert("RGB").copy()
+    return image
+
+
 class BaseVLLMEditData(BaseEditData):
     '''
     Functions used to read and preprocess VLLM editing datasets, which should be
@@ -132,15 +142,17 @@ class EIC(BaseVLLMEditData):
 
 class VLKEB(BaseVLLMEditData):
     def __init__(self, data_path:str = 'data/VLKEB/train.json', 
-                  img_root_dir:str = 'data/VLKEB/mmkb_images', data_n = None):
+                  img_root_dir:str = 'data/VLKEB/mmkb_images', data_n = None,
+                  preload_images: bool = False):
         print('Load VLKEB from: %s '% data_path)
         data_with_img_path = self.__init_eic_evqa__(data_path, img_root_dir, data_n)
         for d in data_with_img_path:
             d['locality']['text_loc'][0]['prompt'] = '%s?'%d['locality']['text_loc'][0]['prompt']
             d['locality']['image_loc'][0]['prompt'] = '%s The answer is:'%d['locality']['image_loc'][0]['prompt']
         data_with_img = deepcopy(data_with_img_path)
-        for d in tqdm(data_with_img, 'Loading images'):
-            self.__load_imgs_for_data_with_img_path__(d)
+        if preload_images:
+            for d in tqdm(data_with_img, 'Loading images'):
+                self.__load_imgs_for_data_with_img_path__(d)
         super().__init__(data_with_img, data_with_img_path)
 
     def dataset_name(self):

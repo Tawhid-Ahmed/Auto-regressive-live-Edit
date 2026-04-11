@@ -52,3 +52,5 @@ logs/
 # Misc
 *.bak
 *.tmp
+_diag_conda_run.cmd
+_diag_blip2_cuda_*.txt
