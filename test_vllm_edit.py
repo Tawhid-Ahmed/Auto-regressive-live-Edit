@@ -20,6 +20,13 @@ def get_attr():
     parser.add_argument('--ar_mode', action='store_true', help='Enable autoregressive chunk-wise edit mode.')
     parser.add_argument('--chunk_size', type=int, default=16, help='Target chunk size in tokens for AR mode.')
     parser.add_argument('--max_chunks', type=int, default=None, help='Optional max chunks per target in AR mode (default: unlimited).')
+    parser.add_argument(
+        '-dpath',
+        '--vlkeb_eval_json',
+        type=str,
+        default=None,
+        help='VLKEB only: path to eval JSON (default: data/VLKEB/eval.json under ROOT_PATH). Use for long-form `alt` smoke files.',
+    )
     args = parser.parse_args()
     # Treat common sentinels as "no checkpoint"
     if isinstance(args.editor_ckpt_path, str) and args.editor_ckpt_path.strip().lower() in {"none", "null", ""}:
@@ -72,7 +79,9 @@ if __name__ == '__main__':
         eval_data = EIC(data_path, img_root_dir, cfg.data_sample_n)
     elif cfg.data_name == 'VLKEB':
         from dataset.vllm import VLKEB
-        data_path = os.path.join(ROOT_PATH, 'data/VLKEB/eval.json')
+        data_path = getattr(cfg, 'vlkeb_eval_json', None) or os.path.join(ROOT_PATH, 'data/VLKEB/eval.json')
+        if data_path and not os.path.isabs(data_path):
+            data_path = os.path.join(ROOT_PATH, data_path)
         img_root_dir = os.path.join(ROOT_PATH, 'data/VLKEB/VLKEB_images/mmkb_images')
         eval_data = VLKEB(data_path, img_root_dir, cfg.data_sample_n)
     # evaluate (use fixed seed when provided for reproducible baseline vs AR comparison)

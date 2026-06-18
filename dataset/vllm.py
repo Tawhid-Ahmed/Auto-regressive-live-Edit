@@ -72,7 +72,8 @@ class BaseVLLMEditData(BaseEditData):
 
     def __init_eic_evqa__(self, data_path:str, img_root_dir:str, data_n = None):
         if data_n == None: data_n = 99999999
-        with open(data_path, 'r') as f:
+        # Always read dataset JSON as UTF-8 (Windows default cp1252 can fail).
+        with open(data_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
         data_n = min(len(data), data_n)
         return_data = []

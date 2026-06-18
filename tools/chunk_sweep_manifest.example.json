@@ -1,0 +1,18 @@
+[
+  {
+    "chunk_size": 8,
+    "results_path": "eval_results/liveedit/blip2-opt-2.7b/VLKEB-ar-VLKEB_long_ar_cs8_full-REPLACE_TIMESTAMP/sequential_edit_50/seed_42_mean_results.json"
+  },
+  {
+    "chunk_size": 16,
+    "results_path": "eval_results/liveedit/blip2-opt-2.7b/VLKEB-ar-VLKEB_long_ar_full-2026.06.04-18.03.18/sequential_edit_50/seed_42_mean_results.json"
+  },
+  {
+    "chunk_size": 32,
+    "results_path": "eval_results/liveedit/blip2-opt-2.7b/VLKEB-ar-VLKEB_long_ar_cs32_full-REPLACE_TIMESTAMP/sequential_edit_50/seed_42_mean_results.json"
+  },
+  {
+    "chunk_size": 64,
+    "results_path": "eval_results/liveedit/blip2-opt-2.7b/VLKEB-ar-VLKEB_long_ar_cs64_full-REPLACE_TIMESTAMP/sequential_edit_50/seed_42_mean_results.json"
+  }
+]

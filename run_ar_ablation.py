@@ -18,7 +18,25 @@ def get_attr():
     parser = argparse.ArgumentParser(description='AR-LiveEdit ablation: chunk_size, routing_gate, max_chunks.')
     parser.add_argument('-dvc', '--device', type=str, default='cuda:0', help='CUDA device.')
     parser.add_argument('-ckpt', '--editor_ckpt_path', type=str, default=None, help='Checkpoint path.')
-    parser.add_argument('-dsn', '--data_sample_n', type=int, default=100, help='VLKEB eval sample count (small for ablation).')
+    parser.add_argument('-dsn', '--data_sample_n', type=int, default=100, help='VLKEB eval sample count (3174 for full long-form eval).')
+    parser.add_argument(
+        '-dpath',
+        '--vlkeb_eval_json',
+        type=str,
+        default=None,
+        help='VLKEB eval JSON (default: data/VLKEB/eval.json). Use long-form eval for thesis runs.',
+    )
+    parser.add_argument(
+        '--chunk_sizes',
+        type=str,
+        default=None,
+        help='Comma-separated chunk sizes to sweep (default: 8,16,32). Example: 8,16,32,64',
+    )
+    parser.add_argument(
+        '--chunk_size_only',
+        action='store_true',
+        help='Sweep chunk_size only (routing_gate=True, max_chunks=unlimited). Skips gate/max_chunks grid.',
+    )
     parser.add_argument('-sen', '--sequential_edit_n', type=int, default=25, help='Edits per sequential batch.')
     parser.add_argument('-seed', '--eval_seed', type=int, default=42, help='Fixed seed.')
     parser.add_argument('-od', '--output_dir', type=str, default='eval_results', help='Base dir for eval results.')
@@ -52,7 +70,8 @@ def _eval_result_path(base_dir: str, postfix: str, sequential_edit_n: int, seed:
 
 
 def _run_one_ablation(device: str, ckpt: str, chunk_size: int, routing_gate: bool, max_chunks: Optional[int],
-                      data_sample_n: int, sequential_edit_n: int, eval_seed: int, output_dir: str) -> str:
+                      data_sample_n: int, sequential_edit_n: int, eval_seed: int, output_dir: str,
+                      vlkeb_eval_json: str = None) -> str:
     """Run one AR eval with given knobs; return path to mean_results.json."""
     editor = load_vllm_editor('liveedit', 'blip2', device, None, ckpt, False)
     editor.ar_mode = True
@@ -61,7 +80,9 @@ def _run_one_ablation(device: str, ckpt: str, chunk_size: int, routing_gate: boo
     editor.ar_use_routing_gate = routing_gate
 
     from dataset.vllm import VLKEB
-    data_path = os.path.join(ROOT_PATH, 'data/VLKEB/eval.json')
+    data_path = vlkeb_eval_json or os.path.join(ROOT_PATH, 'data/VLKEB/eval.json')
+    if data_path and not os.path.isabs(data_path):
+        data_path = os.path.join(ROOT_PATH, data_path)
     img_root_dir = os.path.join(ROOT_PATH, 'data/VLKEB/VLKEB_images/mmkb_images')
     eval_data = VLKEB(data_path, img_root_dir, data_sample_n)
 
@@ -104,10 +125,16 @@ def _extract_row(total_mean: Dict) -> Dict[str, Any]:
 
 def run_ablations(cfg) -> List[Dict[str, Any]]:
     """Run all ablation cells; return list of {config, path, row}."""
+    chunk_sizes = CHUNK_SIZES
+    if getattr(cfg, 'chunk_sizes', None):
+        chunk_sizes = [int(x.strip()) for x in str(cfg.chunk_sizes).split(',') if x.strip()]
+    routing_gates = [True] if getattr(cfg, 'chunk_size_only', False) else ROUTING_GATES
+    max_chunks_opts = [None] if getattr(cfg, 'chunk_size_only', False) else MAX_CHUNKS_OPTS
+
     results = []
-    for chunk_size in CHUNK_SIZES:
-        for routing_gate in ROUTING_GATES:
-            for max_chunks in MAX_CHUNKS_OPTS:
+    for chunk_size in chunk_sizes:
+        for routing_gate in routing_gates:
+            for max_chunks in max_chunks_opts:
                 postfix = _ablation_postfix(chunk_size, routing_gate, max_chunks)
                 path = _eval_result_path(cfg.output_dir, postfix, cfg.sequential_edit_n, cfg.eval_seed)
                 if not cfg.skip_run:
@@ -115,7 +142,8 @@ def run_ablations(cfg) -> List[Dict[str, Any]]:
                         chunk_size, routing_gate, max_chunks, postfix))
                     path = _run_one_ablation(
                         cfg.device, cfg.editor_ckpt_path, chunk_size, routing_gate, max_chunks,
-                        cfg.data_sample_n, cfg.sequential_edit_n, cfg.eval_seed, cfg.output_dir)
+                        cfg.data_sample_n, cfg.sequential_edit_n, cfg.eval_seed, cfg.output_dir,
+                        getattr(cfg, 'vlkeb_eval_json', None))
                 total_mean = _load_total_mean(path)
                 row = _extract_row(total_mean) if total_mean else {}
                 results.append({
@@ -180,11 +208,26 @@ def build_ablation_table(results: List[Dict[str, Any]]) -> Dict[str, Any]:
     return {
         'ablation_table': table,
         'recommendation': recommendation,
-        'config': {
-            'chunk_sizes': CHUNK_SIZES,
-            'routing_gates': ROUTING_GATES,
-            'max_chunks_opts': MAX_CHUNKS_OPTS,
-        },
+        'config': {},
+    }
+
+
+def _sweep_config_from_cfg(cfg) -> Dict[str, Any]:
+    chunk_sizes = CHUNK_SIZES
+    if getattr(cfg, 'chunk_sizes', None):
+        chunk_sizes = [int(x.strip()) for x in str(cfg.chunk_sizes).split(',') if x.strip()]
+    routing_gates = [True] if getattr(cfg, 'chunk_size_only', False) else ROUTING_GATES
+    max_chunks_opts = [None] if getattr(cfg, 'chunk_size_only', False) else MAX_CHUNKS_OPTS
+    return {
+        'chunk_sizes': chunk_sizes,
+        'routing_gates': routing_gates,
+        'max_chunks_opts': max_chunks_opts,
+        'vlkeb_eval_json': getattr(cfg, 'vlkeb_eval_json', None),
+        'data_sample_n': cfg.data_sample_n,
+        'sequential_edit_n': cfg.sequential_edit_n,
+        'eval_seed': cfg.eval_seed,
+        'chunk_size_only': getattr(cfg, 'chunk_size_only', False),
+        'editor_ckpt_path': cfg.editor_ckpt_path,
     }
 
 
@@ -196,6 +239,7 @@ def main():
 
     results = run_ablations(cfg)
     report = build_ablation_table(results)
+    report['config'] = _sweep_config_from_cfg(cfg)
     elapsed = time.time() - t0
     report['runtime_seconds'] = round(elapsed, 2)
     report['runtime_minutes'] = round(elapsed / 60, 2)

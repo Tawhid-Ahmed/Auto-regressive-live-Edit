@@ -27,6 +27,13 @@ def get_attr():
     parser.add_argument('-ea', '--ema_alpha', type=float, default=0.1, help = 'EMA loss alpha.')
     parser.add_argument('-rs', '--random_seed', type=int, default=None, help = 'Random seed.')
     parser.add_argument('-dbs', '--data_buffer_size', type=int, default=4, help = 'Buffer size of data generator.')
+    parser.add_argument(
+        '-dpath',
+        '--vlkeb_data_json',
+        type=str,
+        default=None,
+        help='VLKEB only: override path to training JSON (default: data/VLKEB/train.json under ROOT_PATH).',
+    )
     # AR-LiveEdit (no behavior change when ar_mode=False)
     parser.add_argument('--ar_mode', action='store_true', help='Enable autoregressive chunk-wise edit mode.')
     parser.add_argument('--chunk_size', type=int, default=16, help='Target chunk size in tokens for AR mode.')
@@ -78,7 +85,9 @@ if __name__ == '__main__':
         train_data = EIC(data_path, img_root_dir, cfg.data_n)
     elif cfg.data_name == 'VLKEB':
         from dataset.vllm import VLKEB
-        data_path = os.path.join(ROOT_PATH, 'data/VLKEB/train.json')
+        data_path = getattr(cfg, 'vlkeb_data_json', None) or os.path.join(ROOT_PATH, 'data/VLKEB/train.json')
+        if data_path and not os.path.isabs(data_path):
+            data_path = os.path.join(ROOT_PATH, data_path)
         # VLKEB images are stored under data/VLKEB/VLKEB_images/mmkb_images in this repo snapshot.
         img_root_dir = os.path.join(ROOT_PATH, 'data/VLKEB/VLKEB_images/mmkb_images')
         train_data = VLKEB(data_path, img_root_dir, cfg.data_n)

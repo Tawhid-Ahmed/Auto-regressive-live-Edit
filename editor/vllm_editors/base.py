@@ -146,7 +146,9 @@ class VLLMBaseEditorWithTraining(VLLMBaseEditor):
             ema_alpha:float = 0.1, random_seed:int = None, 
             data_buffer_size = 8, seed_init_train_params_if_no_ckpt_path = True):  
         '''Used to initialize data generator `self.data_generator`, checkpoint/log 
-            directory, writer, and optimizer. '''
+            directory, writer, and optimizer.
+            `data_buffer_size` is passed to ParallelDataset (clamped to >= 1 there;
+            0 previously deadlocked the prefetch thread).'''
         self.set_random_seeds(random_seed)
         self.other_train_init_begin()
         # initialize data generator

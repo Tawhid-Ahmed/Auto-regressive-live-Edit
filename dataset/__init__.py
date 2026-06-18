@@ -42,7 +42,8 @@ class ParallelDataset():
         self.drop_last = drop_last
         self.now_buffer_i = 0 # the idex of data has added into buffer
         self.now_yield_i = 0 # the idex of data has yielded
-        self.buffer_size = buffer_size
+        # buffer_size 0 would skip the fill loop entirely (qsize() < 0 is never true) → deadlock on __next__.
+        self.buffer_size = max(1, int(buffer_size))
         self.buffer = Queue()
         self.is_loading_data = False
         self.__get_data_by_ids__ = get_data_by_ids_func

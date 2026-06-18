@@ -19,7 +19,14 @@ def get_attr():
     parser.add_argument('-dvc', '--device', type=str, default='cuda:0', help='CUDA device.')
     parser.add_argument('-ckpt', '--editor_ckpt_path', type=str, default=None, help='Checkpoint path (used for both if --ar_ckpt not set).')
     parser.add_argument('--ar_ckpt', type=str, default=None, help='AR checkpoint path (default: same as --editor_ckpt_path).')
-    parser.add_argument('-dsn', '--data_sample_n', type=int, default=200, help='VLKEB eval sample count (dev split).')
+    parser.add_argument('-dsn', '--data_sample_n', type=int, default=200, help='VLKEB eval sample count (use 3174 for full long-form eval).')
+    parser.add_argument(
+        '-dpath',
+        '--vlkeb_eval_json',
+        type=str,
+        default=None,
+        help='VLKEB eval JSON path (default: data/VLKEB/eval.json). Use long-form eval JSON for thesis runs.',
+    )
     parser.add_argument('-sen', '--sequential_edit_n', type=int, default=50, help='Edits per sequential batch.')
     parser.add_argument('-seed', '--eval_seed', type=int, default=42, help='Fixed seed for same split (required for comparison).')
     parser.add_argument('--chunk_size', type=int, default=16, help='Chunk size for AR mode.')
@@ -53,7 +60,8 @@ def _eval_result_path(base_dir: str, postfix: str, sequential_edit_n: int, seed:
 
 
 def _run_eval(device: str, ckpt: str, ar_mode: bool, postfix: str, data_sample_n: int,
-              sequential_edit_n: int, eval_seed: int, chunk_size: int, max_chunks, output_dir: str):
+              sequential_edit_n: int, eval_seed: int, chunk_size: int, max_chunks, output_dir: str,
+              vlkeb_eval_json: str = None):
     """Run one eval leg (baseline or AR) and save to VLKEB-{postfix}."""
     editor = load_vllm_editor('liveedit', 'blip2', device, None, ckpt, False)
     editor.ar_mode = ar_mode
@@ -61,7 +69,9 @@ def _run_eval(device: str, ckpt: str, ar_mode: bool, postfix: str, data_sample_n
     editor.max_chunks = max_chunks
 
     from dataset.vllm import VLKEB
-    data_path = os.path.join(ROOT_PATH, 'data/VLKEB/eval.json')
+    data_path = vlkeb_eval_json or os.path.join(ROOT_PATH, 'data/VLKEB/eval.json')
+    if data_path and not os.path.isabs(data_path):
+        data_path = os.path.join(ROOT_PATH, data_path)
     # Use same image root as train (mmkb_images) so image paths in eval.json resolve
     img_root_dir = os.path.join(ROOT_PATH, 'data/VLKEB/VLKEB_images/mmkb_images')
     eval_data = VLKEB(data_path, img_root_dir, data_sample_n)
@@ -148,13 +158,15 @@ def main():
             print('Running baseline (ar_mode=False)...')
             _run_eval(cfg.device, cfg.editor_ckpt_path, False, 'baseline',
                       cfg.data_sample_n, cfg.sequential_edit_n, cfg.eval_seed,
-                      cfg.chunk_size, cfg.max_chunks, cfg.output_dir)
+                      cfg.chunk_size, cfg.max_chunks, cfg.output_dir,
+                      getattr(cfg, 'vlkeb_eval_json', None))
         if not cfg.run_baseline_only:
             ckpt = cfg.ar_ckpt or cfg.editor_ckpt_path
             print('Running AR (ar_mode=True)...')
             _run_eval(cfg.device, ckpt, True, 'ar',
                       cfg.data_sample_n, cfg.sequential_edit_n, cfg.eval_seed,
-                      cfg.chunk_size, cfg.max_chunks, cfg.output_dir)
+                      cfg.chunk_size, cfg.max_chunks, cfg.output_dir,
+                      getattr(cfg, 'vlkeb_eval_json', None))
 
     base_mean = _load_total_mean(base_path)
     ar_mean = _load_total_mean(ar_path)
@@ -171,6 +183,9 @@ def main():
         'data_sample_n': cfg.data_sample_n,
         'sequential_edit_n': cfg.sequential_edit_n,
         'eval_seed': cfg.eval_seed,
+        'vlkeb_eval_json': getattr(cfg, 'vlkeb_eval_json', None),
+        'baseline_ckpt': cfg.editor_ckpt_path,
+        'ar_ckpt': cfg.ar_ckpt,
         'baseline_path': base_path,
         'ar_path': ar_path,
         'runtime_seconds': round(elapsed, 2),
