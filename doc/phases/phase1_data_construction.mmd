@@ -1,0 +1,24 @@
+flowchart TB
+    Row["VLKEB row: image, prompt, short target"]
+    Row --> Short["alt_short = original short target"]
+    Row --> Gen["Vision+text long-form generation"]
+    Gen --> Long["long target (~65–150 tokens)"]
+    Long --> V1{"contains alt_short?"}
+    V1 -->|no| Retry["retry / template fallback"]
+    V1 -->|yes| V2{"length in band?"}
+    V2 -->|no| Retry
+    V2 -->|yes| Out["VLKEB-long row + manifest"]
+    Retry --> Gen
+
+    classDef input fill:#ede9fe,stroke:#7c3aed,color:#4c1d95
+    classDef derive fill:#e0f2fe,stroke:#0284c7,color:#0c4a6e
+    classDef gen fill:#ccfbf1,stroke:#0d9488,color:#134e4a
+    classDef gate fill:#fce7f3,stroke:#db2777,color:#831843
+    classDef retry fill:#f1f5f9,stroke:#64748b,color:#334155
+    classDef out fill:#d1fae5,stroke:#059669,color:#064e3b
+
+    class Row,Short input
+    class Gen,Long gen
+    class V1,V2 gate
+    class Retry retry
+    class Out out

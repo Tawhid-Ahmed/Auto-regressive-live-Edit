@@ -1,0 +1,21 @@
+flowchart TB
+    V["Official VLKEB<br/>image · prompt · short target"]
+    G["Long-form generation<br/>(Ollama vision+text)"]
+    A["Anchor check<br/>contains alt_short"]
+    L["Length gate<br/>65–150 tokens"]
+    O["VLKEB-long dataset<br/>+ manifest"]
+
+    V --> G --> A
+    A -->|pass| L
+    A -->|fail| R["Retry / template"]
+    R --> G
+    L -->|pass| O
+    L -->|fail| R
+
+    classDef a fill:#dbeafe,stroke:#2563eb
+    classDef b fill:#fef3c7,stroke:#d97706
+    classDef c fill:#dcfce7,stroke:#16a34a
+    class V a
+    class G,R b
+    class A,L c
+    class O c

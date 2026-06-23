@@ -1,0 +1,16 @@
+flowchart TB
+    IN["Edit sample<br/>(v, p, y_k)"]
+    H["Hidden reps at layer le"]
+    EG["Expert generator f_eg"]
+    RE["Routing features f_re"]
+    UV["Low-rank expert<br/>(U_k, V_k)"]
+    POOL[("Expert pool E_t<br/>+ chunk index k")]
+
+    IN --> H
+    H --> EG --> UV --> POOL
+    H --> RE --> POOL
+
+    classDef a fill:#dcfce7,stroke:#16a34a
+    classDef b fill:#bbf7d0,stroke:#15803d
+    class IN,H a
+    class EG,RE,UV,POOL b

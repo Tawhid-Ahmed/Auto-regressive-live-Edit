@@ -1,0 +1,21 @@
+flowchart TB
+    Q["Query (v_i, p_i)"]
+    VLM["Frozen BLIP2-OPT-2.7b"]
+    H["Hidden h^le"]
+    HR["Hard routing<br/>visual match"]
+    SR["Soft routing<br/>prompt fusion"]
+    CG["Chunk gate k"]
+    RU["Residual update"]
+    YH["Long-form prediction ŷ"]
+
+    Q --> VLM --> H
+    H --> HR --> SR --> CG --> RU
+    RU --> VLM
+    VLM --> YH
+
+    classDef a fill:#ede9fe,stroke:#7c3aed
+    classDef b fill:#dfe7f5,stroke:#5a78b0
+    classDef c fill:#fce7f3,stroke:#db2777
+    class Q,VLM,H a
+    class HR,SR,CG b
+    class RU,YH c

@@ -1,0 +1,29 @@
+flowchart TB
+    IN["VLKEB-long sample<br/><b>Image · Prompt · Long target y*</b>"]
+
+    AR["<b>AR chunk editing</b><br/>Split s=16 → edit prefix y_k per chunk k"]
+
+    subgraph CORE["Frozen BLIP2-OPT-2.7b + LiveEdit editor"]
+        direction LR
+        VLM["VLM<br/>forward pass"]
+        ED["MoE pool<br/>route · chunk gate · residual"]
+        VLM <-->|"h at edit layer"| ED
+    end
+
+    OUT["<b>Long-form output ŷ</b>"]
+
+    EV["Eval: token acc · chunk EM/F1 · generality · locality"]
+
+    IN --> AR --> CORE --> OUT --> EV
+
+    classDef s1 fill:#dbeafe,stroke:#1d4ed8,stroke-width:2px
+    classDef s2 fill:#fef9c3,stroke:#ca8a04,stroke-width:2px
+    classDef s3 fill:#ede9fe,stroke:#7c3aed,stroke-width:2px
+    classDef s4 fill:#dcfce7,stroke:#16a34a,stroke-width:2px
+    classDef s5 fill:#fce7f3,stroke:#db2777,stroke-width:2px
+
+    class IN s1
+    class AR s2
+    class VLM,ED s3
+    class OUT s4
+    class EV s5

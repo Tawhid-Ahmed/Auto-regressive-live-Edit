@@ -1,0 +1,12 @@
+flowchart TB
+    Y["Long target y*"]
+    S["split_target_into_chunks<br/>chunk size s = 16"]
+    C["Chunks c1, c2, …, cK"]
+    P["Prefix y_k = Dec(c1..ck)"]
+    E["Schedule edit step k<br/>one expert per chunk"]
+
+    Y --> S --> C --> P --> E
+
+    classDef a fill:#fef3c7,stroke:#d97706
+    classDef b fill:#fde68a,stroke:#b45309
+    class Y,S,C,P,E a

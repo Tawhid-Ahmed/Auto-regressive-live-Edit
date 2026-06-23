@@ -1,0 +1,79 @@
+flowchart TB
+    subgraph Input["VLKEB-long edit sample"]
+        direction LR
+        V["Image v"]
+        P["Prompt p"]
+        Y["Long target y* (~89 tok)"]
+    end
+
+    subgraph Chunk["Autoregressive chunk planner (AR-LiveEdit)"]
+        CP["split_target_into_chunks(s=16)"]
+        C1["c1"]
+        C2["c2"]
+        CK["cK"]
+        CP --> C1 --> C2 --> CK
+    end
+
+    subgraph ARLoop["AR edit loop (k = 1..K)"]
+        direction TB
+        PREFIX["Prefix target y_k = Dec(c1..ck)"]
+        STEP["Append expert per chunk + chunk index k"]
+        PREFIX --> STEP
+    end
+
+    subgraph FrozenVLM["Frozen backbone"]
+        BLIP["BLIP2-OPT-2.7b VLM"]
+        HIDDEN["Hidden states h^le at edit layer"]
+        BLIP --> HIDDEN
+    end
+
+    subgraph LiveEdit["External LiveEdit MoE editor"]
+        direction TB
+        FEG["Expert generator f_eg"]
+        FRE["Routing features f_re"]
+        REPO[("Expert repository E_t")]
+        HARD["Hard routing (visual match)"]
+        SOFT["Soft routing (prompt fusion)"]
+        GATE["Chunk-aware gate (index k)"]
+        RES["Residual update h_tilde = h + sum(w_j Expert_j)"]
+        FEG --> REPO
+        FRE --> REPO
+        REPO --> HARD --> SOFT --> GATE --> RES
+    end
+
+    subgraph TrainEval["Training & evaluation"]
+        LOSS["L_total = L_rel + L_gen + L_loc + L_route"]
+        MET["Metrics: token acc, chunk EM/F1, generality, locality"]
+    end
+
+    subgraph Output["Output"]
+        OUT["Long-form prediction y_hat"]
+    end
+
+    V --> BLIP
+    P --> BLIP
+    Y --> CP
+    CK --> ARLoop
+    ARLoop --> FEG
+    ARLoop --> FRE
+    V --> FEG
+    P --> FEG
+    HIDDEN --> RES
+    RES --> BLIP
+    BLIP --> OUT
+    RES -.-> LOSS
+    OUT --> MET
+
+    classDef input fill:#e8f4fc,stroke:#2b6cb0,color:#1a365d
+    classDef chunk fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef vlm fill:#ede9fe,stroke:#6d28d9,color:#4c1d95
+    classDef editor fill:#d6ecd2,stroke:#5a8f4e,color:#22543d
+    classDef route fill:#dfe7f5,stroke:#5a78b0,color:#1e3a5f
+    classDef out fill:#fce7f3,stroke:#be185d,color:#831843
+
+    class V,P,Y input
+    class CP,C1,C2,CK,PREFIX,STEP chunk
+    class BLIP,HIDDEN vlm
+    class FEG,FRE,REPO,RES editor
+    class HARD,SOFT,GATE route
+    class OUT,MET out

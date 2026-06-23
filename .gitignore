@@ -49,6 +49,23 @@ Thumbs.db
 *.log
 logs/
 
+# Generated Word / PowerPoint documents
+*.docx
+*.pptx
+
+# Node dependencies (mermaid-cli: npm install --prefix tools/mermaid-cli)
+node_modules/
+tools/mermaid-cli/*
+!tools/mermaid-cli/package.json
+!tools/mermaid-cli/package-lock.json
+
+# Regenerated from markdown by docx build scripts
+doc/_presentation_v*_diagrams/
+doc/_supervisor_report_diagrams/
+
+# Unused banner drafts
+doc/THESIS_slide01_abstract_banner*.png
+
 # Misc
 *.bak
 *.tmp

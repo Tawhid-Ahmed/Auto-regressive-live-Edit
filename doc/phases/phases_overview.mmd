@@ -1,0 +1,11 @@
+flowchart LR
+    P1["Phase 1<br/>Data & benchmark"]
+    P2["Phase 2<br/>Chunk planning"]
+    P3["Phase 3<br/>Expert pool"]
+    P4["Phase 4<br/>Routed inference"]
+    P5["Phase 5<br/>Train & evaluate"]
+
+    P1 --> P2 --> P3 --> P4 --> P5
+
+    classDef p fill:#dbeafe,stroke:#2563eb,stroke-width:2px
+    class P1,P2,P3,P4,P5 p

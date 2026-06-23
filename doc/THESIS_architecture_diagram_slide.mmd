@@ -1,0 +1,52 @@
+flowchart LR
+    subgraph IN["Input"]
+        V["Image v"]
+        P["Prompt p"]
+        Y["Long target y*"]
+    end
+
+    subgraph AR["AR chunk editing"]
+        CH["Chunk planner<br/>s = 16"]
+        LP["Edit loop k=1..K<br/>prefix y_k per chunk"]
+        CH --> LP
+    end
+
+    subgraph VLM["Frozen BLIP2-OPT-2.7b"]
+        LLM["VLM forward"]
+        HL["Hidden h^le"]
+        LLM --> HL
+    end
+
+    subgraph ED["LiveEdit MoE editor"]
+        EG["Expert gen"]
+        RP[("Pool E_t")]
+        HR["Hard + soft routing"]
+        CG["Chunk gate k"]
+        RU["Residual update"]
+        EG --> RP --> HR --> CG --> RU
+    end
+
+    OUT["Long-form output ŷ"]
+    EV["Eval: acc, chunk EM/F1,<br/>generality, locality"]
+
+    Y --> CH
+    V --> LLM
+    P --> LLM
+    LP --> EG
+    V --> EG
+    P --> EG
+    HL <--> RU
+    RU --> LLM
+    LLM --> OUT --> EV
+
+    classDef a fill:#dbeafe,stroke:#2563eb
+    classDef b fill:#fef3c7,stroke:#d97706
+    classDef c fill:#ede9fe,stroke:#7c3aed
+    classDef d fill:#dcfce7,stroke:#16a34a
+    classDef e fill:#fce7f3,stroke:#db2777
+
+    class V,P,Y a
+    class CH,LP b
+    class LLM,HL c
+    class EG,RP,HR,CG,RU d
+    class OUT,EV e

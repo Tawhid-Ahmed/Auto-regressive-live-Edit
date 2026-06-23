@@ -1,0 +1,11 @@
+flowchart TB
+    L["Train losses<br/>L_rel · L_gen · L_loc · L_route"]
+    CK["Checkpoints<br/>baseline vs AR"]
+    SEQ["Sequential edits<br/>n=50, seed 42"]
+    M["Metrics<br/>acc · chunk EM/F1 · gen · loc"]
+
+    L --> CK --> SEQ --> M
+
+    classDef a fill:#fce7f3,stroke:#db2777
+    classDef b fill:#fbcfe8,stroke:#be185d
+    class L,CK,SEQ,M a
