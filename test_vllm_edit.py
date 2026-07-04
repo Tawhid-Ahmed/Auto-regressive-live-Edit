@@ -20,6 +20,10 @@ def get_attr():
     parser.add_argument('--ar_mode', action='store_true', help='Enable autoregressive chunk-wise edit mode.')
     parser.add_argument('--chunk_size', type=int, default=16, help='Target chunk size in tokens for AR mode.')
     parser.add_argument('--max_chunks', type=int, default=None, help='Optional max chunks per target in AR mode (default: unlimited).')
+    # Workstream E0: free-running (non-teacher-forced) reliability generation
+    parser.add_argument('--free_running', action='store_true', help='Run free-running generation reliability eval (decode + EM) instead of teacher-forced scoring.')
+    parser.add_argument('--gen_eval_n', type=int, default=200, help='Free-running only: number of reliability samples to generate (bounds runtime).')
+    parser.add_argument('--gen_max_new_tokens', type=int, default=128, help='Free-running only: max new tokens to generate per sample.')
     parser.add_argument(
         '-dpath',
         '--vlkeb_eval_json',
@@ -89,9 +93,19 @@ if __name__ == '__main__':
     eval_seed = getattr(cfg, 'eval_seed', None)
     ev = VLLMEditorEvaluation(editor, eval_data, cfg.evaluation_name, 'eval_results', ar_chunk_size=getattr(cfg, 'chunk_size', 16))
     t0 = time.time()
-    ev.evaluate_sequential_edit(cfg.sequential_edit_n, use_random, eval_seed)
+    free_running = getattr(cfg, 'free_running', False)
+    if free_running:
+        ev.evaluate_sequential_edit_freegen(
+            cfg.sequential_edit_n, use_random, eval_seed,
+            gen_eval_n=getattr(cfg, 'gen_eval_n', 200),
+            max_new_tokens=getattr(cfg, 'gen_max_new_tokens', 128))
+    else:
+        ev.evaluate_sequential_edit(cfg.sequential_edit_n, use_random, eval_seed)
     elapsed = time.time() - t0
-    mean_results_fname = ('seed_%s_mean_results.json' % eval_seed) if use_random else 'mean_results.json'
+    if free_running:
+        mean_results_fname = ('seed_%s_freegen_mean_results.json' % eval_seed) if use_random else 'freegen_mean_results.json'
+    else:
+        mean_results_fname = ('seed_%s_mean_results.json' % eval_seed) if use_random else 'mean_results.json'
     mean_results_path = os.path.join(ev.result_dir, 'sequential_edit_%s' % cfg.sequential_edit_n, mean_results_fname)
     if os.path.exists(mean_results_path):
         with open(mean_results_path, 'r') as f:

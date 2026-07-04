@@ -179,6 +179,136 @@ class VLLMEditorEvaluation():
         self.save_results(os.path.join(save_dir, '%smean_results.json'%('seed_%s_'%seed if random else '')), mean_results)
         return results
 
+    def __generate_free_running__(self, vllm:BaseVLLMForEdit, prompt, image, max_new_tokens):
+        '''Workstream E0: greedy free-running generation through `get_llm_outpt` so the
+        LiveEdit edit hooks keep firing at every decode step (HF `.generate()` would
+        bypass them). Unlike the teacher-forced scorer this lets generation errors
+        compound, which is exactly the regime where AR re-grounding should help.
+
+        `query_range` is pinned to the image+prompt span so MoE retrieval always queries
+        the prompt (not the growing generated suffix). For AR mode the routing-gate chunk
+        index advances with the number of generated tokens.
+
+        Returns (decoded_text, generated_token_ids).
+        '''
+        tokenizer = vllm.get_llm_tokenizer()
+        editor = getattr(self, 'editor', None)
+        chunk_size = max(int(getattr(self, 'ar_chunk_size', 16)), 1)
+        ar_on = (editor is not None and getattr(editor, 'ar_mode', False)
+                 and getattr(editor, 'ar_use_routing_gate', True))
+        max_chunks = getattr(editor, 'max_chunks', None) if editor is not None else None
+        eos_id = tokenizer.eos_token_id
+        llm_inpt, vt_range = vllm.get_llm_input_embeds([prompt], [image])
+        # image+prompt end = current sequence length before any generated token
+        query_end = llm_inpt['inputs_embeds'].shape[1]
+        gen_ids = []
+        try:
+            for _ in range(int(max_new_tokens)):
+                llm_inpt['query_range'] = (0, query_end)
+                if ar_on:
+                    ci = len(gen_ids) // chunk_size
+                    if max_chunks is not None:
+                        ci = min(ci, max_chunks - 1)
+                    editor.current_infer_chunk_index = ci
+                with torch.no_grad():
+                    logits = vllm.get_llm_outpt(llm_inpt, vt_range).logits
+                next_id = int(logits[0, -1].argmax().item())
+                if eos_id is not None and next_id == eos_id:
+                    break
+                gen_ids.append(next_id)
+                emb = vllm.get_llm_embed_tokens(torch.tensor([[next_id]], dtype=torch.long))
+                emb = emb.to(dtype=llm_inpt['inputs_embeds'].dtype, device=llm_inpt['inputs_embeds'].device)
+                llm_inpt['inputs_embeds'] = torch.cat([llm_inpt['inputs_embeds'], emb], dim=1)
+                am = llm_inpt['attention_mask']
+                llm_inpt['attention_mask'] = torch.cat(
+                    [am, torch.ones(1, 1, dtype=am.dtype, device=am.device)], dim=1)
+        finally:
+            if editor is not None and getattr(editor, 'ar_mode', False):
+                editor.current_infer_chunk_index = None
+        text = tokenizer.decode(gen_ids, skip_special_tokens=True)
+        return text, gen_ids
+
+    def evaluate_sequential_edit_freegen(self, edit_n=10, random=False, seed=None,
+                                         gen_eval_n=200, max_new_tokens=128):
+        '''Workstream E0: free-running (non-teacher-forced) reliability evaluation.
+
+        Applies edits exactly like `evaluate_sequential_edit` (same shuffle/seed/splits),
+        but for reliability it *generates* the answer and stores the decoded text + target
+        so sequence-level metrics (EM here; ROUGE-L/BERTScore/LLM-judge offline in E1/E2)
+        can be computed. Runs on the first `gen_eval_n` reliability samples to bound the
+        (much higher) generation cost. Generality/locality are skipped here.
+        '''
+        editor = self.editor
+        print('Free-running reliability eval for %s on %s (edit_n=%s, gen_eval_n=%s, max_new_tokens=%s).'
+              % (*editor.name_of_editor_and_model(), edit_n, gen_eval_n, max_new_tokens))
+
+        def split_data(data):
+            splited_data, splited_data_ns, now_split, now_n = [], [], [], 0
+            for d in data:
+                now_split.append(d)
+                now_n += len(d['requests'])
+                if now_n >= edit_n:
+                    splited_data.append(now_split)
+                    splited_data_ns.append(now_n)
+                    now_split, now_n = [], 0
+            return splited_data, splited_data_ns
+
+        eval_data = deepcopy(self.eval_data.data_with_img)
+        result_data = deepcopy(self.eval_data.data_with_img_path)
+        if random:
+            seed = seed if seed is not None else np.random.randint(1, 999999)
+            np.random.default_rng(seed).shuffle(eval_data)
+            np.random.default_rng(seed).shuffle(result_data)
+        eval_data, _ = split_data(eval_data)
+        result_data, _ = split_data(result_data)
+
+        def _norm(s):
+            return ' '.join(str(s).lower().split())
+
+        editor.restore_to_original_model()
+        results = []
+        collected = 0
+        for split_rd, split_ed in zip(tqdm(result_data, 'FreeGen'), eval_data):
+            for rd in split_rd:
+                rd['reliability'] = rd.pop('requests')
+                for r in rd['reliability']:
+                    r['target'] = r.pop('target_new')
+            for rd, ed in zip(split_rd, split_ed):  # apply sequential edits for this split
+                for edr in ed['requests']:
+                    editor.edit_one_piece(edr)
+            split_res = []
+            for rd, ed in zip(split_rd, split_ed):  # free-running generation for reliability
+                for rdr, edr in zip(rd['reliability'], ed['requests']):
+                    target = edr.get('target_new', rdr.get('target'))
+                    gen_text, gen_ids = self.__generate_free_running__(
+                        editor.vllm, edr['prompt'], edr['image'], max_new_tokens)
+                    rdr['prediction_freegen'] = gen_text
+                    rdr['target_text'] = target
+                    rdr['gen_token_count'] = len(gen_ids)
+                    rdr['em_freegen'] = float(_norm(gen_text) == _norm(target))
+                    collected += 1
+                split_res.append(rd)
+            editor.restore_to_original_model()
+            results.append(split_res)
+            if collected >= gen_eval_n:
+                break
+
+        save_dir = os.path.join(self.result_dir, 'sequential_edit_%s' % edit_n)
+        prefix = 'seed_%s_' % seed if random else ''
+        self.save_results(os.path.join(save_dir, '%sfreegen_results.json' % prefix), results)
+        ems = [rr['em_freegen'] for sr in results for rd in sr for rr in rd['reliability']]
+        gtc = [rr['gen_token_count'] for sr in results for rd in sr for rr in rd['reliability']]
+        mean_results = {"freegen": {
+            "em": float(np.mean(ems)) if ems else None,
+            "count": len(ems),
+            "mean_gen_token_count": float(np.mean(gtc)) if gtc else None,
+            "edit_n": edit_n,
+            "max_new_tokens": int(max_new_tokens),
+        }}
+        self.save_results(os.path.join(save_dir, '%sfreegen_mean_results.json' % prefix), mean_results)
+        print('Free-running EM=%.4f over %d samples.' % (mean_results['freegen']['em'] or 0.0, len(ems)))
+        return results
+
     def __get_results_after_edit__(self, vllm:BaseVLLMForEdit, ed, rd):
         def get_eval_xym(prompt, image, target):
             (x, vt_range), y, m = vllm.prompts_imgs_target_to_xym([prompt], [image], [target])
@@ -245,10 +375,14 @@ class VLLMEditorEvaluation():
                 chunk_em, chunk_f1 = _chunk_em_f1(pre_y, label_ids_c, label_masks_c, chunk_size)
                 rdr['chunk_em'] = chunk_em
                 rdr['chunk_f1'] = chunk_f1
+                # Workstream A: per-position correctness over masked target tokens (in order)
+                # enables positional efficacy decay analysis (accuracy vs position in long answer)
+                rdr['pos_hits'] = (pm == lm).to(torch.int).tolist() if pm.numel() == lm.numel() else []
             else:
                 rdr['em'] = 1.0
                 rdr['chunk_em'] = 0.0
                 rdr['chunk_f1'] = 0.0
+                rdr['pos_hits'] = []
         # generality
         for gen_name in ed['generality']:
             for rdg, edg in zip(rd['generality'][gen_name], ed['generality'][gen_name]):
@@ -355,6 +489,28 @@ class VLLMEditorEvaluation():
                 "chunk_em": float(np.mean(arr["chunk_em"])) if arr["chunk_em"] else None,
                 "chunk_f1": float(np.mean(arr["chunk_f1"])) if arr["chunk_f1"] else None,
             }
+        # Workstream A: positional efficacy decay curve.
+        # For each reliability sample, map each masked target token to a normalized
+        # position decile (i / len), then average correctness per decile across samples.
+        n_pos_bins = 10
+        pos_sum = [0.0] * n_pos_bins
+        pos_cnt = [0] * n_pos_bins
+        for r in results:
+            for rr in r.get("reliability", []):
+                hits = rr.get("pos_hits")
+                if not hits:
+                    continue
+                Lh = len(hits)
+                for i, h in enumerate(hits):
+                    b = min(int(n_pos_bins * i / Lh), n_pos_bins - 1)
+                    pos_sum[b] += float(h)
+                    pos_cnt[b] += 1
+        mean_res["position_curve"] = {
+            "n_bins": n_pos_bins,
+            "scale": "normalized",  # decile of position within target (0=start, 9=end)
+            "acc": [(pos_sum[i] / pos_cnt[i]) if pos_cnt[i] else None for i in range(n_pos_bins)],
+            "count": pos_cnt,
+        }
         return mean_res
 
     def save_results(self, save_path:str, results:Dict, decimal = 4):

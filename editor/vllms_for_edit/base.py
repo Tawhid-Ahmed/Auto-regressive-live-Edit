@@ -199,6 +199,19 @@ class BaseVLLMForEdit(ABC):
         toks, sim = top_k_indices.indices, top_k_indices.values
         return toks, sim
 
+    def get_llm_embed_tokens(self, token_ids:torch.Tensor)->torch.Tensor:
+        '''Embed LLM token ids `[b, l]` -> word embeddings `[b, l, d]` using the LLM input
+        embedding layer. Backbone-agnostic: resolves the language model across blip2
+        (`language_model`), llava (`model`), and minigpt4 (`llama_model`).
+        Used by free-running generation to append a newly sampled token without
+        re-tokenizing the whole sequence.'''
+        lm = getattr(self.model, 'language_model', None)
+        if lm is None:
+            lm = getattr(self.model, 'llama_model', None)
+        if lm is None:
+            lm = self.model
+        return lm.get_input_embeddings()(token_ids.to(self.device))
+
     @abstractmethod
     def get_llm_tokenizer(self)->AutoTokenizer:
         '''return the tokenizer of the llm in vllm.'''
