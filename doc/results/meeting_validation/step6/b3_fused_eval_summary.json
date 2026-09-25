@@ -1,0 +1,48 @@
+{
+  "timestamp": "2026-07-10T10:58:00",
+  "train_run": "VLKEB_avbt_B3_fused-2026.07.10-10.13.11",
+  "ckpt": "records/liveedit/blip2-opt-2.7b/VLKEB_avbt_B3_fused-2026.07.10-10.13.11/checkpoints/epoch-1-i-125-ema_loss-9.0759",
+  "train_runtime_min": 16.89,
+  "baseline_S2_fixed_seed42": {
+    "rel": 0.7791,
+    "swap": 0.4395,
+    "image_swap_false_cross": 0.87,
+    "eval_flags": ["--patch_grounding"]
+  },
+  "B3_fused_eval": {
+    "flags": ["--patch_grounding", "--fused_expert_key"],
+    "rel": 0.4516,
+    "swap": 0.4197,
+    "swap_gap_pp": 3.2,
+    "image_swap_false_cross": 0.38,
+    "mean_n_retrieved_rel": 0.09,
+    "eval_dir": "VLKEB_GROUNDING-B3_fused_dsn100-2026.07.10-10.52.41",
+    "verdict": "FAIL — embedding-fusion inference collapses retrieval (same pathology as D1 on S2 ckpt)"
+  },
+  "B3_standard_eval": {
+    "flags": ["--patch_grounding"],
+    "rel": 0.7808,
+    "swap": 0.4358,
+    "swap_gap_pp": 34.5,
+    "image_swap_false_cross": 0.81,
+    "mean_n_retrieved_rel": 2.41,
+    "eval_dir": "VLKEB_GROUNDING-B3_nofused_dsn100-2026.07.10-10.55.43",
+    "delta_vs_S2_fixed": {
+      "rel_pp": 0.17,
+      "swap_pp": -0.37,
+      "false_cross_pp": -6.0
+    },
+    "verdict": "NEUTRAL — rel preserved; false-cross slightly better (-6pp) but swap still ~44%; Gate A not met"
+  },
+  "key_finding": "fused_expert_key (embedding fusion) is broken at inference regardless of retrain. Standard sim-weighted fusion (--patch_grounding only) is the correct eval protocol. B3 weights are usable only without --fused_expert_key.",
+  "gate_A": {
+    "pass": false,
+    "reason": "swap ~43.6% vs 55% target; gap ~34pp"
+  },
+  "next_steps": [
+    "Abandon embedding-fusion D1 at inference until recalibrated",
+    "Best ckpt remains S2_fixed or B3_nofused (marginal FC gain only)",
+    "Pivot: train AVBL on sim-fusion path only (for_avbl style) OR fix retrieval threshold / bilinear fuse",
+    "3-seed B3_nofused optional; unlikely to change Gate A outcome"
+  ]
+}

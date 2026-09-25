@@ -1,0 +1,505 @@
+{
+
+  "_comment": "Canonical thesis paths. Legacy pipeline unchanged; meeting_validation steps use isolated subfolders.",
+
+  "repo_root": "E:\\MSC\\MSc thesis project\\LiveEdit\\LiveEdit",
+
+  "project_root": "E:\\MSC\\MSc thesis project\\LiveEdit",
+
+  "conda_env": "liveedit",
+
+  "device_default": "cuda:0",
+
+  "eval_seed_default": 42,
+
+  "legacy_pipeline": {
+
+    "description": "Original thesis eval/train — never modified by meeting-validation patches",
+
+    "eval_runner": "test_vllm_edit.py",
+
+    "train_runner": "train_vllm_editor.py",
+
+    "dataset_loader": "dataset/vllm.py (VLKEB)",
+
+    "eval_results_root": "eval_results/liveedit/blip2-opt-2.7b",
+
+    "example_full_eval": "eval_results/liveedit/blip2-opt-2.7b/VLKEB-VLKEB_long_baseline_full-2026.06.04-17.39.13"
+
+  },
+
+  "meeting_validation": {
+
+    "description": "Supervisor meeting brainstorm steps 0–6 — patch scripts + isolated outputs",
+
+    "layout": {
+
+      "analysis_and_figures": "doc/results/meeting_validation/step<N>/",
+
+      "gpu_eval_runs": "eval_results/meeting_validation/step<N>/liveedit/blip2-opt-2.7b/",
+
+      "datasets": "data/VLKEB/meeting_validation/step<N>/",
+
+      "checkpoints_from_step5": "records/meeting_validation/step5/",
+
+      "final_comparison": "eval_results/meeting_validation/comparison/"
+
+    },
+
+    "step0": {
+
+      "scripts": [
+
+        "tools/log_routing_diagnostics.py",
+
+        "tools/analyze_routing_diagnostics.py",
+
+        "tools/plot_routing_diagnostics.py"
+
+      ],
+
+      "outputs_dir": "doc/results/meeting_validation/step0",
+
+      "legacy_outputs_dir": "doc/results"
+
+    },
+
+    "step1": {
+
+      "scripts": {
+
+        "build": "tools/build_grounding_eval_json.py",
+
+        "eval_runner": "test_grounding_eval.py",
+
+        "single_sample": "tools/run_grounding_single_sample.py",
+
+        "dataset_loader": "dataset/vllm_grounding.py",
+
+        "analyze_token": "tools/analyze_grounding_results.py",
+
+        "analyze_routing": "tools/log_grounding_diagnostics.py",
+
+        "plot": "tools/plot_grounding_results.py"
+
+      },
+
+      "probe_dataset": "data/VLKEB/meeting_validation/step1/grounding/grounding_eval_longform.json",
+
+      "probe_dataset_short": "data/VLKEB/meeting_validation/step1/grounding/grounding_eval_short.json",
+
+      "outputs_dir": "doc/results/meeting_validation/step1",
+
+      "eval_results_dir": "eval_results/meeting_validation/step1/liveedit/blip2-opt-2.7b",
+
+      "legacy_outputs_dir": "doc/results",
+
+      "legacy_eval_dir": "eval_results/liveedit/blip2-opt-2.7b",
+
+      "completed_runs": {
+
+        "longform_baseline": "eval_results/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-step1_grounding_baseline-2026.07.05-12.20.17",
+
+        "longform_ar": "eval_results/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-ar-step1_grounding_ar-2026.07.05-12.28.20",
+
+        "short_baseline": "eval_results/meeting_validation/step1/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-step1_grounding_short_baseline-2026.07.06-10.16.50",
+
+        "short_ar": "eval_results/meeting_validation/step1/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-ar-step1_grounding_short_ar-2026.07.06-10.23.40"
+
+      },
+
+      "checkpoints_short_vlkeb": {
+
+        "baseline": "records/liveedit/blip2-opt-2.7b/VLKEB_baseline-2026.04.09-08.20.07/checkpoints/epoch-20-i-25950-ema_loss-0.1201",
+
+        "ar": "records/liveedit/blip2-opt-2.7b/VLKEB_ar-2026.04.10-07.42.20/checkpoints/epoch-20-i-25500-ema_loss-0.0765"
+
+      }
+
+    },
+
+    "step2": {
+
+      "outputs_dir": "doc/results/meeting_validation/step2",
+
+      "eval_results_dir": "eval_results/meeting_validation/step2/liveedit/blip2-opt-2.7b",
+
+      "eval_runner": "test_grounding_eval.py",
+
+      "scripts": {
+
+        "sweep": "tools/meeting_validation/step2/run_resolution_sweep.py",
+
+        "analyze": "tools/meeting_validation/step2/analyze_resolution_results.py",
+
+        "plot": "tools/meeting_validation/step2/plot_resolution_results.py",
+
+        "smoke_test": "tools/meeting_validation/step2/smoke_test_image_size.py"
+
+      },
+
+      "resolutions_px": [224, 336, 448],
+
+      "checkpoint": "checkpoints.vlkeb_long_baseline_epoch20",
+
+      "completed_runs": {
+
+        "res224": "eval_results/meeting_validation/step2/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-step2_res224-2026.07.05-13.22.43",
+
+        "res336": "eval_results/meeting_validation/step2/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-step2_res336-2026.07.05-13.28.37",
+
+        "res448": "eval_results/meeting_validation/step2/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-step2_res448-2026.07.05-13.36.41"
+
+      },
+
+      "analysis": "doc/results/meeting_validation/step2/STEP2_RESOLUTION_ANALYSIS.md",
+
+      "summary_json": "doc/results/meeting_validation/step2/step2_resolution_summary.json",
+
+      "figure": "doc/results/meeting_validation/step2/step2_resolution_curve.png",
+
+      "note": "Eval-only --image_size on BLIP2 processor; default legacy 224 unchanged"
+
+    },
+
+    "step3": {
+
+      "outputs_dir": "doc/results/meeting_validation/step3",
+
+      "eval_results_dir": "eval_results/meeting_validation/step3/liveedit/blip2-opt-2.7b",
+
+      "eval_runner": "test_alteration_eval.py",
+
+      "dataset_loader": "dataset/vllm_alteration.py",
+
+      "scripts": {
+
+        "run": "tools/meeting_validation/step3/run_alteration_eval.py",
+
+        "analyze": "tools/meeting_validation/step3/analyze_alteration_results.py",
+
+        "plot": "tools/meeting_validation/step3/plot_alteration_results.py"
+
+      },
+
+      "alterations": ["low_res", "rotate_90", "mirror", "crop_center", "mild"],
+
+      "checkpoint": "checkpoints.vlkeb_long_baseline_epoch20",
+
+      "completed_runs": {
+
+        "baseline": "eval_results/meeting_validation/step3/liveedit/blip2-opt-2.7b/VLKEB_ALTERATION-step3_alteration_baseline-2026.07.05-14.34.23"
+
+      },
+
+      "analysis": "doc/results/meeting_validation/step3/STEP3_ALTERATION_ANALYSIS.md",
+
+      "summary_json": "doc/results/meeting_validation/step3/step3_alteration_summary.json",
+
+      "figure": "doc/results/meeting_validation/step3/step3_alteration_robustness.png",
+
+      "note": "Same-image appearance change at test time via AlteredImageRef lazy load"
+
+    },
+
+    "step4": {
+
+      "outputs_dir": "doc/results/meeting_validation/step4",
+
+      "scripts_dir": "tools/meeting_validation/step4",
+
+      "scripts": {
+
+        "compare": "tools/meeting_validation/step4/compare_encoder_routing.py",
+
+        "analyze": "tools/meeting_validation/step4/analyze_encoder_routing.py",
+
+        "plot": "tools/meeting_validation/step4/plot_encoder_auc.py"
+
+      },
+
+      "probe_dataset": "data/VLKEB/meeting_validation/step1/grounding/grounding_eval_longform.json",
+
+      "checkpoint": "checkpoints.vlkeb_long_baseline_epoch20",
+
+      "encoders": ["qformer", "eva_patches", "dinov2"],
+
+      "completed_runs": {
+
+        "n50_seed42": "doc/results/meeting_validation/step4/encoder_routing_scores.json"
+
+      },
+
+      "winning_encoder": "dinov2",
+
+      "analysis": "doc/results/meeting_validation/step4/STEP4_ENCODER_ANALYSIS.md",
+
+      "scores_json": "doc/results/meeting_validation/step4/encoder_routing_scores.json",
+
+      "figure": "doc/results/meeting_validation/step4/step4_encoder_auc.png",
+
+      "note": "Offline routing: Q-Former vs pre-Q-Former EVA patches vs frozen DINOv2"
+
+    },
+
+    "step5": {
+
+      "outputs_dir": "doc/results/meeting_validation/step5",
+
+      "scripts": {
+
+        "run": "tools/meeting_validation/step5/run_patch_spikes.py",
+
+        "analyze": "tools/meeting_validation/step5/analyze_patch_spikes.py",
+
+        "plot": "tools/meeting_validation/step5/plot_patch_spikes.py",
+
+        "smoke": "tools/meeting_validation/step5/smoke_test_patch_spikes.py"
+
+      },
+
+      "probe_dataset": "data/VLKEB/meeting_validation/step1/grounding/grounding_eval_longform.json",
+
+      "checkpoint": "checkpoints.vlkeb_long_baseline_epoch20",
+
+      "ar_checkpoint": "checkpoints.vlkeb_long_ar_epoch20",
+
+      "spikes": ["baseline", "4a_max", "4a_attn", "4b_rerank", "4c_vision_gate"],
+
+      "completed_runs": {
+
+        "n50_seed42": "doc/results/meeting_validation/step5/patch_spike_comparison.json"
+
+      },
+
+      "winning_spike": "4c_vision_gate",
+
+      "analysis": "doc/results/meeting_validation/step5/STEP5_PATCH_SPIKE_ANALYSIS.md",
+
+      "comparison_json": "doc/results/meeting_validation/step5/patch_spike_comparison.json",
+
+      "figure": "doc/results/meeting_validation/step5/step5_spike_comparison.png",
+
+      "note": "Inference-only routing spikes: no-mean-pool (4a), ViT patch rerank (4b), vision-gated AR chunks (4c)"
+
+    },
+
+    "step6": {
+
+      "outputs_dir": "doc/results/meeting_validation/step6",
+
+      "eval_results_dir": "eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b",
+
+      "checkpoints_dir": "records/liveedit/blip2-opt-2.7b",
+
+      "checkpoint_name_prefix": "VLKEB_long_patch",
+
+      "checkpoint_name_prefix_ar": "VLKEB_long_patch_ar",
+
+      "scripts": {
+
+        "train": "tools/meeting_validation/step6/run_train_patch.py",
+
+        "ablation": "tools/meeting_validation/step6/run_ablation_eval.py",
+
+        "analyze": "tools/meeting_validation/step6/analyze_ablation_results.py",
+
+        "plot": "tools/meeting_validation/step6/plot_ablation_table.py",
+
+        "smoke": "tools/meeting_validation/step6/smoke_test_patch_grounding.py"
+
+      },
+
+      "patch_encoder": "dinov2",
+
+      "ablation_layers": ["L0", "L1", "L2", "L3", "L4", "L5"],
+
+      "analysis": "doc/results/meeting_validation/step6/STEP6_ABLATION_ANALYSIS.md",
+
+      "ablation_table_md": "doc/results/meeting_validation/step6/step6_ablation_table.md",
+
+      "summary_json": "doc/results/meeting_validation/step6/step6_ablation_summary.json",
+
+      "figure": "doc/results/meeting_validation/step6/step6_layer_ablation.png",
+
+      "note": "PatchGroundingModule retrain + per-layer ablation; L5 stacks Step 5 4c + DINOv2 keys"
+
+    },
+
+    "step7": {
+
+      "report": "doc/THESIS_MEETING_VALIDATION_REPORT.md",
+
+      "comparison_dir": "eval_results/meeting_validation/comparison"
+
+    }
+
+  },
+
+  "checkpoints": {
+
+    "vlkeb_long_baseline_epoch20": {
+
+      "description": "LiveEdit long-form baseline (single-pass), trained on VLKEB-long",
+
+      "run_name": "VLKEB_long_baseline-2026.06.02-13.43.00",
+
+      "relative": "records/liveedit/blip2-opt-2.7b/VLKEB_long_baseline-2026.06.02-13.43.00/checkpoints/epoch-20-i-27800-ema_loss-0.7936",
+
+      "absolute": "E:\\MSC\\MSc thesis project\\LiveEdit\\LiveEdit\\records\\liveedit\\blip2-opt-2.7b\\VLKEB_long_baseline-2026.06.02-13.43.00\\checkpoints\\epoch-20-i-27800-ema_loss-0.7936",
+
+      "note": "Checkpoint files have no .pt extension in this project",
+
+      "ar_mode": false
+
+    },
+
+    "vlkeb_long_ar_epoch20": {
+
+      "description": "AR-LiveEdit long-form (chunk_size=16 at train), trained on VLKEB-long",
+
+      "run_name": "VLKEB_long_ar-2026.06.04-13.00.34",
+
+      "relative": "records/liveedit/blip2-opt-2.7b/VLKEB_long_ar-2026.06.04-13.00.34/checkpoints/epoch-20-i-26600-ema_loss-1.5124",
+
+      "absolute": "E:\\MSC\\MSc thesis project\\LiveEdit\\LiveEdit\\records\\liveedit\\blip2-opt-2.7b\\VLKEB_long_ar-2026.06.04-13.00.34\\checkpoints\\epoch-20-i-26600-ema_loss-1.5124",
+
+      "note": "Checkpoint files have no .pt extension in this project",
+
+      "ar_mode": true,
+
+      "chunk_size": 16
+
+    },
+
+    "vlkeb_original_baseline_epoch20": {
+
+      "description": "LiveEdit baseline trained on original (short) VLKEB train.json — canonical thesis baseline before long-form / AVBT",
+
+      "run_name": "VLKEB_baseline-2026.04.09-08.20.07",
+
+      "relative": "records/liveedit/blip2-opt-2.7b/VLKEB_baseline-2026.04.09-08.20.07/checkpoints/epoch-20-i-25950-ema_loss-0.1201",
+
+      "absolute": "E:\\MSC\\MSc thesis project\\LiveEdit\\LiveEdit\\records\\liveedit\\blip2-opt-2.7b\\VLKEB_baseline-2026.04.09-08.20.07\\checkpoints\\epoch-20-i-25950-ema_loss-0.1201",
+
+      "train_data": "data/VLKEB/train.json",
+
+      "eval_data": "data/VLKEB/eval.json",
+
+      "eval_runner": "test_vllm_edit.py",
+
+      "note": "No patch_grounding module; short answers (~3–4 tokens). Same alias as meeting_validation.step1.checkpoints_short_vlkeb.baseline",
+
+      "ar_mode": false
+
+    },
+
+    "vlkeb_avbt_short_S2_epoch1": {
+
+      "description": "AVBT (S2 hyperparams) fine-tuned from original short VLKEB baseline — apples-to-apples vs vlkeb_original_baseline_epoch20",
+
+      "run_name": "VLKEB_avbt_short_S2-2026.07.10-11.16.19",
+
+      "relative": "records/liveedit/blip2-opt-2.7b/VLKEB_avbt_short_S2-2026.07.10-11.16.19/checkpoints/epoch-1-i-125-ema_loss-4.0787",
+
+      "absolute": "E:\\MSC\\MSc thesis project\\LiveEdit\\LiveEdit\\records\\liveedit\\blip2-opt-2.7b\\VLKEB_avbt_short_S2-2026.07.10-11.16.19\\checkpoints\\epoch-1-i-125-ema_loss-4.0787",
+
+      "base_ckpt": "checkpoints.vlkeb_original_baseline_epoch20",
+
+      "train_data": "data/VLKEB/grounding/grounding_train_short.json",
+
+      "eval_at_inference": ["--patch_grounding"],
+
+      "results": "doc/results/meeting_validation/step6/avbt_short_vlkeb_comparison.json"
+
+    },
+
+    "vlkeb_avbt_short_DEK_epoch1": {
+
+      "description": "AVBT S2 hyperparams + DEK dual-gate (vision∧text retrieval) — cuts false-cross ~96%→46%",
+
+      "run_name": "VLKEB_avbt_short_DEK-2026.07.10-18.13.18",
+
+      "relative": "records/liveedit/blip2-opt-2.7b/VLKEB_avbt_short_DEK-2026.07.10-18.13.18/checkpoints/epoch-1-i-125-ema_loss-4.0100",
+
+      "absolute": "E:\\MSC\\MSc thesis project\\LiveEdit\\LiveEdit\\records\\liveedit\\blip2-opt-2.7b\\VLKEB_avbt_short_DEK-2026.07.10-18.13.18\\checkpoints\\epoch-1-i-125-ema_loss-4.0100",
+
+      "base_ckpt": "checkpoints.vlkeb_original_baseline_epoch20",
+
+      "train_data": "data/VLKEB/grounding/grounding_train_short.json",
+
+      "eval_at_inference": ["--patch_grounding", "--dek_dual_gate"],
+
+      "results": "doc/results/meeting_validation/step6/short_dek_train_summary.json"
+
+    }
+
+  },
+
+  "datasets": {
+
+    "vlkeb_long_ollama_dir": {
+
+      "description": "VLKEB-long Ollama pipeline output (paragraph-length alt targets)",
+
+      "absolute": "E:\\MSC\\MSc thesis project\\LiveEdit\\vlkeb_long_ollama\\out",
+
+      "relative_from_repo": "../vlkeb_long_ollama/out"
+
+    },
+
+    "vlkeb_long_eval": {
+
+      "description": "Primary long-form eval split (~3150 samples, mean ~89 tokens)",
+
+      "absolute": "E:\\MSC\\MSc thesis project\\LiveEdit\\vlkeb_long_ollama\\out\\eval_longform_ollama.json",
+
+      "relative_from_repo": "../vlkeb_long_ollama/out/eval_longform_ollama.json"
+
+    },
+
+    "vlkeb_long_train": {
+
+      "description": "Primary long-form train split",
+
+      "absolute": "E:\\MSC\\MSc thesis project\\LiveEdit\\vlkeb_long_ollama\\out\\train_longform_ollama.json",
+
+      "relative_from_repo": "../vlkeb_long_ollama/out/train_longform_ollama.json"
+
+    },
+
+    "vlkeb_standard_eval": {
+
+      "description": "Original short-target VLKEB eval (in-repo data/)",
+
+      "relative": "data/VLKEB/eval.json",
+
+      "absolute": "E:\\MSC\\MSc thesis project\\LiveEdit\\LiveEdit\\data\\VLKEB\\eval.json"
+
+    },
+
+    "vlkeb_standard_train": {
+
+      "description": "Original short-target VLKEB train",
+
+      "relative": "data/VLKEB/train.json",
+
+      "absolute": "E:\\MSC\\MSc thesis project\\LiveEdit\\LiveEdit\\data\\VLKEB\\train.json"
+
+    },
+
+    "vlkeb_images": {
+
+      "description": "Shared MMKB image root for both standard and long-form JSON",
+
+      "relative": "data/VLKEB/VLKEB_images/mmkb_images",
+
+      "absolute": "E:\\MSC\\MSc thesis project\\LiveEdit\\LiveEdit\\data\\VLKEB\\VLKEB_images\\mmkb_images"
+
+    }
+
+  }
+
+}
+
+

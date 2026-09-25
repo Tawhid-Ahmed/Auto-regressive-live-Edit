@@ -1,0 +1,57 @@
+{
+  "timestamp": "2026-07-10T11:40:00",
+  "purpose": "Apples-to-apples AVBT vs baseline — both trained on original short VLKEB",
+  "train_protocol": {
+    "avbt_run": "VLKEB_avbt_short_S2-2026.07.10-11.16.19",
+    "avbt_ckpt": "records/liveedit/blip2-opt-2.7b/VLKEB_avbt_short_S2-2026.07.10-11.16.19/checkpoints/epoch-1-i-125-ema_loss-4.0787",
+    "base_ckpt": "records/liveedit/blip2-opt-2.7b/VLKEB_baseline-2026.04.09-08.20.07/checkpoints/epoch-20-i-25950-ema_loss-0.1201",
+    "train_json": "data/VLKEB/grounding/grounding_train_short.json",
+    "hyperparams": "S2_fixed: λ=0.2, neg_w=2.0, hinge=0.3, contrastive, 1 epoch, dsn=500",
+    "manifest": "doc/results/meeting_validation/step6/avbt_short_vlkeb_run_manifest.json"
+  },
+  "eval_standard_vlkeb": {
+    "protocol": "test_vllm_edit.py on data/VLKEB/eval.json, dsn=100, sen=10, seed=42",
+    "baseline": {
+      "rel_acc": 0.9347,
+      "text_rephrase": 0.943,
+      "image_rephrase": 0.9213,
+      "em": 0.83,
+      "eval_dir": "eval_results/liveedit/blip2-opt-2.7b/VLKEB-orig_vlkeb_baseline_dsn100-2026.07.10-11.09.09"
+    },
+    "avbt_short": {
+      "rel_acc": 0.938,
+      "text_rephrase": 0.9447,
+      "image_rephrase": 0.938,
+      "em": 0.83,
+      "flags": ["--patch_grounding"],
+      "eval_dir": "eval_results/liveedit/blip2-opt-2.7b/VLKEB-avbt_short_S2_dsn100-2026.07.10-11.32.59",
+      "delta_rel_pp": 0.33
+    },
+    "verdict": "AVBT preserves standard VLKEB performance — no collapse when trained on matching distribution"
+  },
+  "eval_grounding_short": {
+    "protocol": "test_grounding_eval.py on grounding_eval_short.json, dsn=100, seed=42",
+    "baseline_no_patch": {
+      "rel_acc": 0.9347,
+      "image_swap": 0.4072,
+      "hard_negative": 0.4224,
+      "eval_dir": "eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-short_baseline_grounding-2026.07.10-11.34.24"
+    },
+    "avbt_patch_grounding": {
+      "rel_acc": 0.938,
+      "image_swap": 0.4782,
+      "hard_negative": 0.4259,
+      "image_swap_false_cross_rate": 0.96,
+      "eval_dir": "eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-short_avbt_grounding-2026.07.10-11.35.46",
+      "delta_swap_pp": 7.1
+    },
+    "verdict": "On short answers, AVBT improves swap +7pp with reliability held; still far from 55% Gate A target"
+  },
+  "contrast_with_cross_domain": {
+    "S2_fixed_longform_on_orig_eval": {
+      "rel_acc": 0.395,
+      "note": "Long-form AVBT ckpt evaluated on short eval.json without retraining — domain mismatch"
+    }
+  },
+  "interpretation": "Training AVBT on the same short VLKEB distribution as baseline is essential. Standard benchmark: parity. Adversarial swap probes: modest +7pp gain on short answers vs +2pp on long-form grounding (44% vs 42% baseline)."
+}

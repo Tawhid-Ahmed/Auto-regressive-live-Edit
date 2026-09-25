@@ -1,0 +1,48 @@
+{
+  "gate": "short_vlkeb_validation",
+  "started": "2026-07-10T11:50:00",
+  "step1_direction_verify": {
+    "baseline": {
+      "path": "doc/results/meeting_validation/step6/short_vlkeb_direction_baseline.json",
+      "pass": false,
+      "note": "Fresh patch on baseline: micro-AVBL steps insufficient on sen=5 mini pool",
+      "before_swap_expert_mass": 0.995,
+      "after_swap_expert_mass": 0.969
+    },
+    "avbt_short_trained": {
+      "path": "doc/results/meeting_validation/step6/short_vlkeb_direction_avbt.json",
+      "pass": false,
+      "note": "Trained ckpt already has low swap expert_mass (0.22 vs 0.99 baseline) — binding improved by full train",
+      "before": {
+        "swap_expert_mass": 0.217,
+        "hard_neg_expert_mass": 0.642,
+        "swap_false_cross": 0.8,
+        "reliability_own_prob": 0.943
+      },
+      "interpretation": "Direction validated at binding level; proceed to V1/V2 mini sweep"
+    }
+  },
+  "gate_criteria": {
+    "swap_acc": 0.50,
+    "rel_acc": 0.92,
+    "false_cross_max": 0.90,
+    "min_delta_swap_pp": 2.0
+  },
+  "reference_avbt_short": {
+    "swap": 0.4782,
+    "rel": 0.938
+  },
+  "mini_sweep": {
+    "V1_dn1000": {
+      "status": "complete",
+      "ckpt": "records/liveedit/blip2-opt-2.7b/VLKEB_avbt_short_V1-2026.07.10-14.06.46/checkpoints/epoch-1-i-250-ema_loss-2.5288",
+      "swap": 0.4617,
+      "rel": 0.938
+    },
+    "V2_lambda03": { "status": "blocked_oom", "note": "Windows paging file too small — reboot then retry" },
+    "V3_second_epoch": { "status": "not_started", "conditional": "only if V2 beats 47.8%" }
+  },
+  "resume_doc": "doc/results/meeting_validation/step6/RESUME_SHORT_VLKEB_GATE.md",
+  "gate_results": "doc/results/meeting_validation/step6/short_vlkeb_gate_results.json",
+  "next_action": "Reboot or increase page file, then run V2 train+eval"
+}

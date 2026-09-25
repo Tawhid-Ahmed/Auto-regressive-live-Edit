@@ -1,0 +1,144 @@
+\documentclass[letterpaper]{article}
+\usepackage[submission]{aaai2027}
+\usepackage[hyphens]{url}
+\usepackage{graphicx}
+\urlstyle{rm}
+\def\UrlFont{\rm}
+\usepackage{natbib}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\frenchspacing
+\setcounter{secnumdepth}{0}
+
+\pdfinfo{
+/TemplateVersion (2027.1)
+}
+
+\title{Technical Supplement for ``Dual-Expert Keys for Reducing False-Positive Retrieval in Lifelong Vision--Language Model Editing''}
+\author{Anonymous Submission}
+\affiliations{}
+
+\begin{document}
+\maketitle
+
+\section{Scope}
+This document lists implementation details that were omitted or compressed in the main paper.
+All scientific claims, method equations for Dual-Expert Keys and adversarial visual binding, evaluation protocol sizes, and primary result tables remain in the main text.
+Reviewers are not required to consult this supplement.
+
+\section{Editor Configuration}
+Primary experiments use the BLIP-2 OPT-2.7B LiveEdit configuration in \texttt{configs/liveedit/blip2-opt-2.7b.yaml}.
+Relevant fields not tabulated in the main paper:
+
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+Field & Value \\
+\midrule
+Retrieval module dimension & $1024$ \\
+Cross-attention heads & $8$ \\
+Editing query tokens (\texttt{eqe\_n}) & $4$ \\
+LoRA rank / scale & $4$ / $5$ \\
+LLM mid dimension & $2560$ \\
+Edit layer index & $21$ (OPT decoder) \\
+Base learning rate & $1\times10^{-4}$ \\
+LR cut iteration / rate & $10000$ / $0.1$ \\
+Rel / Gen / Loc / soft / hard routing weights & all $1$ \\
+\bottomrule
+\end{tabular}
+\captionof{table}{BLIP-2 LiveEdit YAML settings used for reported runs.}
+\end{center}
+
+When patch grounding is enabled, vision logits mix Q-Former and DINOv2 patch scores with fuse weight $\alpha{=}0.5$ (\texttt{patch\_routing\_alpha}).
+The DINOv2 encoder is frozen; only the PatchGroundingModule and MoE generators are trained for the DEK/AVBT path.
+
+\section{Probe-Builder Exact Rules}
+The conceptual image-swap and hard-negative probes are defined in the main paper.
+Here we record the exact pairing rules used by \texttt{tools/build\_grounding\_eval\_json.py}.
+
+\paragraph{Prompt skeleton.}
+For a source question string $s$, normalize whitespace, lowercase, and take the first seven tokens.
+This skeleton indexes candidates for hard-negative preference.
+
+\paragraph{Entity exclusion.}
+\begin{itemize}
+\item VLKEB (\texttt{entity\_mode=folder}): the entity id is the first path component of the image relative path.
+\item EVQA / EasyEdit (\texttt{entity\_mode=coco}): the entity id is the numeric COCO image id parsed from the filename.
+\end{itemize}
+Partners must have a different entity id than the source edit.
+
+\paragraph{Ranking.}
+Among other-entity rows, assign skeleton score $2$ for an exact skeleton match, $1$ if the candidate appears in the same skeleton bucket list, else $0$.
+Hard-negative candidates require score ${>}0$ when such partners exist; otherwise any other-entity row is allowed.
+Swap candidates are all other-entity rows, sorted by the same score then by index distance.
+The first candidate whose image file exists on disk is kept; hard-negative and swap partners are preferably distinct.
+
+\paragraph{Drop rule.}
+A row is dropped if no valid hard-negative or no valid swap partner image exists.
+
+\paragraph{Packaged VLKEB eval overlay stats.}
+For the shipped \texttt{data/VLKEB/grounding/grounding\_eval\_short.json} metadata: pairing seed $42$; $3174$ input rows retained as $3174$ outputs; skeleton-match rates $0.696$ (hard-negative) and $0.636$ (swap); zero missing partners after ranking.
+
+\section{FPR Logging Procedure}
+The main paper defines false-positive retrieval (FPR) as the fraction of adversarial queries that activate at least one foreign expert.
+Operationally, with a built lifelong pool:
+
+\begin{enumerate}
+\item Apply sequential edits so each sample contributes one or more pool entries; maintain a map from pool index to sample id.
+\item For each image-swap or hard-negative probe, call routing diagnostics (\texttt{probe\_routing}) and record retrieved pool indices.
+\item Mark the probe as a false-positive if any retrieved index maps to a sample id other than the query's own sample.
+\item Aggregate the indicator over the evaluated adversarial probes (optionally separately for swap vs.\ hard-negative).
+\end{enumerate}
+
+In the code supplement this is exposed via \texttt{test\_grounding\_eval.py --log\_routing} and \texttt{tools/log\_grounding\_diagnostics.py}.
+Answer-level swap/hard-negative token accuracy is computed separately by the standard evaluation harness and is not used as the FPR definition.
+
+\section{AVBT Auxiliary Terms}
+Let $\mathcal{L}_{\mathrm{pos}}$, $\mathcal{L}_{\mathrm{neg}}$, $\lambda$, $\beta$, and hinge $\tau$ be as in the main paper Method section.
+On an adversarial image, write $\pi^{\mathrm{adv}}$ for the softmax over pool experts plus the prototype slot, and let
+\[
+\pi^{\mathrm{wrong}}_{\max}
+=
+\max_{i\notin\mathcal{O}\cup\{\mathrm{prot}\}}\pi^{\mathrm{adv}}_i
+\]
+be the largest probability on a non-own expert.
+The informal $\mathcal{L}_{\mathrm{aux}}$ used in primary runs (with \texttt{--avbl\_contrastive}) is
+\begin{align}
+\mathcal{L}_{\mathrm{contrast}}
+&=
+\mathrm{ReLU}\!\left(\pi^{\mathrm{wrong}}_{\max}-\gamma\right),
+\qquad \gamma{=}0.1,
+\\
+\mathcal{L}_{\mathrm{targeted}}
+&=
+-\log\!\left(1-\pi^{\mathrm{wrong}}_{\max}\right),
+\end{align}
+and $\mathcal{L}_{\mathrm{aux}}=\mathcal{L}_{\mathrm{contrast}}+\mathcal{L}_{\mathrm{targeted}}$.
+Neighbor-mining and pool-buffer extras are disabled in the primary Dual-Expert Keys row (they appear only as negative ablations in the main paper).
+
+\section{Training Schedule Details}
+Reported Dual-Expert Keys checkpoints are obtained by fine-tuning from a lifelong LiveEdit baseline trained on original VLKEB edits (no DEK, no AVBT).
+Typical command-line settings for the DEK+AVBT stage:
+\begin{itemize}
+\item batch size $4$; one training epoch over the probe-augmented VLKEB train JSON;
+\item random seed $42$ for the headline run;
+\item \texttt{-lkpt} set to the baseline checkpoint path;
+\item \texttt{--patch\_grounding --adversarial\_grounding --avbl\_contrastive --dek\_dual\_gate};
+\item binding hyperparameters as in the main paper ($\lambda{=}0.3$, $\beta{=}2.5$, $\tau{=}0.3$, text margin $m{=}0$).
+\end{itemize}
+Model weights, VLKEB/EVQA images, and trained checkpoints are not redistributed with the optional code archive; they must be obtained separately.
+
+\section{Code and Data Artifacts}
+Relative paths in the anonymous code and data package:
+\begin{itemize}
+\item \texttt{configs/liveedit/blip2-opt-2.7b.yaml} --- editor hyperparameters above;
+\item \texttt{tools/build\_grounding\_eval\_json.py} --- probe construction;
+\item \texttt{data/VLKEB/grounding/} and \texttt{data/easy-edit-mm/grounding/} --- probe-augmented JSON metadata (images excluded);
+\item \texttt{train\_vllm\_editor.py} --- training entry point;
+\item \texttt{test\_grounding\_eval.py} --- adversarial evaluation and optional routing logs;
+\item \texttt{editor/vllm\_editors/liveedit/} --- DEK / AVBT / patch-grounding implementation.
+\end{itemize}
+
+\end{document}

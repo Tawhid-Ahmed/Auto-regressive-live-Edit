@@ -87,6 +87,52 @@ class QVExtractor(nn.Module):
         if hasattr(self, 'vis_rep_prot'):
             nn.init.kaiming_normal_(self.vis_rep_prot)
 
+class PatchGroundingModule(nn.Module):
+    """Cross-attention over spatial patch grid → routing keys (Step 6 L1).
+
+    Produces ``evr_patch`` with the same shape as ``QVExtractor.extract_vision`` output
+    so patch keys can be fused with legacy Q-Former keys at retrieval time.
+    """
+
+    def __init__(
+        self,
+        patch_dim: int,
+        llm_mid_dim: int,
+        module_dim: int,
+        cross_att_head_n: int,
+        eqe_n: int,
+    ) -> None:
+        super().__init__()
+        self.patch_proj = nn.Linear(patch_dim, module_dim)
+        self.layer_norm_patches = nn.LayerNorm(module_dim)
+        self.layer_norm_query = nn.LayerNorm(llm_mid_dim)
+        self.eqe = nn.Parameter(torch.zeros(1, eqe_n, module_dim))
+        self.ca_query = Attention(module_dim, llm_mid_dim, module_dim, module_dim, cross_att_head_n)
+        self.ca_patch = Attention(module_dim, module_dim, module_dim, module_dim, cross_att_head_n)
+        self.patch_prot = nn.Parameter(torch.zeros(1, 16, patch_dim))
+        self.reset_parameters()
+
+    def extract_from_prototype(self, query_reps: torch.Tensor) -> torch.Tensor:
+        return self.forward(query_reps, self.patch_prot)
+
+    def forward(self, query_reps: torch.Tensor, patch_reps: torch.Tensor) -> torch.Tensor:
+        # query_reps: [b, l2, llm_mid_dim]; patch_reps: [b, P, patch_dim]
+        assert len(query_reps) == len(patch_reps) == 1
+        query_reps = self.layer_norm_query(query_reps)
+        patches = self.layer_norm_patches(self.patch_proj(patch_reps))
+        eqr = self.ca_query(self.eqe, query_reps)
+        return self.ca_patch(eqr, patches)
+
+    def reset_parameters(self):
+        self.patch_proj.reset_parameters()
+        self.layer_norm_patches.reset_parameters()
+        self.layer_norm_query.reset_parameters()
+        nn.init.kaiming_normal_(self.eqe)
+        self.ca_query.reset_parameters()
+        self.ca_patch.reset_parameters()
+        nn.init.kaiming_normal_(self.patch_prot)
+
+
 class LowRankGenerator(nn.Module):
     def __init__(self, lora_dim, lora_rank, lora_scale, inpt_reps_dim, module_dim, cross_att_head_n) -> None:
         super().__init__()

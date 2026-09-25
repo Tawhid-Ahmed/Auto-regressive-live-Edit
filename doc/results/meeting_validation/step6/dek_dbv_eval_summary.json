@@ -1,0 +1,98 @@
+{
+  "timestamp": "2026-07-10T09:56:00",
+  "ckpt": "records/liveedit/blip2-opt-2.7b/VLKEB_avbt_S2_fixed-2026.07.09-20.48.12/checkpoints/epoch-1-i-125-ema_loss-9.6395",
+  "eval_protocol": {
+    "dsn": 100,
+    "sen": 10,
+    "seed": 42,
+    "patch_grounding": true,
+    "patch_routing_only": false
+  },
+  "baseline_S2_fixed": {
+    "rel": 0.7791,
+    "swap": 0.4395,
+    "swap_gap_pp": 33.96,
+    "image_swap_false_cross": 0.87,
+    "reliability_false_cross": 0.57,
+    "mean_n_retrieved_rel": 2.96,
+    "eval_dir": "VLKEB_GROUNDING-S2_fixed_dsn100-2026.07.09-21.06.31"
+  },
+  "DEK_B2": {
+    "flags": ["fused_expert_key", "pool_dedup", "pool_dedup_threshold=0.95"],
+    "rel": 0.5252,
+    "swap": 0.4232,
+    "swap_gap_pp": 10.2,
+    "image_swap_false_cross": 0.51,
+    "reliability_false_cross": 0.03,
+    "mean_n_retrieved_rel": 0.36,
+    "eval_dir": "VLKEB_GROUNDING-DEK_B2_dsn100-2026.07.10-09.50.07",
+    "delta_vs_baseline": {
+      "rel_pp": -25.4,
+      "swap_pp": -1.6,
+      "false_cross_pp": -36.0
+    },
+    "verdict": "FAIL — routing precision up but recall collapsed (see D1_only: dedup not the cause)"
+  },
+  "DEK_D1_only": {
+    "flags": ["fused_expert_key"],
+    "rel": 0.5252,
+    "swap": 0.4232,
+    "swap_gap_pp": 10.2,
+    "image_swap_false_cross": 0.51,
+    "reliability_false_cross": 0.03,
+    "mean_n_retrieved_rel": 0.36,
+    "eval_dir": "VLKEB_GROUNDING-DEK_D1_only_dsn100-2026.07.10-09.58.21",
+    "delta_vs_baseline": {
+      "rel_pp": -25.4,
+      "swap_pp": -1.6,
+      "false_cross_pp": -36.0
+    },
+    "verdict": "FAIL — identical to DEK_B2; fused_expert_key alone causes rel collapse, not pool_dedup"
+  },
+  "DEK_D2_only": {
+    "flags": ["pool_dedup", "pool_dedup_threshold=0.95"],
+    "rel": 0.7791,
+    "swap": 0.4395,
+    "swap_gap_pp": 33.96,
+    "image_swap_false_cross": 0.87,
+    "reliability_false_cross": 0.57,
+    "mean_n_retrieved_rel": 2.96,
+    "n_pool_entries": 100,
+    "eval_dir": "VLKEB_GROUNDING-DEK_D2_only_dsn100-2026.07.10-10.02.11",
+    "delta_vs_baseline": {
+      "rel_pp": 0.0,
+      "swap_pp": 0.0,
+      "false_cross_pp": 0.0
+    },
+    "verdict": "NEUTRAL — identical to S2_fixed; no merges at 0.95 on dsn=100 distinct images"
+  },
+  "DBV": {
+    "flags": ["decode_vision_gate", "decode_vision_abs_threshold=0.45"],
+    "rel": 0.7793,
+    "swap": 0.4211,
+    "swap_gap_pp": 35.82,
+    "image_swap_false_cross": 0.87,
+    "reliability_false_cross": 0.0,
+    "mean_n_retrieved_rel": 1.0,
+    "eval_dir": "VLKEB_GROUNDING-DBV_dsn100-2026.07.10-09.54.04",
+    "delta_vs_baseline": {
+      "rel_pp": 0.02,
+      "swap_pp": -1.8,
+      "false_cross_pp": 0.0
+    },
+    "verdict": "NEUTRAL — rel preserved, swap unchanged; gate blocks rel false-cross but not image_swap"
+  },
+  "diagnosis": "fused_expert_key fuses QFormer+patch vis sim before scoring; scores shift so most probes fall below retrieval threshold (mean_n_retrieved_rel 0.36 vs 2.96). pool_dedup at 0.95 is a no-op on dsn=100 (100 pool entries, no DINO merges).",
+  "ablation_matrix": {
+    "D1_only": "breaks rel (-25pp), cuts false_cross (-36pp)",
+    "D2_only": "no change vs baseline",
+    "D1+D2": "same as D1_only",
+    "DBV": "rel preserved, swap unchanged"
+  },
+  "next_steps": [
+    "Fix D1 fusion scoring (renormalize / calibrate threshold) or train with fused keys (B3)",
+    "pool_dedup only useful when pool has near-duplicate images; test on larger sen or lower threshold",
+    "DBV+S2_fixed safe but does not move swap; need routing fix not decode gate alone",
+    "Consider D1+DBV after D1 score calibration"
+  ]
+}

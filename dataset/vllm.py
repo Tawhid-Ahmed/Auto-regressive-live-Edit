@@ -11,6 +11,14 @@ def pil_image_from_path_or_pil(image):
     """Return a PIL Image; load from disk if ``image`` is a filesystem path string."""
     if image is None:
         return None
+    from .image_alterations import AlteredImageRef, apply_alteration
+
+    if isinstance(image, AlteredImageRef):
+        with Image.open(image.path) as im:
+            pil = im.convert("RGB").copy()
+        if image.alteration:
+            return apply_alteration(pil, image.alteration)
+        return pil
     if isinstance(image, str):
         with Image.open(image) as im:
             return im.convert("RGB").copy()
@@ -104,7 +112,8 @@ class BaseVLLMEditData(BaseEditData):
 
 class EVQA(BaseVLLMEditData):
     def __init__(self, data_path:str = 'data/easy-edit-mm/vqa/vqa_train.json', 
-                  img_root_dir:str = 'data/easy-edit-mm/images', data_n = None) -> None:
+                  img_root_dir:str = 'data/easy-edit-mm/images', data_n = None,
+                  preload_images: bool = False) -> None:
         if 'vqa' not in os.path.basename(data_path): raise
         print('Load E-VQA from: %s '% data_path)
         data_with_img_path = self.__init_eic_evqa__(data_path, img_root_dir, data_n)
@@ -115,8 +124,13 @@ class EVQA(BaseVLLMEditData):
             d['locality']['text_loc'][0]['prompt'] = '%s?'%d['locality']['text_loc'][0]['prompt']
             d['locality']['image_loc'][0]['prompt'] = '%s The answer is:'%d['locality']['image_loc'][0]['prompt']
         data_with_img = deepcopy(data_with_img_path)
-        for d in tqdm(data_with_img, 'Loading images'):
-            self.__load_imgs_for_data_with_img_path__(d)
+        # Default: keep filesystem paths (lazy load in VLLM wrap). Preloading full EVQA (~6k×3
+        # images) routinely exhausts host RAM; VLKEB already defaults to lazy paths.
+        if preload_images:
+            for d in tqdm(data_with_img, 'Loading images'):
+                self.__load_imgs_for_data_with_img_path__(d)
+        else:
+            print('EVQA: lazy image paths (preload_images=False) — loads per batch, low RAM.')
         super().__init__(data_with_img, data_with_img_path)
 
     def dataset_name(self):
@@ -125,7 +139,8 @@ class EVQA(BaseVLLMEditData):
 
 class EIC(BaseVLLMEditData):
     def __init__(self, data_path:str = 'data/easy-edit-mm/caption/caption_train_edit.json', 
-                  img_root_dir:str = 'data/easy-edit-mm/images', data_n = None):
+                  img_root_dir:str = 'data/easy-edit-mm/images', data_n = None,
+                  preload_images: bool = False):
         if 'caption' not in os.path.basename(data_path): raise
         print('Load E-IC from: %s '% data_path)
         data_with_img_path = self.__init_eic_evqa__(data_path, img_root_dir, data_n)
@@ -133,8 +148,11 @@ class EIC(BaseVLLMEditData):
             d['locality']['text_loc'][0]['prompt'] = '%s?'%d['locality']['text_loc'][0]['prompt']
             d['locality']['image_loc'][0]['prompt'] = '%s The answer is:'%d['locality']['image_loc'][0]['prompt']
         data_with_img = deepcopy(data_with_img_path)
-        for d in tqdm(data_with_img, 'Loading images'):
-            self.__load_imgs_for_data_with_img_path__(d)
+        if preload_images:
+            for d in tqdm(data_with_img, 'Loading images'):
+                self.__load_imgs_for_data_with_img_path__(d)
+        else:
+            print('EIC: lazy image paths (preload_images=False) — loads per batch, low RAM.')
         super().__init__(data_with_img, data_with_img_path)
 
     def dataset_name(self):

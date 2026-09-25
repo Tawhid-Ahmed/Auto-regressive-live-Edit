@@ -1,0 +1,56 @@
+{
+  "phase": "1_corrected_protocol",
+  "timestamp": "2026-07-09T21:35:00",
+  "eval_protocol": {
+    "dsn": 100,
+    "sen": 10,
+    "patch_grounding": true,
+    "patch_routing_only": false,
+    "note": "Prior headline numbers (l02 swap 50.6%) used QFormer-only eval without loading patch weights"
+  },
+  "apples_to_apples_baseline": {
+    "l02_fused_seed42": {
+      "reliability_acc": 0.7444,
+      "swap_acc": 0.4197,
+      "swap_gap_pp": 32.47,
+      "image_swap_false_cross_rate": 0.76
+    },
+    "old_l02_reported_no_patch": {
+      "reliability_acc": 0.7802,
+      "swap_acc": 0.506,
+      "swap_gap_pp": 27.42,
+      "note": "invalid protocol — patch module not loaded at eval"
+    }
+  },
+  "runs": {
+    "S2_fixed": {
+      "ckpt": "records/liveedit/blip2-opt-2.7b/VLKEB_avbt_S2_fixed-2026.07.09-20.48.12/checkpoints/epoch-1-i-125-ema_loss-9.6395",
+      "train": "E1+E2+E3, fused AVBL (no global patch_routing_only), lambda=0.2 hinge=0.3 contrastive",
+      "seeds": {
+        "42": {"rel": 0.7791, "swap": 0.4395, "gap_pp": 33.96, "false_cross": 0.87},
+        "123": {"rel": 0.7793, "swap": 0.4416, "gap_pp": 33.77},
+        "456": {"rel": 0.7794, "swap": 0.4442, "gap_pp": 33.52}
+      }
+    },
+    "S2_noE1": {
+      "ckpt": "records/liveedit/blip2-opt-2.7b/VLKEB_avbt_S2_noE1-2026.07.09-21.10.04/checkpoints/epoch-1-i-125-ema_loss-9.4142",
+      "seed42": {"rel": 0.7817, "swap": 0.4356, "gap_pp": 34.61}
+    }
+  },
+  "aggregate_S2_fixed": {
+    "mean_rel": 0.7793,
+    "mean_swap": 0.4418,
+    "mean_gap_pp": 33.75,
+    "seeds_passing_rel_71": 3,
+    "seeds_passing_swap_55": 0
+  },
+  "gate_A": {
+    "pass": false,
+    "reason": "Rel OK (~78% all seeds) but swap ~44% vs 55% target; gap ~34pp vs 20pp"
+  },
+  "next": [
+    "Recalibrate all AVBL headline tables to fused --patch_grounding eval",
+    "Phase 2 DEK — AVBL/CEB alone cannot close swap gap under correct protocol",
+    "Optional: decode vision gate (DBV) eval-only before more AVBL tuning"
+  ]
+}

@@ -47,7 +47,9 @@ class SERACvl(VLLMBaseEditorWithTraining):
         llm_norm = find_module(vllm.model, config.llm_norm_path)
         voc_path = find_module(vllm.model, config.llm_voc_path)
         def reps_to_word_predict(reps:torch.Tensor):
-            return voc_path(llm_norm(reps))
+            # Counterfact adapters are fp32; BLIP2 norm/lm_head are fp16.
+            w = next(llm_norm.parameters())
+            return voc_path(llm_norm(reps.to(dtype=w.dtype)))
         self.counterfact_model = CounterfactModel(config, reps_to_word_predict).to(device)
         self.classifier = Classifier(config).to(device)
         # hook llm `get_llm_outpt` function
@@ -93,7 +95,10 @@ class SERACvl(VLLMBaseEditorWithTraining):
 
     def restore_to_original_model(self):
         self.request_pool = []
-        self.sim_reps_pool = torch.zeros([0, self.cfg.classifier_rep_dim], device=self.device)
+        # get_sim_reps concatenates mean/max/min → 3x classifier_rep_dim
+        self.sim_reps_pool = torch.zeros(
+            [0, 3 * self.cfg.classifier_rep_dim], device=self.device
+        )
         self.request_embed_pool = []
 
     def edit_one_piece(self, request: Dict):

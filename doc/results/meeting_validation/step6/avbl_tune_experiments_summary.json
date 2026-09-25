@@ -1,0 +1,33 @@
+{
+  "runs": [
+    {
+      "label": "L0",
+      "reliability_acc": 0.74,
+      "swap_acc": 0.4242,
+      "hard_neg_acc": 0.4281,
+      "swap_gap_pp": 31.58
+    },
+    {
+      "label": "epoch2",
+      "reliability_acc": 0.7946,
+      "swap_acc": 0.5315,
+      "hard_neg_acc": 0.5151,
+      "swap_gap_pp": 26.31
+    },
+    {
+      "label": "epoch3",
+      "reliability_acc": 0.4858,
+      "swap_acc": 0.4213,
+      "hard_neg_acc": 0.4229,
+      "swap_gap_pp": 6.45
+    },
+    {
+      "label": "l02",
+      "reliability_acc": 0.7802,
+      "swap_acc": 0.506,
+      "hard_neg_acc": 0.508,
+      "swap_gap_pp": 27.42
+    }
+  ],
+  "best_tradeoff": "epoch2 or l02 (reliability preserved, swap acc up)"
+}

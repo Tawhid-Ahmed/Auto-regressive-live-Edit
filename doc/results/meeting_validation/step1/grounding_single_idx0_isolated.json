@@ -1,0 +1,200 @@
+{
+  "meta": {
+    "timestamp": "2026-07-05T13:08:22",
+    "source_index": 0,
+    "row_index": 0,
+    "pool_before": 0,
+    "pool_size": 1,
+    "target_pool_index": 0,
+    "context_row_indices": [],
+    "seed": null,
+    "ckpt": "records/liveedit/blip2-opt-2.7b/VLKEB_long_baseline-2026.06.02-13.43.00/checkpoints/epoch-20-i-27800-ema_loss-0.7936",
+    "ar_mode": false
+  },
+  "sample": {
+    "prompt": "What city in Illinois is depicted in the image?",
+    "alt_short": "Kankakee",
+    "pred_prior": "Laredo,_Texas",
+    "image": "m.010bnr/google_13.jpg",
+    "image_rephrase": "m.010bnr/yahoo_4.jpg",
+    "grounding_probes": {
+      "image_swap": "m.010cw1/bing_6.jpg",
+      "image_swap_partner_index": 2,
+      "hard_neg_image": "m.010bxh/bing_0.jpg",
+      "hard_neg_partner_index": 1,
+      "conflict_prompt": "(Most viewers would guess Laredo, Texas, not Kankakee.) What city in Illinois is depicted in the image?",
+      "modality_consistency_image": "m.010bnr/yahoo_4.jpg",
+      "pairing_seed": 42
+    }
+  },
+  "summary": {
+    "reliability_acc": 0.6326530575752258,
+    "image_swap_acc": 0.4285714328289032,
+    "swap_gap_pp": 20.408162474632263
+  },
+  "probes": [
+    {
+      "probe": "reliability",
+      "prompt": "What city in Illinois is depicted in the image?",
+      "image": "Image",
+      "acc": 0.6326530575752258,
+      "em": 0.0,
+      "target_token_count": 98,
+      "predict_preview": "The image showcases a detailed view of a traditional brick church,, characterized by a central central tower tower topped with a cross, The structure feature...",
+      "routing": {
+        "n_retrieved": 1,
+        "retrieved_indices": [
+          0
+        ],
+        "vis_sim_prot": 17.510757446289062,
+        "n_pool": 1,
+        "expected_index": 0,
+        "hits_expected": true,
+        "false_cross": false
+      }
+    },
+    {
+      "probe": "text_rephrase",
+      "prompt": "Which Illinois city is shown in the picture?",
+      "image": "Image",
+      "acc": 0.6530612111091614,
+      "em": null,
+      "target_token_count": null,
+      "predict_preview": "The image showcases a detailed view of a traditional brick church,, characterized by a central central tower tower topped with a cross, The structure feature...",
+      "routing": {
+        "n_retrieved": 1,
+        "retrieved_indices": [
+          0
+        ],
+        "vis_sim_prot": 17.512351989746094,
+        "n_pool": 1,
+        "expected_index": 0,
+        "hits_expected": true,
+        "false_cross": false
+      }
+    },
+    {
+      "probe": "image_rephrase",
+      "prompt": "What city in Illinois is depicted in the image?",
+      "image": "Image",
+      "acc": 0.6428571343421936,
+      "em": null,
+      "target_token_count": null,
+      "predict_preview": "The image showcases a detailed view of a traditional brick church,, characterized by a central, tower tower topped with a cross, The structure features ached...",
+      "routing": {
+        "n_retrieved": 1,
+        "retrieved_indices": [
+          0
+        ],
+        "vis_sim_prot": 17.214139938354492,
+        "n_pool": 1,
+        "expected_index": 0,
+        "hits_expected": true,
+        "false_cross": false
+      }
+    },
+    {
+      "probe": "image_swap",
+      "prompt": "What city in Illinois is depicted in the image?",
+      "image": "Image",
+      "acc": 0.4285714328289032,
+      "em": null,
+      "target_token_count": null,
+      "predict_preview": "only is a city view of the city Chicago building with with but by a steep sp tower tower, by a steep. The church of ached windows, a steep tower window in th...",
+      "routing": {
+        "n_retrieved": 0,
+        "retrieved_indices": [],
+        "vis_sim_prot": 18.486536026000977,
+        "n_pool": 1,
+        "expected_index": 0,
+        "hits_expected": false,
+        "false_cross": false
+      }
+    },
+    {
+      "probe": "hard_negative",
+      "prompt": "What city in Illinois is depicted in the image?",
+      "image": "Image",
+      "acc": 0.4183673560619354,
+      "em": null,
+      "target_token_count": null,
+      "predict_preview": "only is a city view of the city Chicago building.. but by a steep sp tower tower, by a steep. The church of ached windows, a steep tower window. the main ent...",
+      "routing": {
+        "n_retrieved": 0,
+        "retrieved_indices": [],
+        "vis_sim_prot": 12.916927337646484,
+        "n_pool": 1,
+        "expected_index": 0,
+        "hits_expected": false,
+        "false_cross": false
+      }
+    },
+    {
+      "probe": "modality_consistency",
+      "prompt": "What city in Illinois is depicted in the image?",
+      "image": "Image",
+      "acc": 0.6428571343421936,
+      "em": null,
+      "target_token_count": null,
+      "predict_preview": "The image showcases a detailed view of a traditional brick church,, characterized by a central, tower tower topped with a cross, The structure features ached...",
+      "routing": {
+        "n_retrieved": 1,
+        "retrieved_indices": [
+          0
+        ],
+        "vis_sim_prot": 17.214139938354492,
+        "n_pool": 1,
+        "expected_index": 0,
+        "hits_expected": true,
+        "false_cross": false
+      }
+    },
+    {
+      "probe": "prompt_conflict",
+      "prompt": "(Most viewers would guess Laredo, Texas, not Kankakee.) What city in Illinois is depicted in the image?",
+      "image": "Image",
+      "acc": 0.6326530575752258,
+      "em": null,
+      "target_token_count": null,
+      "predict_preview": "The image showcases a detailed view of a traditional brick church,, characterized by a central central tower tower topped with a cross, The structure feature...",
+      "routing": {
+        "n_retrieved": 1,
+        "retrieved_indices": [
+          0
+        ],
+        "vis_sim_prot": 17.46588706970215,
+        "n_pool": 1,
+        "expected_index": 0,
+        "hits_expected": true,
+        "false_cross": false
+      }
+    },
+    {
+      "probe": "text_loc",
+      "prompt": "when did prison break season 4 come out?",
+      "image": null,
+      "acc": 1.0,
+      "em": null,
+      "target_token_count": null,
+      "predict_preview": "?st 2012"
+    },
+    {
+      "probe": "image_loc",
+      "prompt": "What county in Wisconsin is shown in the image? The answer is:",
+      "image": "Image",
+      "acc": 1.0,
+      "em": null,
+      "target_token_count": null,
+      "predict_preview": "noneagamie County",
+      "routing": {
+        "n_retrieved": 0,
+        "retrieved_indices": [],
+        "vis_sim_prot": 10.985015869140625,
+        "n_pool": 1,
+        "expected_index": 0,
+        "hits_expected": false,
+        "false_cross": false
+      }
+    }
+  ]
+}

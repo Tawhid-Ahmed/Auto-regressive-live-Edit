@@ -73,9 +73,11 @@ class EditLinear():
             # args: tuple(input) [batch_size, max_length, dim_in]
             # output.shape = [batch_size, max_length, dim_out]
             if self.__delta_weight__ != None:
-                output = output + args[0] @ self.__delta_weight__ # Wx + b + W'x = (W + W')x + b
+                dw = self.__delta_weight__.to(dtype=args[0].dtype, device=args[0].device)
+                output = output + args[0] @ dw  # Wx + b + W'x = (W + W')x + b
             if self.__delta_bias__ != None:
-                output = output + self.__delta_bias__ # Wx + b + W'x + b'
+                db = self.__delta_bias__.to(dtype=output.dtype, device=output.device)
+                output = output + db  # Wx + b + W'x + b'
             return output
         if not hasattr(self, 'x_handle') or self.x_handle == None:
             self.x_handle = self.edit_module.register_forward_hook(forward_x_hook)

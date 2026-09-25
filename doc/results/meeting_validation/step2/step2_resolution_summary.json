@@ -1,0 +1,61 @@
+{
+  "runs": [
+    {
+      "label": "res224",
+      "path": "E:\\MSC\\MSc thesis project\\LiveEdit\\LiveEdit\\eval_results/meeting_validation/step2\\liveedit\\blip2-opt-2.7b\\VLKEB_GROUNDING-step2_res224-2026.07.05-13.22.43\\sequential_edit_50\\seed_42_mean_results.json",
+      "reliability_acc": 0.7465,
+      "probe_acc": {
+        "image_swap": 0.435,
+        "hard_negative": 0.4336,
+        "modality_consistency": 0.7184,
+        "prompt_conflict": 0.7449
+      },
+      "swap_gap_pp": 31.150000000000006,
+      "consistency_gap_pp": 2.8100000000000014,
+      "hard_negative_false_activation_rate": 0.4336,
+      "conflict_accuracy": 0.7449,
+      "modality_consistency_acc": 0.7184,
+      "image_size": 224
+    },
+    {
+      "label": "res336",
+      "path": "E:\\MSC\\MSc thesis project\\LiveEdit\\LiveEdit\\eval_results/meeting_validation/step2\\liveedit\\blip2-opt-2.7b\\VLKEB_GROUNDING-step2_res336-2026.07.05-13.28.37\\sequential_edit_50\\seed_42_mean_results.json",
+      "reliability_acc": 0.7458,
+      "probe_acc": {
+        "image_swap": 0.4357,
+        "hard_negative": 0.4312,
+        "modality_consistency": 0.7039,
+        "prompt_conflict": 0.744
+      },
+      "swap_gap_pp": 31.010000000000005,
+      "consistency_gap_pp": 4.190000000000005,
+      "hard_negative_false_activation_rate": 0.4312,
+      "conflict_accuracy": 0.744,
+      "modality_consistency_acc": 0.7039,
+      "image_size": 336
+    },
+    {
+      "label": "res448",
+      "path": "E:\\MSC\\MSc thesis project\\LiveEdit\\LiveEdit\\eval_results/meeting_validation/step2\\liveedit\\blip2-opt-2.7b\\VLKEB_GROUNDING-step2_res448-2026.07.05-13.36.41\\sequential_edit_50\\seed_42_mean_results.json",
+      "reliability_acc": 0.7452,
+      "probe_acc": {
+        "image_swap": 0.4429,
+        "hard_negative": 0.4374,
+        "modality_consistency": 0.7102,
+        "prompt_conflict": 0.7429
+      },
+      "swap_gap_pp": 30.229999999999997,
+      "consistency_gap_pp": 3.499999999999992,
+      "hard_negative_false_activation_rate": 0.4374,
+      "conflict_accuracy": 0.7429,
+      "modality_consistency_acc": 0.7102,
+      "image_size": 448
+    }
+  ],
+  "gate": "PASS (flat curves - resolution irrelevant until patch layer; supports Q-Former bottleneck)",
+  "resolution_spread_pp": {
+    "reliability": 0.13,
+    "swap_gap": 0.92,
+    "hard_negative": 0.62
+  }
+}

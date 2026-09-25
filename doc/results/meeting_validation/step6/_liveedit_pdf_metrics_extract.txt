@@ -1,0 +1,560 @@
+pages 12
+==== PAGE 2 ====
+What type of cake is this? What do the hexagon mean?
+…
+…
+𝑬𝑬𝒕𝒕 M-Gen. : What 
+does the hexagon 
+mean? It is ____ 
+𝑬𝑬𝟏𝟏 Rel. : This cake is to be designed for ____
+𝑬𝑬𝟏𝟏 T-Gen. : What type of cake is this? It is ____
+M-Loc.: What’s the 
+yellow thing? The 
+answer is ____
+T-Loc.: How many continents are there on Earth? The answer is ____
+𝑓𝑓𝜃𝜃0
+What's the sport?
+…
+…
+Generalization Domain
+ Locality Domain
+Who wrote the play “Romeo and Juliet”?
+How many continents are there on Earth?
+What is the boiling point of water?
+…
+Edit Target Locality TargetGenerality Data
+𝑬𝑬𝟏𝟏: This cake is to be designed 
+for Christmas → birthday 
+𝑓𝑓𝜃𝜃1
+𝑬𝑬𝟐𝟐: What is the person doing?
+It’s Jumping → Skiing
+𝑓𝑓𝜃𝜃2
+𝑬𝑬𝒕𝒕: What does this sign mean?
+Slow down → Stop
+𝑓𝑓𝜃𝜃𝑡𝑡
+…𝒇𝒇𝜽𝜽𝟏𝟏 𝒇𝒇𝜽𝜽𝒕𝒕𝒇𝒇𝜽𝜽𝟎𝟎
+Christmas
+Christmas
+Seven
+Slow down
+Banana
+Birthday
+Birthday
+Seven
+Slow down
+Banana
+…
+…
+…
+…
+…
+𝑬𝑬𝟏𝟏 T-Gen. 
+𝑬𝑬𝟏𝟏 Rel. 
+T-Loc. 
+𝑬𝑬𝒕𝒕 𝐌𝐌-Gen. 
+M-Loc. 
+Birthday
+Birthday
+Seven
+Stop
+Banana
+Figure 1. Lifelong VLLM Editing. In this scenario, the edited VLLM is required to correctly respond to queries involving the edited data
+within the generalization domain, while maintaining consistent responses in locality domains. The top left shows test cases where Rel.,
+T-Gen./M-Gen., T-Loc., and M-Loc. denote reliability, text/modal generality, and text locality, respectively. The bottom right illustrates
+the responses of an effectively edited VLLM across several editing timesteps.
+there is currently no related research on lifelong editing, as
+illustrated in Figure 1. Visual modality is quite different
+from text modality since it typically contains more informa-
+tion and is more noisy. Therefore, the approaches working
+for LLMs cannot be directly applied to VLLMs.
+In this paper, we introduce LiveEdit, a novel frame-
+work designed for Lifelong vision language model Editing,
+which bridges the gap between lifelong LLM editing and
+VLLMs. In this framework, we design a generative low-
+rank mixture-of-experts combined with hard and soft rout-
+ing as a powerful VLLM editor. The two key techniques are
+outlined as follows:
+Generation of Low-Rank Experts: Mixture-of-Experts
+(MoE) combines multiple ”experts,” each specializing in
+specific data patterns or sub-tasks [26, 27]. In VLLM edit-
+ing, we treat VLLM’s adherence to a single edit sample
+as a sub-task, where each new edit sample corresponds to
+a low-rank expert that adjusts the model’s response. MoE
+components are typically trained on sub-tasks, but directly
+fitting on individual edit samples results in poor generaliza-
+tion and inefficiency. To solve this, we propose an expert
+generator that creates low-rank experts for each new edit
+sample. The generator is trained to align VLLM with key
+edit metrics: reliability, textual/modal generality, and tex-
+tual/modal locality [22]. The generated experts are stored
+in an expert repository. For new inputs, LiveEdit will se-
+lect relevant experts from the repository and combines their
+adapted responses using hard and soft routing, as detailed
+below.
+Hard and Soft Routing: We propose a two-stage routing
+strategy for expert utilization during inference. Attribution
+in [24] shows that VLLM processes prompts in early lay-
+ers and extracts key visual features in later layers. In the
+first phase, we perform a text-to-vision interaction to extract
+key visual features and filter out noise. For each incoming
+sample, we compare its extracted features with those of edit
+samples, routing to visually relevant experts while filtering
+out visually irrelevant ones. Since this hard routing only
+considers visual semantics, it may select multiple visually
+matched but text-irrelevant experts. In the second phase,
+we apply soft routing through multi-expert fusion, incorpo-
+rating the semantic similarity between the input query and
+the edit text. By combining absolute and relative weights,
+relevant edit samples are assigned higher weights and irrel-
+evant ones lower weights. This approach suppresses text-
+irrelevant experts and avoids redundant interactions.
+In the experiments, the proposed LiveEdit framework is
+tested with 1, 10, 100, and 1,000 edits on the LLaV A-V1.5
+(7B) [28], MiniGPT-4 (7B) [29], and BLIP2-OPT (2.7B) [4]
+backbones across the E-VQA [22], E-IC [22], and VLKEB
+[30] benchmark datasets. Comparisons with other strong
+editors demonstrated the superiority of our approach.
+2. Related Works
+2.1. Vision Large Language Models
+Motivated by recent achievements of LLMs [31], re-
+searchers have invested substantial effort in merging LLMs
+with vision models [32]. VLLMs synchronize pre-trained
+image encoders, usually a Vision Transformer (ViT) [33],
+with an LLM decoder. Consequently, this configuration
+produces a model proficient in handling images alongside
+text inputs [4–7, 34]. The training process for VLLMs typi-
+cally unfolds in a two-phase approach. Initially, an align-
+ment component, which may be a feed forward network
+[28] or more sophisticated structures such as a resampler
+[4, 35], is developed to bridge the image encoder with the
+LLM. This component is trained using pairs of images and
+their corresponding captions, effectively mapping image to-
+kens onto the input space of the LLM. Subsequently, the
+9456
+
+
+==== PAGE 3 ====
+focus shifts to broad-spectrum inference capabilities. The
+model is then refined through exposure to a diverse array
+of tasks, encompassing visual question-answering scenar-
+ios [36, 37] and instruction-based interactions in both visual
+and textual contexts [38, 39], thereby enriching its func-
+tional versatility. However, despite the broad application
+potential mentioned above, VLLMs still rely on meticulous
+fine-tuning and editing to ensure adaptability and accuracy
+across diverse scenarios.
+2.2. Model Editing
+Model Editing for LLMs: We classify LLM editing into
+four categories. (1) Locate-Then-Edit methods identify
+and modify specific model parameters related to target
+knowledge [40]. ROME [17] uses causal mediation anal-
+ysis for localization, while MEMIT [18] and WILKE [21]
+extend it for multi-editing. (2) Meta Learning methods
+employ a hyper-network to generate updated weights for
+edits [41–44]. (3) Additional Parameters methods intro-
+duce trainable parameters dedicated to edits while preserv-
+ing original weights [45, 46]. Amon them, LEMOE [46]
+is based on MoE, but its greedy routing harms old experts’
+influence when integrating new ones. (4) Adding Extra
+Modules methods store and retrieve edits via external mem-
+ory mechanisms [19, 25, 47–49]. In lifelong editing, the
+accumulation of shifts in the first two types hinders perfor-
+mance, while the latter two mitigate this by adding extra
+parameters and decoupling edits. However, in VLLM, extra
+modality and noise reduce efficacy.
+Model Editing for VLLMs: Leveraging multimodal data
+for knowledge editing on VLLMs better resonates with
+practical contexts. Previously, the outlined methods were
+tailored for LLMs, operating solely on single-modal data.
+Yet, when it comes to knowledge editing on VLLMs,
+employing multimodal data offers a closer approximation
+to real-life settings. In the literature, MMEdit [22] and
+VLKEB [30] contribute novel datasets designed specifically
+for multimodal knowledge editing tasks. [24] use attribu-
+tion analysis to explore how VLLMs extract key informa-
+tion from visual representations to generate responses, lead-
+ing to the design of a single-step VLLM editing technique.
+2.3. Mixture-of-Experts (MoE)
+The MoE technique [26, 27] decomposes complex tasks
+into simpler ones, using dedicated models called experts.
+Recently, MoE layers have been integrated into transformer
+architectures. For instance, GShard [50] utilized MoE
+in transformer, achieving significant improvements in ma-
+chine translation for 100 languages. Switch Transformers
+[51] further scaled language models with a trillion param-
+eters through efficient MoE designs. However, naive MoE
+training may cause load imbalance, wherein a few experts
+are overused while others are underutilized. To combat
+this, various strategies such as the BASE layer [52], HASH
+layer [53], and Expert Choice [54] have been developed to
+optimize MoE models’ capacity. Recent efforts focus on
+training a decoder-only MoE model with a modified UL2
+objective [55]. Notably, Mixtral [56] enhances decision-
+making by employing token-choice routing to select two out
+of eight experts, improving overall performance. Our work
+approaches the MoE structure from a different angle, treat-
+ing each knowledge update as a mini-task and leveraging
+low-rank experts to store knowledge for VLLM editing.
+3. Preliminaries and Task Definition
+We formally define the VLLM editing task and its lifelong
+extension. Next, we introduce the evaluation criteria.
+A VLLM fθ : V × P → Ocan be considered a func-
+tion that maps an image-prompt pair (v, p) to a textual out-
+put o = fθ(v, p). Given an edit sample (ve, pe, oe), where
+fθ(ve, pe) ̸= oe, a VLLM editor ME : F × V × P × O →
+F produces an updated VLLM fθ′ = ME(fθ, ve, pe, oe).
+Starting from an initial VLLM fθ0, ME iteratively applies
+edits as new editing requirements arise in a lifelong context:
+fθt = ME(fθt−1 , vet , pet , oet ), t= 1, 2, 3, ...
+At any timestep t, an effective ME should ensure that fθt
+satisfies the following three criteria, as outlined in [22]:
+Reliability measures the accuracy of the modified model’s
+responses on edited samples:
+E(ve,pe,oe)∼{(veτ ,peτ ,oeτ )}t
+τ =1
+I{fθt (ve, pe) = oe}
+where I is the indicator function that evaluates to 1 when
+the condition is true.
+Generality requires fθt can also adapt to relevant variations
+(e.g., rephrased prompts) in the edited samples, including
+modal and text generality:
+E(ve,pe,oe)∼{(veτ ,peτ ,oeτ )}t
+τ =1
+Evg∼G(ve)I {fθt (vg, pe) = oe}
+E(ve,pe,oe)∼{(veτ ,peτ ,oeτ )}t
+τ =1
+Epg∼G(pe)I {fθt (ve, pg) = oe}
+where G(·) represents the relevant neighbors.
+Locality requires fθt remains consistent with fθ0 for sam-
+ples unrelated to edits, including modal and text locality:
+E(ve,pe,oe)∼{(veτ ,peτ ,oeτ )}t
+τ =1
+E(vl,pl)∼L(ve,pe)Il(vl, pl)
+E(ve,pe,oe)∼{(veτ ,peτ ,oeτ )}t
+τ =1
+Epl∼L(pe)Il(∅, pl)
+s.t. Il(v, p) = I {fθt (v, p) = fθ0 (v, p)}
+where L(·) represents the irrelevant samples.
+4. The Proposed LiveEdit Framework
+In this section, we formally introduce the LiveEdit frame-
+work, with the overall architecture shown in Figure 2. First,
+9457
+
+
+==== PAGE 6 ====
+We set the temperature to 1, which is omitted here. The
+above loss function brings the key visual features of data
+within the generalization domain closer—even closer than
+those extracted using the visual sentinel. Meanwhile, it
+pushes the locality inputs further from the generalization
+domain, making them relatively closer to the features ex-
+tracted from the visual sentinel.
+Soft Routing includes absolute loss ℓ(b)
+sr1 and relative loss
+ℓ(b)
+sr2, defined as follows:
+ℓ(b)
+sr1 = − log σ( ¯ψgb
+ˆψT
+gb ) − log(1 − σ( ¯ψgb
+ˆψT
+\gb )), (15)
+ℓ(b)
+sr2 = fnce
+
+¯ψgb , ˆψgb , { ˆψgj }B
+j=1 ∪ {ˆψlj }B
+j=1
+
+, (16)
+where ˆψ\gb represents a feature randomly selected from
+{ ˆψgj }B
+j=1 ∪ {ˆψlj }B
+j=1\{ ˆψgb }. Thus, the total training loss
+is: ℓtotal = ℓedit + ℓroute. During training, the parameters
+of the VLLM, fθ, are frozen. The trainable modules are an
+experts generation module, feg, and two feature extraction
+modules, ˆff eand ¯ff e.
+5. Experiments
+5.1. Experimental Settings
+Datasets: Following [22], we use E-VQA (Editing Visual
+Question Answering) and E-IC (Editing Image Caption) as
+evaluation datasets. Additionally, we incorporate VLKEB
+[30], which is composed of real images to better represent
+real-world scenarios.
+VLLM Backbones: For comprehensive evaluation, we
+select VLLM backbones based on both model architec-
+ture and parameter scale, including BLIP2-OPT (2.7B) [4],
+LLaV A-V1.5 (7B) [28], and MiniGPT-4 (7B) [29].
+Baseline Editors: To our knowledge, there are currently
+no editors specifically designed for lifelong VLLM edit-
+ing. Therefore, following [22], in addition to the basic FT-L
+and FT-M, which respectively fine-tune the final layer of the
+LLM and the visual encoder, we adapt LLM-based editing
+techniques to VLLM. These include MEND [42], TP [45],
+LTE [19], RECIPE [20], and LEMoE [46].
+For details on the experimental setup, model hyper-
+parameters, and training specifics, please refer to Appendix
+7. Building on the experimental settings above, we con-
+duct a comprehensive evaluation of edit performance and
+perform an in-depth analysis of LiveEdit’s internals.
+5.2. General Performance of Lifelong Editing
+Table 1 shows partial results of lifelong editing experiments.
+In single-edit scenarios, our method generally achieves op-
+timal performance. Methods such as FT-L, FT-M, and
+MEND [42] try to modify original model parameters and
+perform well initially. However, their performance dete-
+riorates with more edits due to overfitting and cumulative
+/uni00000014/uni00000015/uni00000017/uni0000001b
+/uni00000037/uni0000004b/uni00000048/uni00000003/uni00000035/uni00000044/uni00000051/uni0000004e/uni00000003/uni00000026/uni00000052/uni00000058/uni00000051/uni00000057/uni00000056/uni00000003/uni00000052/uni00000049/uni00000003/uni00000028/uni0000005b/uni00000053/uni00000048/uni00000055/uni00000057/uni00000003r
+/uni00000015/uni00000018/uni00000019
+/uni00000018/uni00000014/uni00000015
+/uni00000014/uni00000013/uni00000015/uni00000017
+/uni00000015/uni00000013/uni00000017/uni0000001b/uni00000037/uni0000004b/uni00000048/uni00000003/uni00000030/uni00000052/uni00000047/uni00000058/uni0000004f/uni00000048/uni00000003/uni00000027/uni0000004c/uni00000050/uni00000048/uni00000051/uni00000056/uni0000004c/uni00000052/uni00000051/uni00000003dm
+/uni0000001c/uni00000013/uni00000030
+/uni00000016/uni00000013/uni00000030
+/uni00000014/uni00000013/uni00000030
+/uni0000001c/uni00000015/uni00000011/uni00000015/uni00000014/uni0000001c/uni00000016/uni00000011/uni00000015/uni00000016/uni0000001c/uni00000016/uni00000011/uni0000001a/uni00000018/uni0000001c/uni00000016/uni00000011/uni0000001b/uni0000001c
+/uni0000001c/uni00000015/uni00000011/uni00000013/uni00000019/uni0000001c/uni00000015/uni00000011/uni0000001c/uni00000018/uni0000001c/uni00000016/uni00000011/uni00000019/uni0000001c/uni0000001c/uni00000016/uni00000011/uni0000001b/uni00000014
+/uni0000001c/uni00000013/uni00000011/uni00000019/uni00000019/uni0000001c/uni00000014/uni00000011/uni0000001b/uni00000017/uni0000001c/uni00000016/uni00000011/uni00000014/uni00000017/uni0000001c/uni00000016/uni00000011/uni00000017/uni00000015
+/uni0000001b/uni0000001b/uni00000011/uni0000001a/uni00000015/uni0000001c/uni00000013/uni00000011/uni00000019/uni00000016/uni0000001c/uni00000015/uni00000011/uni00000016/uni00000018/uni0000001c/uni00000015/uni00000011/uni00000018/uni00000015
+/uni0000001c/uni00000013
+/uni0000001c/uni00000015
+Figure 3. The impact of module dimension dm and expert rank r
+on LiveEdit’s edit performance. Experiments are conducted on the
+E-VQA dataset, with 1,000 edits on BLIP2. Circle size represents
+LiveEdit’s training parameters, and color intensity indicates the
+average edit performance across five metrics.
+parameter scaling [21, 58]. TP [45] addresses parame-
+ter scaling by introducing additional neurons, but a sin-
+gle neuron can’t encapsulate each edit’s visual informa-
+tion. Retrieval-based methods (SERAC [47], LTE [19],
+RECIPE [20]) remain robust in lifelong editing by decou-
+pling edits from model parameters, yet struggle with seman-
+tically similar but visually different edit samples. LEMoE
+[46], a MoE-based editor, excels with few edits but suffers
+from issues like disruptive greedy routing and limited gen-
+eralization due to overfitting experts to batch edits. Our
+method, LiveEdit, surpasses in edit performance. Con-
+trastive learning-based expert routing resolves LEMoE’s is-
+sues, enhancing both edit speed and generalization. By
+decoupling edit samples into independent experts and ap-
+plying a fusion strategy for vision-related experts, we pre-
+vent the semantic conflicts LEMoE encounters from its
+sequential batching. Importantly, our method maintains
+nearly 100% locality performance even with increasing ed-
+its. Three main factors contribute to our performance: First,
+hard routing filters out visually irrelevant experts. Second,
+soft routing scales influence by assigning lower scales to
+textually irrelevant experts. Finally, the locality edit loss
+further confines experts’ influence on response adaptation.
+5.3. Hyper-Parameter Search
+We conducted a comprehensive hyper-parameters search for
+LiveEdit to select the most suitable combination. The most
+important hyper-parameters are discussed below.
+Trade-off Between Model Scale and Edit Performance :
+Figure 3 reports the effects of different combinations of
+module dimension dm and expert rank r on edit perfor-
+mance and model scale. The dm has a significant impact
+on the parameter count of LiveEdit. In terms of edit per-
+9460
+
+
+==== PAGE 7 ====
+Baseline # Edit Editors E-VQA VLKEB
+Rel. T-Gen. M-Gen. T-Loc. M-Loc. Average Rel. T-Gen. M-Gen. T-Loc. M-Loc. Average
+LLaV A-V1.5
+(7B)
+1
+FT-L 93.88 87.98 80.25 99.61 94.78 91.30 (±0.42) 94.29 87.00 92.22 91.16 91.37 91.21 (±1.09)
+FT-M 87.29 76.11 53.23 100.00 96.95 82.72 (±1.05) 76.31 65.57 59.43 100.00 92.35 78.73 (±0.76)
+MEND 91.23 90.05 91.29 91.02 90.22 90.76 (±0.64) 92.13 91.28 90.22 89.19 90.13 90.59 (±1.24)
+SERAC 89.33 83.72 84.97 82.05 23.78 72.77 (±0.36) 89.77 89.11 87.92 66.68 14.20 69.54 (±0.83)
+TP 35.95 36.12 28.65 93.87 97.61 58.44 (±0.33) 50.77 55.70 51.65 87.93 90.43 67.30 (±0.29)
+LTE 94.16 93.57 93.59 94.08 86.26 92.33 (±1.56) 94.42 93.57 93.22 86.84 79.69 89.55 (±1.41)
+RECIPE 91.37 86.51 87.73 94.27 88.88 89.75 (±1.13) 92.67 92.35 91.01 89.67 82.85 89.71 (±0.57)
+LEMoE 93.60 92.77 89.99 99.28 96.98 94.52 (±1.09) 94.85 93.09 91.67 87.03 87.88 90.90 (±0.29)
+LiveEdit 94.28 94.51 88.01 100.00 100.00 95.36 (±0.57) 96.43 95.22 93.72 100.00 100.00 97.08 (±0.62)
+10
+FT-L 90.57 84.14 73.21 95.56 81.50 85.00 (±1.07) 88.05 85.32 85.23 74.53 85.74 83.77 (±1.22)
+FT-M 84.90 73.53 49.99 100.00 55.98 72.88 (±0.63) 68.63 57.57 56.56 100.00 82.99 73.15 (±0.23)
+MEND 3.58 3.55 3.53 2.10 1.26 2.80 (±0.02) 0.18 0.24 0.05 0.03 0.19 0.14 (±0.00)
+SERAC 88.09 83.40 83.57 64.91 15.50 67.10 (±0.92) 81.55 74.49 80.24 54.71 13.15 60.83 (±0.98)
+TP 32.71 31.23 28.58 75.10 91.17 51.76 (±0.60) 44.56 47.52 45.36 52.21 66.61 51.25 (±0.69)
+LTE 92.83 91.41 90.82 86.38 85.52 89.39 (±0.34) 90.06 81.52 88.11 83.40 81.48 84.91 (±0.78)
+RECIPE 90.22 85.92 86.24 90.34 88.11 88.17 (±1.48) 83.92 76.23 82.84 86.33 83.69 82.60 (±0.72)
+LEMoE 91.95 86.54 79.82 85.19 49.81 78.66 (±1.03) 91.55 84.58 81.03 67.19 72.81 79.43 (±0.52)
+LiveEdit 93.79 93.21 86.42 100.00 100.00 94.68 (±1.03) 95.54 94.52 91.25 100.00 100.00 96.26 (±0.33)
+1000
+FT-L 71.39 59.83 57.41 55.55 48.99 58.63 (±0.17) 68.14 66.38 66.98 65.61 75.35 68.49 (±0.32)
+FT-M 69.57 56.34 44.07 100.00 41.47 62.29 (±0.40) 53.41 48.80 43.16 100.00 57.03 60.48 (±0.50)
+MEND 0.04 0.05 0.05 0.08 0.09 0.06 (±0.00) 0.03 0.05 0.07 0.06 0.08 0.06 (±0.00)
+SERAC 85.57 75.58 82.01 62.46 15.69 64.26 (±0.37) 60.93 56.49 60.06 52.94 15.04 49.09 (±0.36)
+TP 16.56 16.80 15.65 7.28 15.60 14.38 (±0.14) 5.46 4.81 5.51 2.77 7.19 5.15 (±0.07)
+LTE 83.93 82.55 81.34 83.97 73.09 80.98 (±1.36) 64.51 56.26 64.80 80.85 76.52 68.59 (±0.60)
+RECIPE 87.00 76.81 83.09 86.95 87.03 84.18 (±0.80) 62.00 56.84 61.50 85.37 82.07 69.56 (±0.31)
+LEMoE 30.80 25.75 24.32 71.45 46.23 39.71 (±0.23) 67.97 61.07 58.16 48.48 44.06 55.95 (±0.36)
+LiveEdit 92.93 90.16 84.30 100.00 96.43 92.76 (±0.20) 92.22 83.97 82.75 100.00 100.00 91.79 (±0.55)
+BLIP2-OPT
+(2.7B)
+1
+FT-L 52.86 48.80 32.94 98.24 94.27 65.42 (±0.69) 54.31 54.27 54.08 98.40 94.37 71.09 (±1.05)
+FT-M 91.70 87.24 33.30 100.00 85.22 79.49 (±0.72) 92.64 80.97 63.62 100.00 83.02 84.05 (±0.70)
+MEND 93.13 92.76 93.07 92.00 75.81 89.35 (±0.93) 94.91 93.81 93.84 94.98 86.54 92.82 (±0.82)
+SERAC 88.39 84.50 84.25 85.82 26.00 73.79 (±1.01) 87.95 84.67 85.20 68.10 17.75 68.73 (±0.97)
+TP 70.14 65.80 53.05 98.11 85.33 74.49 (±0.38) 50.98 49.47 50.88 94.76 78.57 64.93 (±1.02)
+LTE 95.74 93.86 86.90 97.93 87.97 92.48 (±0.70) 94.13 91.93 92.23 93.89 92.27 92.89 (±1.01)
+RECIPE 89.42 86.24 87.53 99.87 89.16 90.45 (±1.46) 92.38 89.74 89.17 97.13 94.46 92.58 (±1.16)
+LEMoE 93.56 92.23 91.40 98.50 85.21 92.18 (±0.73) 94.59 93.14 92.37 94.53 61.53 87.23 (±0.34)
+LiveEdit 96.67 94.20 93.82 100.00 100.00 96.94 (±1.32) 98.77 98.08 94.89 100.00 100.00 98.35 (±1.58)
+1000
+FT-L 45.10 34.62 35.42 48.42 41.24 40.96 (±0.29) 55.39 54.34 53.87 50.80 54.00 53.68 (±0.80)
+FT-M 40.40 31.46 27.85 100.00 27.44 45.43 (±0.68) 47.03 49.68 46.99 100.00 41.41 57.02 (±0.13)
+MEND 15.84 14.35 17.73 91.74 70.17 41.97 (±0.12) 37.22 38.03 37.19 91.49 84.10 57.61 (±0.58)
+SERAC 83.35 70.80 80.32 67.66 13.13 63.05 (±0.87) 53.58 45.78 52.42 56.81 16.90 45.10 (±0.38)
+TP 20.63 15.09 18.41 8.65 8.25 14.21 (±0.18) 24.36 24.21 24.25 16.37 19.96 21.83 (±0.14)
+LTE 89.32 82.82 81.51 94.86 69.83 83.67 (±1.05) 61.67 51.05 61.60 94.78 90.94 72.01 (±0.66)
+RECIPE 84.99 74.20 82.04 96.82 87.73 85.16 (±1.32) 54.64 46.54 54.10 94.60 96.93 69.37 (±1.04)
+LEMoE 19.73 17.34 18.22 72.01 31.06 31.67 (±0.14) 34.74 33.43 32.05 55.55 50.04 41.16 (±0.58)
+LiveEdit 94.42 91.98 84.65 100.00 97.38 93.69 (±0.67) 97.00 91.92 87.53 100.00 100.00 95.29 (±1.48)
+Table 1. Partial results of lifelong edit performance for BLIP2-OPT and LLaV A-V1.5 on the E-VQA and VLKEB datasets. Due to space
+limitations, please refer to Appendix 8.1 for the complete results, including those for the E-IC dataset and the MiniGPT-4 model. “Rel.”,
+“T/M-Gen.” and “T/M-Loc.” stand for reliability, text/modal generality, and text/modal locality, respectively. “# Edit” indicates the number
+of edits. The t-tests demonstrate our improvements are statistically significant with p <0.05 level.
+formance, both dm and r have substantial effects. Increas-
+ing one while keeping the other fixed improves edit per-
+formance, though the improvement gradually becomes flat.
+Additionally, combinations along the diagonal show gener-
+ally consistent performance. Regarding model scale, dm
+predominantly influences variation, while r has minimal
+impact. Based on this analysis, the optimal configuration
+strategy is to select an appropriate dm and maximize r as
+much as possible. However, since r linearly controls the
+growth rate of the expert repository, specific choices should
+also consider the memory needed to store the expert repos-
+itory. Additionally, we expand the dimension control pa-
+rameter k for feature extraction, as shown in Figure 4. In-
+creasing k enhances the feature extraction capability, but an
+excessively high k may introduce noise, leading to incorrect
+matches, such as reduced modal locality.
+The Attached Layer of LiveEdit: Figure 5 shows the im-
+pact of the layer attached by LiveEdit on edit performance.
+It can be seen that as the layer depth increases, edit per-
+formance improves, reaching a peak at 21 layers. After
+this point, edit performance slightly declines. We speculate
+that transformers typically perform semantic understand-
+ing in the early layers and response generation in the later
+layers [17, 24, 59]. Attaching to an earlier layer prevents
+LiveEdit from leveraging VLLM’s semantic understanding
+capabilities to enhance the feature extraction process. For
+too deep layers, VLLM has largely stabilized the predictive
+tendencies of the response, making it more challenging for
+LiveEdit to adapt. The above results also align with the at-
+tribution conclusions of [24].
+5.4. Ablation Study
+Table 2 presents the ablation results for LiveEdit, where
+1000 edits are applied to BLIP2 on the E-VQA dataset.
+9461
+
+
+==== PAGE 8 ====
+/uni00000014/uni00000015/uni00000017/uni0000001b/uni00000014/uni00000019
+/uni00000029/uni00000048/uni00000044/uni00000057/uni00000058/uni00000055/uni00000048/uni00000003/uni00000028/uni0000005b/uni00000057/uni00000055/uni00000044/uni00000046/uni00000057/uni0000004c/uni00000052/uni00000051/uni00000003/uni00000026/uni00000052/uni00000051/uni00000057/uni00000055/uni00000052/uni0000004f/uni00000003k
+/uni0000001b/uni00000013
+/uni0000001b/uni00000018
+/uni0000001c/uni00000013
+/uni0000001c/uni00000018
+/uni00000014/uni00000013/uni00000013/uni00000024/uni00000046/uni00000046/uni00000058/uni00000055/uni00000044/uni00000046/uni0000005c
+/uni00000035/uni00000048/uni0000004f/uni00000011/uni00000037/uni00000010/uni0000002a/uni00000048/uni00000051/uni00000011/uni00000030/uni00000010/uni0000002a/uni00000048/uni00000051/uni00000011/uni00000037/uni00000010/uni0000002f/uni00000052/uni00000046/uni00000011/uni00000030/uni00000010/uni0000002f/uni00000052/uni00000046/uni00000011
+Figure 4. The dimension control parameter k for feature extrac-
+tion.
+/uni00000014/uni00000014/uni00000013/uni00000015/uni00000014/uni00000015/uni00000018/uni00000016/uni00000013
+/uni00000037/uni0000004b/uni00000048/uni00000003/uni00000028/uni00000047/uni0000004c/uni00000057/uni00000003/uni0000002f/uni00000044/uni0000005c/uni00000048/uni00000055/uni00000003le
+/uni0000001a/uni00000013
+/uni0000001b/uni00000013
+/uni0000001c/uni00000013
+/uni00000014/uni00000013/uni00000013/uni00000024/uni00000046/uni00000046/uni00000058/uni00000055/uni00000044/uni00000046/uni0000005c
+/uni00000035/uni00000048/uni0000004f/uni00000011/uni00000037/uni00000010/uni0000002a/uni00000048/uni00000051/uni00000011/uni00000030/uni00000010/uni0000002a/uni00000048/uni00000051/uni00000011/uni00000037/uni00000010/uni0000002f/uni00000052/uni00000046/uni00000011/uni00000030/uni00000010/uni0000002f/uni00000052/uni00000046/uni00000011
+Figure 5. Impact of LiveEdit attached layer index le. Results of
+1,000 edits for BLIP2 on E-VQA dataset are reported.
+Settings Rel. T-Gen. M-Gen. T-Loc. M-Loc. Average
+N/A 20.57 19.03 14.17 100.00 100.00 50.75
+LiveEdit 94.42 91.98 84.65 100.00 97.38 93.69
+- ℓsr1 87.93 83.77 73.40 100.00 76.93 84.41
+- ℓsr2 89.21 85.46 77.34 100.00 91.69 88.74
+- SR 88.92 81.49 70.94 100.00 75.66 83.40
+HR* 93.60 88.50 80.37 100.00 84.77 89.45
+Table 2. Ablation study of LiveEdit.
+The removal of soft routing (- SR, which directly aver-
+ages experts) results in a significant performance drop for
+LiveEdit. We can also observe that a large portion of this
+loss originates from the removal of the absolute soft rout-
+ing loss ℓsr1, particularly impacting modal locality. This
+is because all hard-routed experts are assigned a weight to
+adapt the representation, even if they are irrelevant to the
+input prompt, ensuring that the sum of adaptation strengths
+equals 1. Similarly, removing the relative soft routing loss
+ℓsr2 also leads to performance degradation, as the combined
+absolute weights of multiple experts may exceed 1 during
+testing, resulting in excessively high values. HR* modifies
+the visual extraction that leverages prompt semantics by di-
+rectly compressing the entire visual representation for hard
+routing. This introduces additional visual noise, leading to
+the selection of more irrelevant experts, which in turn re-
+- Top1: The color of the cloth the person is wearing is red.
+- Top2: The sport in the picture is football.
+- Top3: The man is hitting the football with his head.
+Soft routing weights
+Hard routed top1 Hard filtered top2 Hard filtered top3Key Visual AreaInput  Image
+Input Query: What is the color of the cloth the athlete is wearing?
+00.4 0.20.8 0.61.0
+- Top1: The red fruits in the picture are apples.
+- Top2: The sauce in the bowl is made of tomato.
+- Top3: The pattern on the baby's clothes is a bowl.
+Soft routing weights
+Input Query: What is the fruit in the picture? 
+Hard routed top1 Hard filtered top2 Hard filtered top3
+00.4 0.20.8 0.61.0
+0.91
+8.76e-12
+7.69e-15
+0.89
+3.18e-11
+5.09e-13
+Key Visual AreaInput  Image
+Figure 6. Instance analysis. The left side shows the model input to
+LLaVa after editing with LiveEdit. The right side displays the top
+3 experts based on hard routing. The heatmaps represent the visual
+regions focused on when extracting key visual features. The bar
+chart below shows fusion weights from soft routing. Please refer
+to Appendix 8.2 for more analysis.
+duces the efficacy of subsequent steps.
+5.5. Instance Analysis
+We conducted an instance analysis of LiveEdit, as shown in
+Figure 6. We perform 100 edits on LLaVa, including sam-
+ples partially related in visual context to the incoming input
+samples. The figure reports the top 3 hard routing results
+for two inputs, as well as the fusion weights these experts
+received in soft routing. Using a perturbation-based attribu-
+tion tool [24, 60], we visualize the visual regions focused
+on for key visual feature extraction. It can be observed that
+the highlighted regions are closely aligned with the prompt
+semantics, which filters out irrelevant visual noise and ben-
+efits hard routing. The bar chart indicates that experts un-
+related to the input query receive very low fusion weights,
+significantly benefiting the locality of edits.
+6. Conclusion
+In conclusion, we introduce LiveEdit to bridge the gap be-
+tween LLM and VLLM editing, with an editing expert gen-
+erator and a combination of hard/soft routers. The frame-
+work successfully addresses the limitation of exiting editors
+in the VLLM lifelong editing scenarios. Our benchmark
+and extensive experiments confirm its superiority and high-
+light the effectiveness of each component, which support
+more accurate and adaptable VLLM editing in real-world
+applications.
+Acknowledgments. This work is supported by the National
+Key R&D Program of China (2022ZD0120302).
+9462
+
+

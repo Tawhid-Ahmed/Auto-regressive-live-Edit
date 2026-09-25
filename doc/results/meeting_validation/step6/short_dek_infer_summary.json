@@ -1,0 +1,23 @@
+{
+  "run": "short_DEK_infer",
+  "timestamp": "2026-07-10T18:12:00",
+  "ckpt": "records/liveedit/blip2-opt-2.7b/VLKEB_avbt_short_S2-2026.07.10-11.16.19/checkpoints/epoch-1-i-125-ema_loss-4.0787",
+  "flags": ["--patch_grounding", "--dek_dual_gate"],
+  "note": "Inference-only dual-gate on existing S2 weights (no retrain)",
+  "eval": {
+    "rel": 0.938,
+    "swap": 0.4823,
+    "hard_neg": 0.4267,
+    "image_swap_false_cross": 0.53,
+    "reliability_false_cross": 0.0,
+    "mean_n_retrieved_rel": 1.0,
+    "eval_dir": "eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-short_DEK_infer-2026.07.10-18.10.00"
+  },
+  "vs_S2": {
+    "S2_swap": 0.4782,
+    "delta_swap_pp": 0.41,
+    "S2_false_cross_approx": 0.96,
+    "delta_false_cross_pp": -43.0
+  },
+  "verdict": "PASS routing — false-cross halved, rel preserved. Token swap only +0.4pp; retrain with dual-gate in AVBL next."
+}

@@ -13,6 +13,24 @@ from tqdm import tqdm
 from torch import nn
 import numpy as np
 
+
+def resolve_ckpt_path(ckpt_path: str) -> str:
+    """Resolve checkpoint path; this project saves without a .pt suffix."""
+    if ckpt_path is None:
+        return ckpt_path
+    if os.path.isfile(ckpt_path):
+        return ckpt_path
+    if ckpt_path.endswith('.pt'):
+        alt = ckpt_path[:-3]
+        if os.path.isfile(alt):
+            print('Checkpoint %s not found; using %s (no .pt suffix).' % (ckpt_path, alt))
+            return alt
+    alt = ckpt_path + '.pt'
+    if os.path.isfile(alt):
+        print('Checkpoint %s not found; using %s.' % (ckpt_path, alt))
+        return alt
+    return ckpt_path
+
         
 ############################################################################
 ####################### VLLM Base Editor Classes ########################### 
@@ -144,7 +162,8 @@ class VLLMBaseEditorWithTraining(VLLMBaseEditor):
             train_name:str = None, load_ckpt_path:str = None, 
             save_ckpt_per_i:int = 3000, log_per_i:int = 10, 
             ema_alpha:float = 0.1, random_seed:int = None, 
-            data_buffer_size = 8, seed_init_train_params_if_no_ckpt_path = True):  
+            data_buffer_size = 8, seed_init_train_params_if_no_ckpt_path = True,
+            resume: bool = False, resume_run_name: str = None):  
         '''Used to initialize data generator `self.data_generator`, checkpoint/log 
             directory, writer, and optimizer.
             `data_buffer_size` is passed to ParallelDataset (clamped to >= 1 there;
@@ -176,8 +195,11 @@ class VLLMBaseEditorWithTraining(VLLMBaseEditor):
             batch_size, True, data_buffer_size, False, self.random_seed, True)
         # initialize checkpoint/log directory and writer
         t = datetime.now().strftime('%Y.%m.%d-%H.%M.%S')
-        train_name = (train_name_prefix + '-' if train_name_prefix else "") + \
-            (train_name if train_name else t)
+        if resume_run_name:
+            train_name = resume_run_name
+        else:
+            train_name = (train_name_prefix + '-' if train_name_prefix else "") + \
+                (train_name if train_name else t)
         records_dir = os.path.join(records_dir, *self.name_of_editor_and_model(), train_name)
         self.save_ckpt_dir = os.path.join(records_dir, 'checkpoints')
         os.makedirs(self.save_ckpt_dir, exist_ok = True)
@@ -196,8 +218,29 @@ class VLLMBaseEditorWithTraining(VLLMBaseEditor):
         opt = self.get_a_new_optimizer()
         self.opt, self.lr_scheduler = [opt, None] if isinstance(opt, torch.optim.Optimizer) else opt
         if load_ckpt_path:
+            load_ckpt_path = resolve_ckpt_path(load_ckpt_path)
             assert os.path.isfile(load_ckpt_path)
-            self.train_i, self.train_epoch, _, self.ema_loss = self.load_ckpt(load_ckpt_path, True)
+            loaded_i, loaded_epoch, _, self.ema_loss = self.load_ckpt(load_ckpt_path, True)
+            if resume:
+                # Continue mid-run: keep the same epoch (data loader restarts that
+                # epoch from the beginning; global iter continues). Do NOT +1 epoch —
+                # that skips the rest of a final epoch and can make eps=N exit empty.
+                self.train_epoch = loaded_epoch
+                self.train_i = loaded_i + 1
+                print(
+                    '[Train] Resume: checkpoint epoch %d i %d -> continue at epoch %d i %d.'
+                    % (loaded_epoch, loaded_i, self.train_epoch, self.train_i)
+                )
+            elif loaded_epoch >= 1:
+                print(
+                    '[Train] Fine-tune: reset progress counters (checkpoint was epoch %d, i %d).'
+                    % (loaded_epoch, loaded_i)
+                )
+                self.train_epoch = 1
+                self.train_i = 1
+            else:
+                self.train_epoch = loaded_epoch
+                self.train_i = loaded_i
         else:
             if seed_init_train_params_if_no_ckpt_path:
                 print('Train parameters are reinitialized with seed %s.'%self.random_seed)
@@ -264,6 +307,7 @@ class VLLMBaseEditorWithTraining(VLLMBaseEditor):
 
     def load_ckpt(self, ckpt_path, restrict = True, load_opt = True):
         '''Load checkpoint.'''
+        ckpt_path = resolve_ckpt_path(ckpt_path)
         ckpt = torch.load(ckpt_path, 'cpu')
         train_modules = self.get_modules_for_training()
         for k in train_modules.keys():

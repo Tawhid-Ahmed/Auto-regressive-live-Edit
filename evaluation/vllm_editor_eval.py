@@ -94,7 +94,7 @@ class VLLMEditorEvaluation():
                     logits = editor.vllm.get_llm_outpt(input_embeds, vt_range).logits
                     before_edit_ids = torch.softmax(logits, -1).argmax(-1)[:, -label_ids.shape[1]:] # [1, l2]
                     rdl['predict_before_edit'] = tokenizer.decode(label_ids[label_masks.to(bool)])
-                    edl['before_edit_ids'] = before_edit_ids
+                    edl['before_edit_ids'] = before_edit_ids.cpu()
             # edit 
             start_t = time()
             editor.edit_one_piece(ed['requests'][0])
@@ -156,7 +156,7 @@ class VLLMEditorEvaluation():
                         logits = editor.vllm.get_llm_outpt(input_embeds, vt_range).logits
                         before_edit_ids = torch.softmax(logits, -1).argmax(-1)[:, -label_ids.shape[1]:] # [1, l2]
                         rdl['predict_before_edit'] = tokenizer.decode(before_edit_ids[label_masks.to(bool)])
-                        edl['before_edit_ids'] = before_edit_ids
+                        edl['before_edit_ids'] = before_edit_ids.cpu()
             for rd, ed in zip(tqdm(split_rd, 'Editing', leave = False), split_ed): # edit 
                 for rdr, edr in zip(rd['reliability'], ed['requests']):
                     start_t = time()
@@ -166,6 +166,8 @@ class VLLMEditorEvaluation():
                 rd = self.__get_results_after_edit__(editor.vllm, ed, rd)
                 split_res.append(rd)
             editor.restore_to_original_model()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
             results.append(split_res)
         # save results
         save_dir = os.path.join(self.result_dir, 'sequential_edit_%s'%edit_n)
@@ -206,8 +208,15 @@ class VLLMEditorEvaluation():
             for _ in range(int(max_new_tokens)):
                 llm_inpt['query_range'] = (0, query_end)
                 if ar_on:
-                    ci = len(gen_ids) // chunk_size
-                    if max_chunks is not None:
+                    ci = editor.infer_ar_chunk_index(
+                        len(gen_ids),
+                        image=image,
+                        chunk_size=chunk_size,
+                        max_chunks=max_chunks,
+                    ) if getattr(editor, 'ar_vision_gated_chunks', False) else len(gen_ids) // chunk_size
+                    if max_chunks is not None and not getattr(editor, 'ar_vision_gated_chunks', False):
+                        ci = min(ci, max_chunks - 1)
+                    elif max_chunks is not None and getattr(editor, 'ar_vision_gated_chunks', False):
                         ci = min(ci, max_chunks - 1)
                     editor.current_infer_chunk_index = ci
                 with torch.no_grad():
@@ -322,6 +331,8 @@ class VLLMEditorEvaluation():
             logits = vllm.get_llm_outpt(input_embeds, vt_range).logits # [1,l1,d]
             pre_y = torch.softmax(logits, -1).argmax(-1) # [1, l1]
             pre_y = pre_y[:, -l2:]  # take last l2 positions
+            label_ids = label_ids.to(pre_y.device)
+            label_masks = label_masks.to(pre_y.device)
             # align length: if model output was shorter than l2, pad on the left so indexing is safe
             if pre_y.shape[1] < l2:
                 pad_len = l2 - pre_y.shape[1]
@@ -347,7 +358,16 @@ class VLLMEditorEvaluation():
                     getattr(editor, 'chunk_size', 16),
                     getattr(editor, 'max_chunks', None))
                 if chunks:
-                    editor.current_infer_chunk_index = len(chunks) - 1
+                    if getattr(editor, 'ar_vision_gated_chunks', False):
+                        n_tok = int(label_masks.sum().item())
+                        editor.current_infer_chunk_index = editor.infer_ar_chunk_index(
+                            max(n_tok - 1, 0),
+                            image=edr['image'],
+                            chunk_size=getattr(editor, 'chunk_size', 16),
+                            max_chunks=getattr(editor, 'max_chunks', None) or len(chunks),
+                        )
+                    else:
+                        editor.current_infer_chunk_index = len(chunks) - 1
             try:
                 acc, pre_y = accuracy_and_prediction(input_embeds, vt_range, label_ids, label_masks)
             finally:

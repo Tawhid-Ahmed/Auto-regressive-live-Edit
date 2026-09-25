@@ -1,0 +1,33 @@
+{
+  "runs": [
+    {
+      "label": "baseline",
+      "path": "E:\\MSC\\MSc thesis project\\LiveEdit\\LiveEdit\\eval_results\\meeting_validation\\step3\\liveedit\\blip2-opt-2.7b\\VLKEB_ALTERATION-step3_alteration_baseline-2026.07.05-14.34.23\\sequential_edit_50\\seed_42_mean_results.json",
+      "reliability_acc": 0.7465,
+      "image_rephrase_acc": 0.7184,
+      "probe_acc": {
+        "alter_low_res": 0.7363,
+        "alter_rotate_90": 0.7341,
+        "alter_mirror": 0.7431,
+        "alter_crop_center": 0.7334,
+        "alter_mild": 0.7419
+      },
+      "alteration_gap_pp": {
+        "alter_low_res": 1.0200000000000098,
+        "alter_rotate_90": 1.2400000000000078,
+        "alter_mirror": 0.34000000000000696,
+        "alter_crop_center": 1.31,
+        "alter_mild": 0.46000000000000485
+      },
+      "mean_alteration_gap_pp": 0.8740000000000059
+    }
+  ],
+  "gate": "REFRAME (flat across alteration types - similar to Step 2 resolution invariance)",
+  "alteration_probes": [
+    "alter_low_res",
+    "alter_rotate_90",
+    "alter_mirror",
+    "alter_crop_center",
+    "alter_mild"
+  ]
+}

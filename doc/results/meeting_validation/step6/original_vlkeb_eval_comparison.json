@@ -1,0 +1,59 @@
+{
+  "timestamp": "2026-07-10T11:11:00",
+  "purpose": "Compare original VLKEB eval.json vs meeting-validation grounding probes",
+  "eval_protocol": {
+    "runner": "test_vllm_edit.py",
+    "dataset": "data/VLKEB/eval.json",
+    "dsn": 100,
+    "sen": 10,
+    "seed": 42,
+    "probes": ["reliability", "text_rephrase", "image_rephrase", "text_loc", "image_loc"],
+    "note": "Original VLKEB has NO image_swap / hard_negative — not comparable to grounding swap% directly"
+  },
+  "checkpoints": {
+    "original_baseline": {
+      "path": "records/liveedit/blip2-opt-2.7b/VLKEB_baseline-2026.04.09-08.20.07/checkpoints/epoch-20-i-25950-ema_loss-0.1201",
+      "train": "data/VLKEB/train.json (original short VLKEB)",
+      "documented_in": "doc/THESIS_PATHS.json → checkpoints.vlkeb_original_baseline_epoch20"
+    },
+    "S2_fixed_avbt": {
+      "path": "records/liveedit/blip2-opt-2.7b/VLKEB_avbt_S2_fixed-2026.07.09-20.48.12/checkpoints/epoch-1-i-125-ema_loss-9.6395",
+      "note": "Eval via test_vllm_edit without --patch_grounding flags (legacy runner)"
+    }
+  },
+  "results_original_vlkeb": {
+    "original_baseline": {
+      "rel_acc": 0.9347,
+      "rel_em": 0.83,
+      "text_rephrase": 0.943,
+      "image_rephrase": 0.9213,
+      "text_loc": 1.0,
+      "image_loc": 1.0,
+      "eval_dir": "eval_results/liveedit/blip2-opt-2.7b/VLKEB-orig_vlkeb_baseline_dsn100-2026.07.10-11.09.09"
+    },
+    "S2_fixed": {
+      "rel_acc": 0.395,
+      "rel_em": 0.0,
+      "text_rephrase": 0.371,
+      "image_rephrase": 0.3978,
+      "text_loc": 1.0,
+      "image_loc": 1.0,
+      "eval_dir": "eval_results/liveedit/blip2-opt-2.7b/VLKEB-orig_vlkeb_S2fixed_dsn100-2026.07.10-11.10.07",
+      "note": "AVBT ckpt trained on long-form grounding; poor transfer to short original VLKEB without matching train distribution"
+    }
+  },
+  "results_meeting_grounding_reference": {
+    "S2_fixed_seed42": {
+      "rel_acc": 0.7791,
+      "image_swap": 0.4395,
+      "protocol": "test_grounding_eval.py --patch_grounding",
+      "dataset": "data/VLKEB/meeting_validation/step1/grounding/grounding_eval_longform.json"
+    },
+    "L0_long_baseline_grounding": {
+      "rel_acc": 0.74,
+      "image_swap": 0.4242,
+      "ckpt": "VLKEB_long_baseline epoch-20"
+    }
+  },
+  "interpretation": "Original VLKEB (~93% rel) is an easy short-answer benchmark trained/evaluated on the same distribution. Grounding long-form (~78% rel, ~44% swap) is the hard adversarial suite for AVBT. S2_fixed AVBT ckpt collapses on original eval.json (39.5% rel) — domain mismatch, not apples-to-apples with AVBT headline numbers."
+}

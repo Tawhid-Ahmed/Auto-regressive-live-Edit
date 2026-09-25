@@ -41,7 +41,8 @@ class Classifier(nn.Module):
     def get_sim_reps(self, inputs_embeds:torch.Tensor, attention_mask:torch.Tensor):
         # inputs_embeds: [b, l, d], attention_mask: [b, l]
         assert len(inputs_embeds) == 1 and len(inputs_embeds.shape) == 3
-        inputs_embeds = self.classifier_proj(inputs_embeds[:, -512:])
+        # BLIP2 embeds are fp16; classifier adapters are fp32.
+        inputs_embeds = self.classifier_proj(inputs_embeds[:, -512:].float())
         inputs_embeds = self.ln(inputs_embeds) / 32
         pooler_output = self.classifier(inputs_embeds = inputs_embeds, 
             attention_mask = attention_mask[:, -512:]).last_hidden_state # [b, l, d]
@@ -72,7 +73,8 @@ class CounterfactModel(nn.Module):
         #  edit_embeds: b * [1, l1?, D]; input_embeds: b * [1, l2?, D]
         logits = []
         for ee, ie in zip(edit_embeds, input_embeds):
-            inpt = self.counterfact_model_proj_in(torch.cat([ee, ie], 1)) # [1, l1 + l2, d]
+            # BLIP2 embeds are fp16; counterfact adapters/OPT are typically fp32.
+            inpt = self.counterfact_model_proj_in(torch.cat([ee.float(), ie.float()], 1)) # [1, l1 + l2, d]
             mask = torch.ones([1, inpt.shape[1]], dtype=torch.long, device = inpt.device) # [1, l1 + l2]
             last_layer_outpt = self.counterfact_model(inputs_embeds = inpt, 
                 attention_mask = mask, output_hidden_states = True).hidden_states[-1] # [1, l1 + l2, d]

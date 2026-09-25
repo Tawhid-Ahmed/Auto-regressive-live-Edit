@@ -1,8 +1,8 @@
 # Path to AAAI: Reviewer-Perspective Analysis & Roadmap
 
 **Purpose:** Brutally honest mock-review of the current work, then a concrete plan to make it a *novel*, acceptable AAAI-tier paper.
-**Date:** 2026-06-28
-**Current artifacts:** VLKEB-long benchmark, AR-LiveEdit (chunk-wise) on BLIP2-OPT-2.7b, full eval matrix (short/long train × baseline/AR), chunk-size ablation.
+**Date:** 2026-06-28 (roadmap) · **Updated context:** 2026-07-09 — see [`POST_STEP6_GROUNDING_DECISIONS.md`](POST_STEP6_GROUNDING_DECISIONS.md) for post–Step 6 AAAI positioning (VG-Edit, probe suite, negative ablations).
+**Current artifacts:** VLKEB-long benchmark, AR-LiveEdit (chunk-wise) on BLIP2-OPT-2.7b, full eval matrix (short/long train × baseline/AR), chunk-size ablation, **Steps 0–6 grounding diagnosis + L0–L4 ablations**.
 
 ---
 

@@ -1,0 +1,223 @@
+\makeatletter
+\@ifundefined{isChecklistMainFile}{
+  % We are compiling a standalone document
+  \newif\ifreproStandalone
+  \reproStandalonetrue
+}{
+  % We are being \input into the main paper
+  \newif\ifreproStandalone
+  \reproStandalonefalse
+}
+\makeatother
+
+\ifreproStandalone
+\documentclass[letterpaper]{article}
+\usepackage[submission]{aaai2027}
+\setlength{\pdfpagewidth}{8.5in}
+\setlength{\pdfpageheight}{11in}
+\frenchspacing
+
+\begin{document}
+\fi
+\setlength{\leftmargini}{20pt}
+\makeatletter\def\@listi{\leftmargin\leftmargini \topsep .5em \parsep .5em \itemsep .5em}
+\def\@listii{\leftmargin\leftmarginii \labelwidth\leftmarginii \advance\labelwidth-\labelsep \topsep .4em \parsep .4em \itemsep .4em}
+\def\@listiii{\leftmargin\leftmarginiii \labelwidth\leftmarginiii \advance\labelwidth-\labelsep \topsep .4em \parsep .4em \itemsep .4em}\makeatother
+
+\setcounter{secnumdepth}{0}
+\renewcommand\thesubsection{\arabic{subsection}}
+\renewcommand\labelenumi{\thesubsection.\arabic{enumi}}
+
+\newcounter{checksubsection}
+\newcounter{checkitem}[checksubsection]
+
+\newcommand{\checksubsection}[1]{%
+  \refstepcounter{checksubsection}%
+  \paragraph{\arabic{checksubsection}. #1}%
+  \setcounter{checkitem}{0}%
+}
+
+\newcommand{\checkitem}{%
+  \refstepcounter{checkitem}%
+  \item[\arabic{checksubsection}.\arabic{checkitem}.]%
+}
+\newcommand{\question}[2]{\normalcolor\checkitem #1 #2 \color{blue}}
+\newcommand{\ifyespoints}[1]{\makebox[0pt][l]{\hspace{-15pt}\normalcolor #1}}
+
+\section*{Reproducibility Checklist}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\textbf{Instructions for Authors:}
+
+This document outlines key aspects for assessing reproducibility. Please provide your input by editing this \texttt{.tex} file directly.
+
+For each question (that applies), replace the ``Type your response here'' text with your answer.
+
+\vspace{1em}
+\noindent
+\textbf{Example:} If a question appears as
+%
+\begin{center}
+\noindent
+\begin{minipage}{.9\linewidth}
+\ttfamily\raggedright
+\string\question \{Proofs of all novel claims are included\} \{(yes/partial/no)\} \\
+Type your response here
+\end{minipage}
+\end{center}
+you would change it to:
+\begin{center}
+\noindent
+\begin{minipage}{.9\linewidth}
+\ttfamily\raggedright
+\string\question \{Proofs of all novel claims are included\} \{(yes/partial/no)\} \\
+yes
+\end{minipage}
+\end{center}
+%
+Please make sure to:
+\begin{itemize}\setlength{\itemsep}{.1em}
+\item Replace ONLY the ``Type your response here'' text and nothing else.
+\item Use one of the options listed for that question (e.g., \textbf{yes}, \textbf{no}, \textbf{partial}, or \textbf{NA}).
+\item \textbf{Not} modify any other part of the \texttt{\string\question} command or any other lines in this document.\\
+\end{itemize}
+
+You can \texttt{\string\input} this .tex file right before \texttt{\string\end\{document\}} of your main file or compile it as a stand-alone document. Check the instructions on your conference's website to see if you will be asked to provide this checklist with your paper or separately.
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+% The questions start here
+
+\checksubsection{General Paper Structure}
+\begin{itemize}
+
+\question{Includes a conceptual outline and/or pseudocode description of AI methods introduced}{(yes/partial/no/NA)}
+yes. Methodology section and Figure~2 give an architecture overview; Dual-Expert Keys and adversarial visual binding are also specified with equations for the pool, vision/text gates, and binding losses.
+
+\question{Clearly delineates statements that are opinions, hypothesis, and speculation from objective facts and results}{(yes/no)}
+yes. Claims are tied to reported tables/figures; scope limits (e.g., FPR defined only for pool-based editors, swap accuracy as secondary) are stated in Experiments, Results, and Limitations.
+
+\question{Provides well-marked pedagogical references for less-familiar readers to gain background necessary to replicate the paper}{(yes/no)}
+yes. Related Work cites model editing (ROME, MEMIT, MEND, SERAC), multimodal benchmarks (MMEdit, VLKEB), and the LiveEdit lifelong MoE testbed.
+
+\end{itemize}
+\checksubsection{Theoretical Contributions}
+\begin{itemize}
+
+\question{Does this paper make theoretical contributions?}{(yes/no)}
+no
+
+	\ifyespoints{\vspace{1.2em}If yes, please address the following points:}
+        \begin{itemize}
+	
+	\question{All assumptions and restrictions are stated clearly and formally}{(yes/partial/no)}
+	NA
+
+	\question{All novel claims are stated formally (e.g., in theorem statements)}{(yes/partial/no)}
+	NA
+
+	\question{Proofs of all novel claims are included}{(yes/partial/no)}
+	NA
+
+	\question{Proof sketches or intuitions are given for complex and/or novel results}{(yes/partial/no)}
+	NA
+
+	\question{Appropriate citations to theoretical tools used are given}{(yes/partial/no)}
+	NA
+
+	\question{All theoretical claims are demonstrated empirically to hold}{(yes/partial/no/NA)}
+	NA
+
+	\question{All experimental code used to eliminate or disprove claims is included}{(yes/no/NA)}
+	NA
+	
+	\end{itemize}
+\end{itemize}
+
+\checksubsection{Dataset Usage}
+\begin{itemize}
+
+\question{Does this paper rely on one or more datasets?}{(yes/no)}
+yes
+
+\ifyespoints{If yes, please address the following points:}
+\begin{itemize}
+
+	\question{A motivation is given for why the experiments are conducted on the selected datasets}{(yes/partial/no/NA)}
+	yes. VLKEB is the primary multimodal editing benchmark; EVQA is used as a cross-dataset stress test under the same adversarial probe construction (Experiments section).
+
+	\question{All novel datasets introduced in this paper are included in a data appendix}{(yes/partial/no/NA)}
+	partial. Probe-augmented VLKEB/EVQA JSON files and the pairing script (\texttt{tools/build\_grounding\_eval\_json.py}) are in the project repository; they are not bundled as a separate paper appendix.
+
+	\question{All novel datasets introduced in this paper will be made publicly available upon publication of the paper with a license that allows free usage for research purposes}{(yes/partial/no/NA)}
+	partial. We plan to release the probe-augmented JSON splits and construction script with the code release upon acceptance; license to be confirmed at release time.
+
+	\question{All datasets drawn from the existing literature (potentially including authors' own previously published work) are accompanied by appropriate citations}{(yes/no/NA)}
+	yes. VLKEB~\cite{huang2024vlkeb} and EasyEdit/EVQA~\cite{wang2024easyedit} are cited.
+
+	\question{All datasets drawn from the existing literature (potentially including authors' own previously published work) are publicly available}{(yes/partial/no/NA)}
+	yes. VLKEB and EVQA/COCO images are publicly available from the original sources; users must obtain images under those licenses.
+
+	\question{All datasets that are not publicly available are described in detail, with explanation why publicly available alternatives are not scientifically satisficing}{(yes/partial/no/NA)}
+	NA
+
+\end{itemize}
+\end{itemize}
+
+\checksubsection{Computational Experiments}
+\begin{itemize}
+
+\question{Does this paper include computational experiments?}{(yes/no)}
+yes
+
+\ifyespoints{If yes, please address the following points:}
+\begin{itemize}
+
+	\question{This paper states the number and range of values tried per (hyper-) parameter during development of the paper, along with the criterion used for selecting the final parameter setting}{(yes/partial/no/NA)}
+	partial. Primary runs fix adversarial visual binding at $\lambda{=}0.3$, $\beta{=}2.5$, hinge $\tau{=}0.3$, and text margin $m{=}0$; these were chosen from prior ablations on short VLKEB probes (binding-only vs.\ dual gate). Full sweep grids are not tabulated in the main paper.
+
+	\question{Any code required for pre-processing data is included in the appendix}{(yes/partial/no)}
+	partial. Probe construction is implemented in \texttt{tools/build\_grounding\_eval\_json.py} in the repository; it is not in a separate appendix PDF.
+
+	\question{All source code required for conducting and analyzing the experiments is included in a code appendix}{(yes/partial/no)}
+	partial. Training, evaluation, and analysis scripts live in the LiveEdit codebase (\texttt{train\_vllm\_editor.py}, \texttt{eval\_vllm\_editor.py}, \texttt{tools/}); not shipped as a formal appendix.
+
+	\question{All source code required for conducting and analyzing the experiments will be made publicly available upon publication of the paper with a license that allows free usage for research purposes}{(yes/partial/no)}
+	partial. We intend to release code, configs, probe JSONs, and evaluation scripts upon acceptance; release is pending final anonymization review.
+
+	\question{All source code implementing new methods have comments detailing the implementation, with references to the paper where each step comes from}{(yes/partial/no)}
+	yes. DEK (``enable_dek``, ``_apply_dek_dual_gate``, ``retrieve_moes``), AVBT (``enable_adversarial_grounding``, ``compute_avbl_losses``), patch grounding, probe construction (``tools/build_grounding_eval_json.py``), and FPR routing diagnostics include comments that map each step to the paper Method / Experiments sections; CLI flags in ``train_vllm_editor.py`` document the paper hyperparameters ($\lambda$, $\beta$, $\tau$, $m$).
+
+	\question{If an algorithm depends on randomness, then the method used for setting seeds is described in a way sufficient to allow replication of results}{(yes/partial/no/NA)}
+	yes. Headline tables use evaluation seed~42; multi-seed runs use $\{42,0,1,2,3\}$ with $10$ generations per example, as stated in Experiments/Results.
+
+	\question{This paper specifies the computing infrastructure used for running experiments (hardware and software), including GPU/CPU models; amount of memory; operating system; names and versions of relevant software libraries and frameworks}{(yes/partial/no)}
+	partial. Software stack follows the public LiveEdit repo (PyTorch, Hugging Face Transformers, BLIP-2 OPT-2.7B); experiments were run on a single NVIDIA GPU (CUDA). Exact GPU model, driver, and library versions are not listed in the main paper.
+
+	\question{This paper formally describes evaluation metrics used and explains the motivation for choosing these metrics}{(yes/partial/no)}
+	yes. False-positive retrieval (FPR) is defined in Problem and Metrics; standard Rel/Gen/Loc are retained for parity with prior multimodal editing work.
+
+	\question{This paper states the number of algorithm runs used to compute each reported result}{(yes/no)}
+	yes. Main VLKEB tables: $100$ edits, $10$ generations each; multi-seed summaries aggregate five evaluation seeds; EVQA stress uses $300$ edits per seed.
+
+	\question{Analysis of experiments goes beyond single-dimensional summaries of performance (e.g., average; median) to include measures of variation, confidence, or other distributional information}{(yes/no)}
+	yes. EVQA reports mean$\pm$std over seeds; multi-seed VLKEB reports per-seed FPR and swap mean$\pm$std.
+
+	\question{The significance of any improvement or decrease in performance is judged using appropriate statistical tests (e.g., Wilcoxon signed-rank)}{(yes/partial/no)}
+	yes for the reported swap lift (paired $t$-test, $n{=}5$ seeds, $p{=}3.4{\times}10^{-4}$); FPR is constant across seeds so no variance test applies there.
+
+	\question{This paper lists all final (hyper-)parameters used for each model/algorithm in the paper’s experiments}{(yes/partial/no/NA)}
+	partial. Main binding and DEK settings are listed in Experiments; full LiveEdit backbone/editor hyperparameters (learning rate, LoRA rank, edit layer) follow \texttt{configs/liveedit/blip2-opt-2.7b.yaml} and the cited LiveEdit baseline checkpoint.
+
+
+\end{itemize}
+\end{itemize}
+\ifreproStandalone
+\bibliography{aaai2027}
+\end{document}
+\fi

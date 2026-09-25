@@ -31,6 +31,16 @@ def get_attr():
         default=None,
         help='VLKEB only: path to eval JSON (default: data/VLKEB/eval.json under ROOT_PATH). Use for long-form `alt` smoke files.',
     )
+    parser.add_argument(
+        '--patch_grounding',
+        action='store_true',
+        help='Enable patch grounding module before ckpt load (AVBT / step6 ckpts).',
+    )
+    parser.add_argument(
+        '--dek_dual_gate',
+        action='store_true',
+        help='Enable Dual-Expert Keys (DEK) before ckpt load.',
+    )
     args = parser.parse_args()
     # Treat common sentinels as "no checkpoint"
     if isinstance(args.editor_ckpt_path, str) and args.editor_ckpt_path.strip().lower() in {"none", "null", ""}:
@@ -64,7 +74,19 @@ if __name__ == '__main__':
     _parts.append(datetime.now().strftime('%Y.%m.%d-%H.%M.%S'))
     cfg.evaluation_name = '-'.join(_parts)
     print(cfg)
-    editor = load_vllm_editor(cfg.editor_name, cfg.edit_model_name, cfg.device, None, cfg.editor_ckpt_path, False)
+    needs_patch = getattr(cfg, 'patch_grounding', False) or getattr(cfg, 'dek_dual_gate', False)
+    ckpt = cfg.editor_ckpt_path
+    editor = load_vllm_editor(
+        cfg.editor_name, cfg.edit_model_name, cfg.device, None,
+        None if needs_patch else ckpt,
+        False,
+    )
+    if needs_patch:
+        editor.enable_patch_grounding(encoder='dinov2', expert_gen=True)
+    if getattr(cfg, 'dek_dual_gate', False):
+        editor.enable_dek(dual_gate=True, encoder='dinov2')
+    if needs_patch and ckpt:
+        editor.load_ckpt(ckpt, True, False)
     # AR-LiveEdit: set editor flags so edit_one_piece uses chunk-wise path when --ar_mode
     if hasattr(editor, 'ar_mode'):
         editor.ar_mode = getattr(cfg, 'ar_mode', False)
@@ -74,12 +96,12 @@ if __name__ == '__main__':
     if cfg.data_name == 'EVQA':
         from dataset.vllm import EVQA
         data_path = os.path.join(ROOT_PATH, 'data/easy-edit-mm/vqa/vqa_eval.json')
-        img_root_dir = os.path.join(ROOT_PATH, 'data/easy-edit-mm')
+        img_root_dir = os.path.join(ROOT_PATH, 'data/easy-edit-mm/images')
         eval_data = EVQA(data_path, img_root_dir, cfg.data_sample_n)
     elif cfg.data_name == 'EIC':
         from dataset.vllm import EIC
         data_path = os.path.join(ROOT_PATH, 'data/easy-edit-mm/caption/caption_eval_edit.json')
-        img_root_dir = os.path.join(ROOT_PATH, 'data/easy-edit-mm')
+        img_root_dir = os.path.join(ROOT_PATH, 'data/easy-edit-mm/images')
         eval_data = EIC(data_path, img_root_dir, cfg.data_sample_n)
     elif cfg.data_name == 'VLKEB':
         from dataset.vllm import VLKEB

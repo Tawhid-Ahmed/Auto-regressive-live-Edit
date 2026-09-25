@@ -15,7 +15,9 @@ train_cfg:
   soft_routing_lambda: 1
   hard_routing_lambda: 1
 llm_mid_dim: 4096
-llm_layer_tmp: "language_model.model.layers.{}"
+# Path must appear in model.named_modules() (nethook Trace). On HF LLaVA this is
+# model.language_model.layers.* — not the language_model.* property alias.
+llm_layer_tmp: "model.language_model.layers.{}"
 edit_layer_i: 21
 
 

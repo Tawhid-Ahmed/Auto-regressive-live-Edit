@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-07-10T17:55:00",
+  "resumed_after_crash": true,
+  "ckpt": "records/liveedit/blip2-opt-2.7b/VLKEB_avbt_short_RM-2026.07.10-17.36.35/checkpoints/epoch-1-i-125-ema_loss-4.1292",
+  "train": {
+    "base": "VLKEB_baseline epoch-20-i-25950",
+    "dn": 500,
+    "lambda": 0.2,
+    "neg_weight": 2.0,
+    "hinge_tau": 0.3,
+    "contrastive": true,
+    "avbl_retrieval_margin": 0.3,
+    "minutes": 15.82
+  },
+  "eval_seed42": {
+    "rel": 0.9372,
+    "swap": 0.4607,
+    "hard_neg": 0.4359,
+    "image_swap_false_cross": 0.97,
+    "eval_dir": "eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-short_RM-2026.07.10-17.52.49"
+  },
+  "vs_S2_seed42": {
+    "S2_swap": 0.4782,
+    "RM_swap": 0.4607,
+    "delta_swap_pp": -1.75,
+    "S2_rel": 0.938,
+    "RM_rel": 0.9372
+  },
+  "verdict": "FAIL — retrieval-margin 0.3 does not beat S2; swap 46.1% vs 47.8%, false-cross still ~97%. Loss-side margin alone insufficient."
+}

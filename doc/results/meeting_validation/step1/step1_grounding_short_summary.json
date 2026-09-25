@@ -1,0 +1,37 @@
+{
+  "runs": [
+    {
+      "label": "short_baseline",
+      "path": "eval_results/meeting_validation/step1/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-step1_grounding_short_baseline-2026.07.06-10.16.50/sequential_edit_50/seed_42_mean_results.json",
+      "reliability_acc": 0.9612,
+      "probe_acc": {
+        "image_swap": 0.4001,
+        "hard_negative": 0.4096,
+        "modality_consistency": 0.9202,
+        "prompt_conflict": 0.9537
+      },
+      "swap_gap_pp": 56.11000000000001,
+      "consistency_gap_pp": 4.100000000000003,
+      "hard_negative_false_activation_rate": 0.4096,
+      "conflict_accuracy": 0.9537,
+      "modality_consistency_acc": 0.9202
+    },
+    {
+      "label": "short_ar",
+      "path": "eval_results/meeting_validation/step1/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-ar-step1_grounding_short_ar-2026.07.06-10.23.40/sequential_edit_50/seed_42_mean_results.json",
+      "reliability_acc": 0.9575,
+      "probe_acc": {
+        "image_swap": 0.4007,
+        "hard_negative": 0.392,
+        "modality_consistency": 0.9238,
+        "prompt_conflict": 0.9563
+      },
+      "swap_gap_pp": 55.67999999999999,
+      "consistency_gap_pp": 3.3700000000000063,
+      "hard_negative_false_activation_rate": 0.392,
+      "conflict_accuracy": 0.9563,
+      "modality_consistency_acc": 0.9238
+    }
+  ],
+  "gate": "REFRAME (weak signal \u2014 1 probe failure; proceed Steps 2\u20133)"
+}

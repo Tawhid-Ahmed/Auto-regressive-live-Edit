@@ -1,7 +1,7 @@
 edit_model_name: blip2-opt-2.7b
-counterfact_model_path: ".../opt-125m"
+counterfact_model_path: "E:/MSC/MSc thesis project/LiveEdit/models/opt-125m"
 counterfact_model_rep_dim: 768
-classifier_path: ".../bert-base-cased"
+classifier_path: "E:/MSC/MSc thesis project/LiveEdit/models/bert-base-cased"
 classifier_rep_dim: 768
 llm_hidden_size: 2560
 llm_norm_path: "language_model.model.decoder.final_layer_norm"

@@ -1,0 +1,90 @@
+flowchart LR
+    subgraph C1["VLKEB-long sample"]
+        direction TB
+        V["Image v"]
+        P["Prompt p"]
+        Y["Long target y*"]
+    end
+
+    subgraph C2["AR chunk planner"]
+        direction TB
+        CP["split chunks s=16"]
+        CH["c1 → c2 → cK"]
+        CP --> CH
+    end
+
+    subgraph C3["AR edit loop"]
+        direction TB
+        PREFIX["Prefix y_k = Dec(c1..ck)"]
+        STEP["Expert + chunk index k"]
+        PREFIX --> STEP
+    end
+
+    subgraph C4["LiveEdit MoE editor"]
+        direction TB
+        FEG["Expert gen f_eg"]
+        FRE_Q["Routing φ_legacy"]
+        FRE_P["Routing φ_patch"]
+        REPO[("Pool E_t + patch keys")]
+        HARD["Fused hard route"]
+        SOFT["Soft route ψ"]
+        GATE["Vision chunk gate k"]
+        RES["Residual update"]
+        FEG --> REPO
+        FRE_Q --> REPO
+        FRE_P --> REPO
+        REPO --> HARD --> SOFT --> GATE --> RES
+    end
+
+    subgraph C5["Frozen BLIP2-OPT-2.7b"]
+        direction TB
+        BLIP["VLM forward"]
+        HIDDEN["Hidden h^le"]
+        BLIP --> HIDDEN
+        subgraph C5P["Patch grounding branch (NEW)"]
+            direction TB
+            DINO["DINOv2 patch grid"]
+            PGM["PatchGroundingModule"]
+            DINO --> PGM
+        end
+    end
+
+    subgraph C6["Output & eval"]
+        direction TB
+        OUT["Long-form ŷ"]
+        LOSS["L_total"]
+        MET["Metrics"]
+        OUT --> MET
+    end
+
+    Y --> CP
+    CH --> PREFIX
+    STEP --> FEG
+    STEP --> FRE_Q
+    V --> BLIP
+    P --> BLIP
+    V --> DINO
+    V --> FEG
+    P --> FEG
+    PGM --> FRE_P
+    HIDDEN --> FRE_Q
+    HIDDEN <-->|"edit layer"| RES
+    RES --> BLIP
+    BLIP --> OUT
+    RES -.-> LOSS
+
+    classDef input fill:#e8f4fc,stroke:#2b6cb0,color:#1a365d
+    classDef chunk fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef vlm fill:#ede9fe,stroke:#6d28d9,color:#4c1d95
+    classDef patch fill:#ffedd5,stroke:#c2410c,color:#7c2d12
+    classDef editor fill:#d6ecd2,stroke:#5a8f4e,color:#22543d
+    classDef route fill:#dfe7f5,stroke:#5a78b0,color:#1e3a5f
+    classDef out fill:#fce7f3,stroke:#be185d,color:#831843
+
+    class V,P,Y input
+    class CP,CH,PREFIX,STEP chunk
+    class BLIP,HIDDEN vlm
+    class DINO,PGM,FRE_P patch
+    class FEG,FRE_Q,REPO,RES editor
+    class HARD,SOFT,GATE route
+    class OUT,MET,LOSS out

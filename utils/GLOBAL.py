@@ -7,7 +7,8 @@ ROOT_PATH = r'E:\MSC\MSc thesis project\LiveEdit\LiveEdit'
 # (e.g. E:\...\LiveEdit\models\blip2-opt-2.7b while ROOT_PATH is E:\...\LiveEdit\LiveEdit).
 _model_rel_paths = {
     'blip2-opt-2.7b': os.path.join('..', 'models', 'blip2-opt-2.7b'),
-    'llava-v1.5-7b': 'models/llava-v1.5-7b-hf',
+    # Same parent ../models/ layout as BLIP2 (folder name from HF download).
+    'llava-v1.5-7b': os.path.join('..', 'models', 'llava-1.5-7b-hf'),
     'minigpt-4-vicuna-7b': 'models/minigpt-4-vicuna-7b',
 }
 model_path_map = {

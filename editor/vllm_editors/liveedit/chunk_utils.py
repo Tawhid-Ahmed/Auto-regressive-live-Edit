@@ -85,3 +85,66 @@ def reconstruct_text_from_chunks(
         skip_special_tokens=skip_special_tokens,
         clean_up_tokenization_spaces=clean_up_tokenization_spaces,
     )
+
+
+def positional_chunk_index(
+    query_token_offset: int,
+    chunk_size: int,
+    max_chunks: Union[int, None] = None,
+) -> int:
+    """Token-position AR chunk index (baseline LiveEdit)."""
+    chunk_size = max(int(chunk_size), 1)
+    idx = int(query_token_offset) // chunk_size
+    if max_chunks is not None:
+        idx = min(idx, max(int(max_chunks), 1) - 1)
+    return max(idx, 0)
+
+
+def vision_gated_chunk_index(
+    cross_attn_qp,
+    query_token_offset: int,
+    chunk_size: int,
+    max_chunks: Union[int, None] = None,
+    n_qformer_queries: int = 32,
+) -> int:
+    """Step 5 spike 4c: pick AR chunk from Q-Former image cross-attention peaks.
+
+    Maps the dominant Q-Former query slot (highest patch mass) to a chunk bin,
+    falling back to positional chunking when attention is unavailable.
+    """
+    token_chunk = positional_chunk_index(query_token_offset, chunk_size, max_chunks)
+    if cross_attn_qp is None:
+        return token_chunk
+    if not hasattr(cross_attn_qp, "shape"):
+        return token_chunk
+    attn = cross_attn_qp.float()
+    if attn.dim() == 3:
+        attn = attn[0]
+    if attn.numel() == 0:
+        return token_chunk
+    query_mass = attn.sum(dim=1)
+    peak_q = int(query_mass.argmax().item())
+    n_chunks = max(int(max_chunks) if max_chunks is not None else 1, 1)
+    vision_chunk = int(peak_q * n_chunks / max(int(n_qformer_queries), 1))
+    vision_chunk = min(max(vision_chunk, 0), n_chunks - 1)
+    return vision_chunk
+
+
+def infer_ar_chunk_index(
+    cross_attn_qp,
+    query_token_offset: int,
+    chunk_size: int,
+    max_chunks: Union[int, None] = None,
+    vision_gated: bool = False,
+    n_qformer_queries: int = 32,
+) -> int:
+    """Unified AR chunk index: positional (legacy) or vision-gated (Step 5 4c)."""
+    if vision_gated:
+        return vision_gated_chunk_index(
+            cross_attn_qp,
+            query_token_offset,
+            chunk_size,
+            max_chunks,
+            n_qformer_queries=n_qformer_queries,
+        )
+    return positional_chunk_index(query_token_offset, chunk_size, max_chunks)

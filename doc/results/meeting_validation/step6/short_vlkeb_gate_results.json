@@ -1,0 +1,41 @@
+{
+  "timestamp": "2026-07-10T18:32:00",
+  "gate_criteria": {
+    "swap_acc_min": 0.50,
+    "rel_acc_min": 0.92,
+    "min_delta_swap_pp": 2.0
+  },
+  "reference": {
+    "baseline": { "rel": 0.9347, "swap": 0.4072 },
+    "avbt_short_S2_dsn500": {
+      "rel": 0.938,
+      "swap": 0.4782,
+      "false_cross_swap": 0.96,
+      "ckpt": "records/liveedit/blip2-opt-2.7b/VLKEB_avbt_short_S2-2026.07.10-11.16.19/checkpoints/epoch-1-i-125-ema_loss-4.0787"
+    }
+  },
+  "mini_sweep_summary": [
+    { "run": "S2 (λ=0.2, dn=500)", "rel": 0.938, "swap": 0.4782, "hard_neg": 0.4259, "fc_swap": 0.96 },
+    { "run": "V1 (λ=0.2, dn=1000)", "rel": 0.938, "swap": 0.4617, "hard_neg": 0.4852 },
+    { "run": "V2 (λ=0.3, dn=500)", "rel": 0.938, "swap": 0.4598, "hard_neg": 0.4434 },
+    { "run": "RM (margin=0.3)", "rel": 0.9372, "swap": 0.4607, "hard_neg": 0.4359 },
+    { "run": "DEK_infer (S2+dual_gate)", "rel": 0.938, "swap": 0.4823, "hard_neg": 0.4267, "fc_swap": 0.53 },
+    { "run": "DEK_train (AVBT+dual_gate)", "rel": 0.9372, "swap": 0.4773, "hard_neg": 0.4201, "fc_swap": 0.46 },
+    { "run": "FX (DEK+neighbor+refuse)", "rel": 0.9372, "swap": 0.4723, "hard_neg": 0.4176, "fc_swap": 0.43 }
+  ],
+  "gate_decision": {
+    "proceed_to_long_run": false,
+    "best_token_swap": "DEK_infer 48.2%",
+    "best_false_cross": "FX 43% (was ~96% S2)",
+    "reason": "DEK/FX cut false-cross ~half; token swap stuck ~47–48%. Gate ≥50% not met. Novelty = vision∧text dual-gate + DINO neighbor mining; token refuse did not lift swap.",
+    "completed_next_steps": [
+      "DEK dual-gate: FC 96%→46%",
+      "FX neighbor+refuse: FC 46%→43%, swap 47.2% (no token gain)"
+    ],
+    "next_options": [
+      "Paper pivot: AVBT+DEK as method; headline false-cross + swap-gap; competitor table",
+      "Stronger refuse (lambda 0.5 / tau 0.0) — low priority given FX miss",
+      "Long-form eval of DEK/FX for thesis headline if short swap ceiling accepted"
+    ]
+  }
+}

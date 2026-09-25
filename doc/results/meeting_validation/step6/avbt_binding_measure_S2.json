@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "timestamp": "2026-07-16T12:24:31",
+    "ckpt": "records/liveedit/blip2-opt-2.7b/VLKEB_avbt_short_S2-2026.07.10-11.16.19/checkpoints/epoch-1-i-125-ema_loss-4.0787",
+    "seed": 42,
+    "sample_n": 15,
+    "sequential_n": 5,
+    "avbl_steps": 0,
+    "lr": 0.0005
+  },
+  "before": {
+    "reliability_own_prob": 0.9667205452919007,
+    "swap_expert_mass": 0.4193384155631065,
+    "hard_neg_expert_mass": 0.698949109762907,
+    "swap_false_cross": 0.6,
+    "hard_neg_false_cross": 0.8,
+    "swap_false_own": 0.2
+  },
+  "after": {
+    "reliability_own_prob": 0.9667205452919007,
+    "swap_expert_mass": 0.4193384155631065,
+    "hard_neg_expert_mass": 0.698949109762907,
+    "swap_false_cross": 0.6,
+    "hard_neg_false_cross": 0.8,
+    "swap_false_own": 0.2
+  },
+  "deltas": {
+    "swap_expert_mass_drop": 0.0,
+    "hard_neg_expert_mass_drop": 0.0,
+    "swap_false_cross_drop_pp": 0.0,
+    "hard_neg_false_cross_drop_pp": 0.0,
+    "reliability_own_prob_drop": 0.0
+  },
+  "train_history": [],
+  "pass": true,
+  "pass_reason": "Measure-only (no AVBL steps)"
+}

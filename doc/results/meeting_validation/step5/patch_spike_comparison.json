@@ -1,0 +1,101 @@
+{
+  "meta": {
+    "timestamp": "2026-07-05T19:31:48",
+    "n_samples": 50,
+    "seed": 42,
+    "baseline_ckpt": "records/liveedit/blip2-opt-2.7b/VLKEB_long_baseline-2026.06.02-13.43.00/checkpoints/epoch-20-i-27800-ema_loss-0.7936",
+    "ar_ckpt": "records/liveedit/blip2-opt-2.7b/VLKEB_long_ar-2026.06.04-13.00.34/checkpoints/epoch-20-i-26600-ema_loss-1.5124",
+    "spikes_run": [
+      "baseline",
+      "4a_max",
+      "4a_attn",
+      "4b_rerank",
+      "4c_vision_gate"
+    ]
+  },
+  "summaries": {
+    "baseline": {
+      "summary": {
+        "hard_negative_false_activation_rate": 0.42,
+        "image_swap_false_activation_rate": 0.0,
+        "reliability_false_cross_rate": 0.76,
+        "reliability_miss_rate": 0.0,
+        "mean_n_retrieved_hard_negative": 1.56
+      },
+      "config": {
+        "routing_pool_mode": "mean",
+        "patch_rerank_enabled": false,
+        "ar_vision_gated_chunks": false,
+        "ar_mode": false
+      }
+    },
+    "4a_max": {
+      "summary": {
+        "hard_negative_false_activation_rate": 0.5,
+        "image_swap_false_activation_rate": 0.0,
+        "reliability_false_cross_rate": 1.0,
+        "reliability_miss_rate": 0.0,
+        "mean_n_retrieved_hard_negative": 24.32
+      },
+      "config": {
+        "routing_pool_mode": "max",
+        "patch_rerank_enabled": false,
+        "ar_vision_gated_chunks": false,
+        "ar_mode": false
+      }
+    },
+    "4a_attn": {
+      "summary": {
+        "hard_negative_false_activation_rate": 0.5,
+        "image_swap_false_activation_rate": 0.0,
+        "reliability_false_cross_rate": 1.0,
+        "reliability_miss_rate": 0.0,
+        "mean_n_retrieved_hard_negative": 22.06
+      },
+      "config": {
+        "routing_pool_mode": "attn",
+        "patch_rerank_enabled": false,
+        "ar_vision_gated_chunks": false,
+        "ar_mode": false
+      }
+    },
+    "4b_rerank": {
+      "summary": {
+        "hard_negative_false_activation_rate": 0.5,
+        "image_swap_false_activation_rate": 0.0,
+        "reliability_false_cross_rate": 1.0,
+        "reliability_miss_rate": 0.0,
+        "mean_n_retrieved_hard_negative": 7.82
+      },
+      "config": {
+        "routing_pool_mode": "max",
+        "patch_rerank_enabled": true,
+        "ar_vision_gated_chunks": false,
+        "ar_mode": false
+      }
+    },
+    "4c_vision_gate": {
+      "summary": {
+        "hard_negative_false_activation_rate": 0.38,
+        "image_swap_false_activation_rate": 0.0,
+        "reliability_false_cross_rate": 0.62,
+        "reliability_miss_rate": 0.0,
+        "mean_n_retrieved_hard_negative": 0.94
+      },
+      "config": {
+        "routing_pool_mode": "mean",
+        "patch_rerank_enabled": false,
+        "ar_vision_gated_chunks": true,
+        "ar_mode": true
+      }
+    }
+  },
+  "gate": "PASS \u2192 Inference spikes improve hard-negative routing: 4c_vision_gate. Pick winner + DINOv2 (Step 4) for Step 6 retrain.",
+  "output_files": {
+    "baseline": "patch_spike_baseline.json",
+    "4a_max": "patch_spike_4a.json",
+    "4a_attn": "patch_spike_4a_attn.json",
+    "4b_rerank": "patch_spike_4b.json",
+    "4c_vision_gate": "patch_spike_4c.json"
+  }
+}

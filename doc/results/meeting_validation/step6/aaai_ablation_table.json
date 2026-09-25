@@ -1,0 +1,103 @@
+{
+  "date": "2026-07-13",
+  "phase": "G4_ablation_table",
+  "protocol_short": {
+    "dsn": 100,
+    "sen": 10,
+    "seed": 42,
+    "grounding_eval_json": "data/VLKEB/meeting_validation/step1/grounding/grounding_eval_short.json",
+    "meeting_step": 6
+  },
+  "metrics_note": {
+    "fc": "image_swap_false_cross_rate (--log_routing)",
+    "swap_gap": "reliability_acc - image_swap_acc"
+  },
+  "primary_method": "AVBT_DEK",
+  "short_component_ablation": [
+    {
+      "id": 1,
+      "method": "LiveEdit_L0",
+      "components": ["baseline_MoE"],
+      "role": "baseline",
+      "rel": 0.9347,
+      "swap": 0.4072,
+      "hard_neg": 0.4224,
+      "fc": 0.96,
+      "swap_gap": 0.5275,
+      "ckpt": "records/liveedit/blip2-opt-2.7b/VLKEB_baseline-2026.04.09-08.20.07/checkpoints/epoch-20-i-25950-ema_loss-0.1201",
+      "flags": ["--log_routing"],
+      "eval_dir": "eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-aaai_L0_short-2026.07.10-19.25.37"
+    },
+    {
+      "id": 2,
+      "method": "AVBT_S2",
+      "components": ["patch_grounding", "AVBL"],
+      "role": "plus_AVBT_no_DEK",
+      "rel": 0.938,
+      "swap": 0.4782,
+      "hard_neg": 0.4259,
+      "fc": 0.96,
+      "swap_gap": 0.4598,
+      "ckpt": "records/liveedit/blip2-opt-2.7b/VLKEB_avbt_short_S2-2026.07.10-11.16.19/checkpoints/epoch-1-i-125-ema_loss-4.0787",
+      "flags": ["--patch_grounding", "--log_routing"],
+      "eval_dir": "eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-aaai_S2_short-2026.07.10-19.27.38"
+    },
+    {
+      "id": 3,
+      "method": "AVBT_DEK",
+      "components": ["patch_grounding", "AVBL", "dek_dual_gate"],
+      "role": "ours",
+      "rel": 0.9372,
+      "swap": 0.4773,
+      "hard_neg": 0.4201,
+      "fc": 0.46,
+      "swap_gap": 0.4599,
+      "ckpt": "records/liveedit/blip2-opt-2.7b/VLKEB_avbt_short_DEK-2026.07.10-18.13.18/checkpoints/epoch-1-i-125-ema_loss-4.0100",
+      "flags": ["--patch_grounding", "--dek_dual_gate", "--log_routing"],
+      "eval_dir": "eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-aaai_DEK_short-2026.07.10-19.30.27"
+    },
+    {
+      "id": 4,
+      "method": "AVBT_DEK_FX",
+      "components": ["dek_dual_gate", "dino_neighbor", "refuse"],
+      "role": "negative_no_swap_gain",
+      "rel": 0.9372,
+      "swap": 0.4723,
+      "hard_neg": 0.4176,
+      "fc": 0.43,
+      "swap_gap": 0.4649,
+      "ckpt": "records/liveedit/blip2-opt-2.7b/VLKEB_avbt_short_FX-2026.07.10-18.41.48/checkpoints/epoch-1-i-125-ema_loss-4.7361",
+      "flags": ["--patch_grounding", "--dek_dual_gate", "--log_routing"],
+      "eval_dir": "eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-short_FX-2026.07.10-19.01.03",
+      "note": "FC slightly better than DEK; swap does not improve"
+    },
+    {
+      "id": 5,
+      "method": "AVBT_DEK_PB",
+      "components": ["dek_dual_gate", "dino_neighbor", "refuse", "pool_buffer_64"],
+      "role": "negative_fc_regresses",
+      "rel": 0.9372,
+      "swap": 0.4798,
+      "hard_neg": 0.4357,
+      "fc": 0.55,
+      "swap_gap": 0.4574,
+      "ckpt": "records/liveedit/blip2-opt-2.7b/VLKEB_avbt_short_PB-2026.07.13-10.45.41/checkpoints/epoch-1-i-125-ema_loss-4.5631",
+      "flags": ["--patch_grounding", "--dek_dual_gate", "--log_routing"],
+      "eval_dir": "eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-aaai_PB_short-2026.07.13-11.07.15",
+      "note": "Gate FAIL; do not promote to long"
+    }
+  ],
+  "deltas": {
+    "L0_to_S2": {"swap_pp": 7.1, "fc": "unchanged_0.96"},
+    "S2_to_DEK": {"fc": "0.96_to_0.46", "swap": "flat"},
+    "DEK_to_FX": {"fc": "0.46_to_0.43", "swap_pp": -0.5},
+    "FX_to_PB": {"fc": "0.43_to_0.55", "swap": "flat"}
+  },
+  "multiseed_pointer": "aaai_dek_multiseed.json",
+  "long_fair_pointer": "aaai_long_fair.json",
+  "long_fair_summary": {
+    "L0": {"rel": 0.74, "swap": 0.4242, "fc": 0.88},
+    "DEK": {"rel": 0.7282, "swap": 0.4268, "fc": 0.38}
+  },
+  "doc": "doc/results/meeting_validation/step6/AAAI_ABLATION_TABLE.md"
+}

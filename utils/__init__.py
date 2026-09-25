@@ -7,6 +7,11 @@ from torch import nn
 import numpy as np
 import torch, os
 
+try:
+    from PIL.Image import Image as PILImage
+except ImportError:  # pragma: no cover
+    PILImage = ()  # type: ignore
+
 
 def print_list_structure(data, indent=0):
     indentation = '  ' * indent  
@@ -47,6 +52,9 @@ def move_to_device(data, device):
     elif isinstance(data, dict):
         return {key: move_to_device(value, device) for key, value in data.items()}
     elif isinstance(data, (int, float, str, bool, type(None), np.integer, np.floating)):
+        return data
+    elif PILImage and isinstance(data, PILImage):
+        # Leave PIL images on CPU; encoders / processors consume them later.
         return data
     else:
         raise TypeError(f"Unsupported data type: {type(data)}")
@@ -177,8 +185,23 @@ def load_vllm_editor(editor_name:str, edit_model_name:str, device,
         editor = FTvl(vllm, config, device)
     elif editor_name == 'mend_vl':
         from editor.vllm_editors.mend_vl.mend_vl import MENDvl, MENDvlConfig
-        data_proc_device = 'cuda:%s'%extra_devices[0] if for_train else None
-        vllm_data_proc = load_vllm_for_edit(edit_model_name, data_proc_device) if for_train else None
+        if for_train:
+            if isinstance(device, str) and ':' in device:
+                main_device_idx = int(device.split(':')[-1])
+            elif isinstance(device, int):
+                main_device_idx = device
+            else:
+                main_device_idx = 0
+            if extra_devices and extra_devices[0] == main_device_idx:
+                print("Warning: Reusing main model for MEND data processing to avoid OOM (same GPU)")
+                vllm_data_proc = vllm
+                data_proc_device = device
+            else:
+                data_proc_device = 'cuda:%s' % extra_devices[0]
+                vllm_data_proc = load_vllm_for_edit(edit_model_name, data_proc_device)
+        else:
+            data_proc_device = None
+            vllm_data_proc = None
         config = MENDvlConfig.from_yaml(config_path)
         editor = MENDvl(vllm, config, device, vllm_data_proc, data_proc_device)
     elif editor_name == 'serac_vl':

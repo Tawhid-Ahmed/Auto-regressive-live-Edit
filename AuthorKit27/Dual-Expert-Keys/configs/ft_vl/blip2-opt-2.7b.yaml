@@ -1,0 +1,10 @@
+edit_model_name: "blip2-opt-2.7b"
+layers: [31]
+# FP16-safe FT: optimize float32 copies (see ft_vl.py). Keep updates small for sequential edits.
+num_steps: 15
+batch_size: 1
+lr: 5.e-5
+weight_decay: 0
+norm_constraint: 1.e-3
+rewrite_module_tmp: "language_model.model.decoder.layers.{}.fc2.weight" # last llm layer
+# rewrite_module_tmp: "qformer" # vision module

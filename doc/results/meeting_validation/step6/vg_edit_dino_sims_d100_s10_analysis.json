@@ -1,0 +1,360 @@
+{
+  "input": "doc/results/meeting_validation/step6/vg_edit_dino_sims_d100_s10.json",
+  "meta": {
+    "timestamp": "2026-07-09T13:03:44",
+    "ckpt": "records/liveedit/blip2-opt-2.7b/VLKEB_long_baseline-2026.06.02-13.43.00/checkpoints/epoch-20-i-27800-ema_loss-0.7936",
+    "data_path": "E:\\MSC\\MSc thesis project\\LiveEdit\\LiveEdit\\data/VLKEB/meeting_validation/step1/grounding/grounding_eval_longform.json",
+    "seed": 42,
+    "device": "cuda:0",
+    "sequential_n": 10,
+    "sample_n": 100,
+    "decode_vision_abs_threshold": 0.45,
+    "decode_vision_margin": 0.0,
+    "skip_decode_vision_gate_at_probe": true
+  },
+  "summary": {
+    "n_samples": 100,
+    "n_pool_entries": 100,
+    "n_probes": 400,
+    "dino_available_rate": 1.0,
+    "swap_false_fire_rate": 0.02,
+    "swap_false_cross_rate": 0.88,
+    "hard_neg_false_cross_rate": 0.9,
+    "dino_margin_own_vs_best_wrong": {
+      "reliability": {
+        "n": 100,
+        "mean": 0.34688726186752317,
+        "std": 0.1581301095093995,
+        "p10": 0.13093372583389282,
+        "p50": 0.3523221015930176,
+        "p90": 0.5375719815492632,
+        "min": 0.06457221508026123,
+        "max": 0.7986229658126831
+      },
+      "image_swap": {
+        "n": 100,
+        "mean": -0.6691351137124002,
+        "std": 0.28604892721666525,
+        "p10": -0.989845668990165,
+        "p50": -0.7320051342248917,
+        "p90": -0.21440288424491877,
+        "min": -1.0313723012804985,
+        "max": 0.07894474267959595
+      },
+      "hard_negative": {
+        "n": 100,
+        "mean": -0.653418710292317,
+        "std": 0.277452135557154,
+        "p10": -1.0077978175133466,
+        "p50": -0.6742567718029022,
+        "p90": -0.27695988118648524,
+        "min": -1.0478353835642338,
+        "max": 0.0013422966003417969
+      }
+    },
+    "dino_sim_query_vs_best_wrong_edit_img": {
+      "image_swap": {
+        "n": 100,
+        "mean": 0.9043767416477203,
+        "std": 0.16558970278114923,
+        "p10": 0.642689687013626,
+        "p50": 1.0,
+        "p90": 1.0,
+        "min": 0.45794984698295593,
+        "max": 1.0000001192092896
+      },
+      "hard_negative": {
+        "n": 100,
+        "mean": 0.8901149004697799,
+        "std": 0.17809148535309513,
+        "p10": 0.5636376738548279,
+        "p50": 1.0,
+        "p90": 1.0,
+        "min": 0.4356401562690735,
+        "max": 1.0000001192092896
+      }
+    },
+    "hard_neg_false_fire_rate": 0.02,
+    "reliability_miss_rate": 0.0,
+    "dino_sim_own_max": {
+      "reliability": {
+        "n": 100,
+        "mean": 0.9999999791383744,
+        "std": 5.422057330209092e-08,
+        "p10": 0.9999998807907104,
+        "p50": 1.0,
+        "p90": 1.0,
+        "min": 0.9999998807907104,
+        "max": 1.0000001192092896
+      },
+      "image_swap": {
+        "n": 2,
+        "mean": 0.5009526014328003,
+        "std": 0.0926026701927185,
+        "p10": 0.4268704652786255,
+        "p50": 0.5009526014328003,
+        "p90": 0.5750347375869751,
+        "min": 0.4083499312400818,
+        "max": 0.5935552716255188
+      },
+      "hard_negative": {
+        "n": 2,
+        "mean": 0.5444764196872711,
+        "std": 0.21214249730110168,
+        "p10": 0.37476242184638975,
+        "p50": 0.5444764196872711,
+        "p90": 0.7141904175281525,
+        "min": 0.33233392238616943,
+        "max": 0.7566189169883728
+      }
+    },
+    "dino_sim_query_vs_own_edit_img": {
+      "reliability": {
+        "n": 100,
+        "mean": 0.9999999791383744,
+        "std": 5.422057330209092e-08,
+        "p10": 0.9999998807907104,
+        "p50": 1.0,
+        "p90": 1.0,
+        "min": 0.9999998807907104,
+        "max": 1.0000001192092896
+      },
+      "image_swap": {
+        "n": 100,
+        "mean": 0.23524162793532014,
+        "std": 0.181020258913528,
+        "p10": 0.010154331009835005,
+        "p50": 0.2238510400056839,
+        "p90": 0.4754575043916705,
+        "min": -0.031372301280498505,
+        "max": 0.686629056930542
+      },
+      "hard_negative": {
+        "n": 100,
+        "mean": 0.236696190177463,
+        "std": 0.20110154924941323,
+        "p10": -0.010269580781459809,
+        "p50": 0.22341050952672958,
+        "p90": 0.4959430575370789,
+        "min": -0.04783538356423378,
+        "max": 0.7566189169883728
+      }
+    },
+    "retrieved_wrong_dino_max": {
+      "image_swap": {
+        "n": 88,
+        "mean": 0.9304324354637753,
+        "std": 0.16466365952870982,
+        "p10": 0.6383664011955261,
+        "p50": 1.0,
+        "p90": 1.0,
+        "min": 0.3094234764575958,
+        "max": 1.0000001192092896
+      },
+      "hard_negative": {
+        "n": 90,
+        "mean": 0.9085531622171402,
+        "std": 0.1799056180143071,
+        "p10": 0.5657414853572845,
+        "p50": 1.0,
+        "p90": 1.0,
+        "min": 0.3599367141723633,
+        "max": 1.0000001192092896
+      }
+    }
+  },
+  "routing_leak_profile": {
+    "swap_false_cross_rate": 0.88,
+    "swap_false_fire_own_rate": 0.02,
+    "interpretation": "Token swap-gap is driven mainly by false_cross (wrong expert retrieval), not own-expert false-fire on Q-Former routing."
+  },
+  "separability": {
+    "reliability_own_sim": {
+      "n": 100,
+      "mean": 0.9999999791383744,
+      "p50": 1.0,
+      "p10": 0.9999998807907104,
+      "p90": 1.0,
+      "min": 0.9999998807907104,
+      "max": 1.0000001192092896
+    },
+    "swap_own_sim": {
+      "n": 100,
+      "mean": 0.23524162793532014,
+      "p50": 0.2238510400056839,
+      "p10": 0.010154331009835005,
+      "p90": 0.4754575043916705,
+      "min": -0.031372301280498505,
+      "max": 0.686629056930542
+    },
+    "hard_neg_own_sim": {
+      "n": 100,
+      "mean": 0.236696190177463,
+      "p50": 0.22341050952672958,
+      "p10": -0.010269580781459809,
+      "p90": 0.4959430575370789,
+      "min": -0.04783538356423378,
+      "max": 0.7566189169883728
+    },
+    "swap_minus_rel_mean_gap": -0.7647583512030542,
+    "reliability_margin_own_vs_best_wrong": {
+      "n": 100,
+      "mean": 0.34688726186752317,
+      "p50": 0.3523221015930176,
+      "p10": 0.13093372583389282,
+      "p90": 0.5375719815492632,
+      "min": 0.06457221508026123,
+      "max": 0.7986229658126831
+    },
+    "swap_margin_own_vs_best_wrong": {
+      "n": 100,
+      "mean": -0.6691351137124002,
+      "p50": -0.7320051342248917,
+      "p10": -0.989845668990165,
+      "p90": -0.21440288424491877,
+      "min": -1.0313723012804985,
+      "max": 0.07894474267959595
+    },
+    "hard_neg_margin_own_vs_best_wrong": {
+      "n": 100,
+      "mean": -0.653418710292317,
+      "p50": -0.6742567718029022,
+      "p10": -1.0077978175133466,
+      "p90": -0.27695988118648524,
+      "min": -1.0478353835642338,
+      "max": 0.0013422966003417969
+    },
+    "swap_retrieved_wrong_dino_max": {
+      "n": 88,
+      "mean": 0.9304324354637753,
+      "p50": 1.0,
+      "p10": 0.6383664011955261,
+      "p90": 1.0,
+      "min": 0.3094234764575958,
+      "max": 1.0000001192092896
+    }
+  },
+  "threshold_sweep": [
+    {
+      "abs_threshold": 0.3,
+      "reliability_miss_rate": 0.0,
+      "swap_false_fire_rate": 0.02,
+      "swap_blocked_rate": 0.98,
+      "hard_neg_false_fire_rate": 0.02,
+      "hard_neg_blocked_rate": 0.98
+    },
+    {
+      "abs_threshold": 0.35,
+      "reliability_miss_rate": 0.0,
+      "swap_false_fire_rate": 0.02,
+      "swap_blocked_rate": 0.98,
+      "hard_neg_false_fire_rate": 0.02,
+      "hard_neg_blocked_rate": 0.99
+    },
+    {
+      "abs_threshold": 0.4,
+      "reliability_miss_rate": 0.0,
+      "swap_false_fire_rate": 0.02,
+      "swap_blocked_rate": 0.98,
+      "hard_neg_false_fire_rate": 0.02,
+      "hard_neg_blocked_rate": 0.99
+    },
+    {
+      "abs_threshold": 0.45,
+      "reliability_miss_rate": 0.0,
+      "swap_false_fire_rate": 0.02,
+      "swap_blocked_rate": 0.99,
+      "hard_neg_false_fire_rate": 0.02,
+      "hard_neg_blocked_rate": 0.99
+    },
+    {
+      "abs_threshold": 0.5,
+      "reliability_miss_rate": 0.0,
+      "swap_false_fire_rate": 0.02,
+      "swap_blocked_rate": 0.99,
+      "hard_neg_false_fire_rate": 0.02,
+      "hard_neg_blocked_rate": 0.99
+    },
+    {
+      "abs_threshold": 0.55,
+      "reliability_miss_rate": 0.0,
+      "swap_false_fire_rate": 0.02,
+      "swap_blocked_rate": 0.99,
+      "hard_neg_false_fire_rate": 0.02,
+      "hard_neg_blocked_rate": 0.99
+    },
+    {
+      "abs_threshold": 0.6,
+      "reliability_miss_rate": 0.0,
+      "swap_false_fire_rate": 0.02,
+      "swap_blocked_rate": 1.0,
+      "hard_neg_false_fire_rate": 0.02,
+      "hard_neg_blocked_rate": 0.99
+    },
+    {
+      "abs_threshold": 0.65,
+      "reliability_miss_rate": 0.0,
+      "swap_false_fire_rate": 0.02,
+      "swap_blocked_rate": 1.0,
+      "hard_neg_false_fire_rate": 0.02,
+      "hard_neg_blocked_rate": 0.99
+    },
+    {
+      "abs_threshold": 0.7,
+      "reliability_miss_rate": 0.0,
+      "swap_false_fire_rate": 0.02,
+      "swap_blocked_rate": 1.0,
+      "hard_neg_false_fire_rate": 0.02,
+      "hard_neg_blocked_rate": 0.99
+    },
+    {
+      "abs_threshold": 0.75,
+      "reliability_miss_rate": 0.0,
+      "swap_false_fire_rate": 0.02,
+      "swap_blocked_rate": 1.0,
+      "hard_neg_false_fire_rate": 0.02,
+      "hard_neg_blocked_rate": 0.99
+    },
+    {
+      "abs_threshold": 0.8,
+      "reliability_miss_rate": 0.0,
+      "swap_false_fire_rate": 0.02,
+      "swap_blocked_rate": 1.0,
+      "hard_neg_false_fire_rate": 0.02,
+      "hard_neg_blocked_rate": 1.0
+    },
+    {
+      "abs_threshold": 0.85,
+      "reliability_miss_rate": 0.0,
+      "swap_false_fire_rate": 0.02,
+      "swap_blocked_rate": 1.0,
+      "hard_neg_false_fire_rate": 0.02,
+      "hard_neg_blocked_rate": 1.0
+    },
+    {
+      "abs_threshold": 0.9,
+      "reliability_miss_rate": 0.0,
+      "swap_false_fire_rate": 0.02,
+      "swap_blocked_rate": 1.0,
+      "hard_neg_false_fire_rate": 0.02,
+      "hard_neg_blocked_rate": 1.0
+    },
+    {
+      "abs_threshold": 0.95,
+      "reliability_miss_rate": 0.0,
+      "swap_false_fire_rate": 0.02,
+      "swap_blocked_rate": 1.0,
+      "hard_neg_false_fire_rate": 0.02,
+      "hard_neg_blocked_rate": 1.0
+    }
+  ],
+  "best_threshold_max_5pct_rel_miss": {
+    "abs_threshold": 0.8,
+    "reliability_miss_rate": 0.0,
+    "swap_false_fire_rate": 0.02,
+    "swap_blocked_rate": 1.0,
+    "hard_neg_false_fire_rate": 0.02,
+    "hard_neg_blocked_rate": 1.0
+  },
+  "plot_path": "E:\\MSC\\MSc thesis project\\LiveEdit\\LiveEdit\\doc/results/meeting_validation/step6/vg_edit_dino_sims_hist.png"
+}

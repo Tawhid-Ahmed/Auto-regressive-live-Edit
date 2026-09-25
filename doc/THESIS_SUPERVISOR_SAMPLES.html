@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Supervisor briefing — sample walkthrough</title>
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; max-width: 920px; margin: 24px auto; padding: 0 16px; color: #222; line-height: 1.45; }
+    h1, h2, h3 { margin-bottom: 8px; }
+    .meta { color: #555; margin-bottom: 20px; }
+    .step { border: 1px solid #ddd; border-radius: 8px; padding: 14px 16px; margin: 16px 0; background: #fafafa; }
+    .step h3 { margin-top: 0; color: #1a365d; }
+    img.main { max-width: 360px; width: 100%; height: auto; display: block; border: 1px solid #ccc; margin: 10px 0; }
+    img.wide { max-width: 100%; width: 100%; height: auto; display: block; border: 1px solid #ccc; margin: 10px 0; }
+    .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 700px) { .pair { grid-template-columns: 1fr; } }
+    code, pre { background: #f0f0f0; }
+    pre { padding: 10px; overflow-x: auto; font-size: 13px; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; vertical-align: top; }
+    th { background: #eee; }
+    .ok { color: #276749; font-weight: 600; }
+    .bad { color: #c53030; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>Methodology on one sample (step by step)</h1>
+  <p class="meta">Companion to <code>THESIS_SUPERVISOR_BRIEFING.md</code> §2.2. Open in a browser to guarantee images show.</p>
+
+  <h2>Running example — Sample A</h2>
+  <table>
+    <tr><th>Prompt</th><td>Which Illinois city is shown in the picture?</td></tr>
+    <tr><th>Old belief</th><td>Laredo, Texas</td></tr>
+    <tr><th>Edit target</th><td><strong>Kankakee</strong></td></tr>
+  </table>
+  <img class="wide" src="figures/supervisor_samples/sampleA_montage.jpg" alt="Sample A montage" />
+
+  <div class="step">
+    <h3>Step 0 — Starting point</h3>
+    <p>We want the model to answer <strong>Kankakee</strong> on the <em>correct</em> image, without leaking that answer onto other cities.</p>
+    <img class="main" src="figures/supervisor_samples/sampleA_edit_kankakee.jpg" alt="Correct edit image" />
+  </div>
+
+  <div class="step">
+    <h3>Step 1 — Edit-time write (LiveEdit pool)</h3>
+    <p>Create MoE expert <code>e_Kankakee</code> + vision/text keys in lifelong pool. Image used for the vision key:</p>
+    <img class="main" src="figures/supervisor_samples/sampleA_edit_kankakee.jpg" alt="Vision key image" />
+    <pre>e_Kankakee:
+  expert → push answer “Kankakee”
+  vision keys ← this image
+  text key ← “Illinois city…” prompt</pre>
+  </div>
+
+  <div class="step">
+    <h3>Step 2 — AVBT training on this sample</h3>
+    <div class="pair">
+      <div>
+        <p><span class="ok">Positive — bind</span><br/>Same prompt + correct image → strengthen <code>e_Kankakee</code></p>
+        <img class="main" src="figures/supervisor_samples/sampleA_edit_kankakee.jpg" alt="Positive" />
+      </div>
+      <div>
+        <p><span class="bad">Negative — suppress</span><br/>Same prompt + wrong image → penalize firing <code>e_Kankakee</code></p>
+        <img class="main" src="figures/supervisor_samples/sampleA_swap.jpg" alt="Negative swap" />
+      </div>
+    </div>
+    <p>Harder negative (confusable partner):</p>
+    <img class="main" src="figures/supervisor_samples/sampleA_hardneg.jpg" alt="Hard-neg" />
+    <pre>L = L_edit + λ · L_positive(correct) + λ · L_negative(swap / hard-neg)</pre>
+    <p>AVBT alone lifts image-swap a bit but leaves false-cross ~96%.</p>
+  </div>
+
+  <div class="step">
+    <h3>Step 3 — Dual-Expert Keys (DEK) rule</h3>
+    <p>At retrieval, keep an expert only if:</p>
+    <pre>vision_ok  AND  text_ok</pre>
+    <p>Both modalities must agree; otherwise the expert is blocked.</p>
+  </div>
+
+  <div class="step">
+    <h3>Step 4 — Reliability test (correct image)</h3>
+    <img class="main" src="figures/supervisor_samples/sampleA_edit_kankakee.jpg" alt="Rel query" />
+    <p><span class="ok">vision_ok ∧ text_ok → retrieve e_Kankakee → answer “Kankakee”</span></p>
+  </div>
+
+  <div class="step">
+    <h3>Step 5 — Image-swap without DEK (the bug)</h3>
+    <img class="main" src="figures/supervisor_samples/sampleA_swap.jpg" alt="Swap leak" />
+    <p><span class="bad">Weak vision routing still retrieves e_Kankakee → leak “Kankakee” = False-cross</span></p>
+  </div>
+
+  <div class="step">
+    <h3>Step 6 — Image-swap with Dual-Expert Keys (our fix)</h3>
+    <img class="main" src="figures/supervisor_samples/sampleA_swap.jpg" alt="Swap DEK" />
+    <p><span class="ok">Vision fails / disagrees with text gate → block e_Kankakee → less false-cross (96%→46%)</span></p>
+    <pre>Baseline: vision “close enough” → fire → leak
+DEK:      vision_ok ∧ text_ok required → block → anti-leakage</pre>
+  </div>
+
+  <div class="step">
+    <h3>Step 7 — Hard-neg &amp; modality</h3>
+    <div class="pair">
+      <div>
+        <p>Hard-negative — same dual-gate as swap</p>
+        <img class="main" src="figures/supervisor_samples/sampleA_hardneg.jpg" alt="Hard-neg" />
+      </div>
+      <div>
+        <p>Modality — same entity, new photo → still allow “Kankakee”</p>
+        <img class="main" src="figures/supervisor_samples/sampleA_modality.jpg" alt="Modality" />
+      </div>
+    </div>
+  </div>
+
+  <h2>One-sentence takeaway</h2>
+  <p>On this sample, <strong>AVBT</strong> teaches “bind Kankakee only to the Kankakee photo,” and <strong>Dual-Expert Keys</strong> enforces that at retrieval with vision∧text agreement — that is what cuts false-cross.</p>
+</body>
+</html>
