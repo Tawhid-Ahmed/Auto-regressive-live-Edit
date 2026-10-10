@@ -83,6 +83,10 @@ def get_attr():
     parser.add_argument('--resume', action='store_true', help='Resume training from -lkpt (keep epoch/i, reuse run dir).')
     parser.add_argument('--resume_run_name', type=str, default=None,
                         help='Existing run folder name under records/liveedit/<model>/ (with --resume).')
+    parser.add_argument(
+        '--keep_latest_ckpts', type=int, default=None,
+        help='After each save, keep only the newest N checkpoint files (e.g. 3). Default: keep all.',
+    )
     args = parser.parse_args()
     return args
 
@@ -192,7 +196,8 @@ if __name__ == '__main__':
         log_per_i = cfg.log_per_i, ema_alpha = cfg.ema_alpha, random_seed = cfg.random_seed,
         data_buffer_size = cfg.data_buffer_size, records_dir=records_dir,
         resume=getattr(cfg, 'resume', False),
-        resume_run_name=getattr(cfg, 'resume_run_name', None))
+        resume_run_name=getattr(cfg, 'resume_run_name', None),
+        keep_latest_ckpts=getattr(cfg, 'keep_latest_ckpts', None))
     editor.train(cfg.epochs)
     elapsed = time.time() - t0
     runtime = {"runtime_seconds": round(elapsed, 2), "runtime_minutes": round(elapsed / 60, 2)}

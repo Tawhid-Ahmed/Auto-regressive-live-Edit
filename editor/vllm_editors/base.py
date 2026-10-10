@@ -163,7 +163,8 @@ class VLLMBaseEditorWithTraining(VLLMBaseEditor):
             save_ckpt_per_i:int = 3000, log_per_i:int = 10, 
             ema_alpha:float = 0.1, random_seed:int = None, 
             data_buffer_size = 8, seed_init_train_params_if_no_ckpt_path = True,
-            resume: bool = False, resume_run_name: str = None):  
+            resume: bool = False, resume_run_name: str = None,
+            keep_latest_ckpts: int = None):  
         '''Used to initialize data generator `self.data_generator`, checkpoint/log 
             directory, writer, and optimizer.
             `data_buffer_size` is passed to ParallelDataset (clamped to >= 1 there;
@@ -212,6 +213,8 @@ class VLLMBaseEditorWithTraining(VLLMBaseEditor):
             yaml.dump(asdict(cfg), f)
         self.log_writer = SummaryWriter(logs_path)
         self.save_ckpt_per_i = save_ckpt_per_i
+        # None / <=0 = keep all checkpoints; else retain only the newest N files.
+        self.keep_latest_ckpts = keep_latest_ckpts
         self.log_per_i = log_per_i
         self.ema_alpha = ema_alpha
         # initialize optimizer and load checkpoints
@@ -304,6 +307,28 @@ class VLLMBaseEditorWithTraining(VLLMBaseEditor):
             ckpt_name = 'epoch-%d-i-%d-loss-%.4f'%(int(epoch), int(i), float(loss))
         ckpt_path = os.path.join(self.save_ckpt_dir, ckpt_name)
         torch.save(ckpt, ckpt_path)
+        self._prune_old_checkpoints()
+
+    def _prune_old_checkpoints(self):
+        """Keep only the newest ``keep_latest_ckpts`` files under save_ckpt_dir."""
+        n = getattr(self, "keep_latest_ckpts", None)
+        if not n or int(n) <= 0 or not os.path.isdir(self.save_ckpt_dir):
+            return
+        n = int(n)
+        entries = []
+        for name in os.listdir(self.save_ckpt_dir):
+            path = os.path.join(self.save_ckpt_dir, name)
+            if os.path.isfile(path) and name.startswith("epoch-"):
+                entries.append((os.path.getmtime(path), path))
+        if len(entries) <= n:
+            return
+        entries.sort(key=lambda x: x[0], reverse=True)
+        for _, path in entries[n:]:
+            try:
+                os.remove(path)
+                print(f"[ckpt-retain] removed old checkpoint: {path}")
+            except OSError as e:
+                print(f"[ckpt-retain] failed to remove {path}: {e}")
 
     def load_ckpt(self, ckpt_path, restrict = True, load_opt = True):
         '''Load checkpoint.'''
