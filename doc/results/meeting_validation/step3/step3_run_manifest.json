@@ -1,7 +1,0 @@
-{
-  "started": "2026-07-05T14:34:23",
-  "tag": "step3_alteration_baseline",
-  "mean_results": "E:\\MSC\\MSc thesis project\\LiveEdit\\LiveEdit\\eval_results\\meeting_validation\\step3\\liveedit\\blip2-opt-2.7b\\VLKEB_ALTERATION-step3_alteration_baseline-2026.07.05-14.34.23\\sequential_edit_50\\seed_42_mean_results.json",
-  "finished": "2026-07-05T14:41:00",
-  "note": "Valid run with AlteredImageRef lazy loading (preload fix reverted due to MemoryError)"
-}
