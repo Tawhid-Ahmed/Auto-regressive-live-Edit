@@ -99,10 +99,10 @@ Non-exclusive flags, reported alongside: `own_fired`, `partner_fired`, `foreign_
 | G2b margin / abstain sweep | Oct 11 - Oct 16 | **not triggered** (G0 was PASS, not WEAK) | - | [G2b](#g2b-can-stale-leakage-be-fixed-at-inference) |
 | G3 pool-size curve | Oct 14 - Oct 24 | **complete (Oct 6)** | **PASS** — DEK advantage holds; **HIGH FLAG** pair-closed hn ~84% (M6) | [G3](#g3-does-the-lifelong-scaling-claim-survive) |
 | G4 other editors | Oct 17 - Oct 28 | not started | - | [G4](#g4-does-the-protocol-transfer-to-other-editors) |
-| G5 second backbone | Oct 15 (fixed) | **moved to stronger GPU (Oct 7)** — local S2@i500 ready; DEK train + eval remote | - | [G5](#g5-second-backbone-decision) |
+| G5 second backbone | Oct 15 (fixed) | **lab 4090 (Oct 10)** — CVPR strong LLaVA L0 (`dn=500`×`eps=20`) then S2/DEK; dual extract with BLIP-2 | - | [G5](#g5-second-backbone-decision) |
 | G6 writing checkpoint | Oct 27 (fixed) | not started | - | [G6](#g6-writing-checkpoint) |
 
-Current track: **G5 on stronger GPU** (DEK train + L0/S2/DEK eval; decision due Oct 15). Local long runs stopped. Plan A (DEK) unchanged for BLIP-2. **Deferred → later**: M6, `emits_y_i`, EVQA pair-closed, 5-seed, G4, MSCKE, CARML tau.
+Current track: **G5 on lab RTX 4090 for CVPR main track** (strong LLaVA L0 → S2 → DEK → eval; then re-extract BLIP-2 under the same protocol; decision due Oct 15). Plan A (DEK) unchanged for BLIP-2. **Deferred → later**: M6, `emits_y_i`, EVQA pair-closed, 5-seed, G4, MSCKE, CARML tau.
 
 ---
 
@@ -432,41 +432,51 @@ _(pending)_
 
 ## G5: second backbone decision
 
-**Date**: decision due **Oct 15, 2026** (fixed). Setup started Oct 6.
-**Status**: **setup in progress**. Preconditions: G0 PASS (met), G2 PASS (met).
-**Artifacts**: `doc/results/cvpr2027/g5/` (inventory + smoke); reuse AAAI LLaVA path under `records/liveedit/llava-v1.5-7b/`.
-**Ladder** (plan): LLaVA-1.5-7B fp16/4-bit on local 16GB → rented GPU if needed → Qwen2-VL-2B fallback if LLaVA blocked.
+**Date**: decision due **Oct 15, 2026** (fixed). Setup started Oct 6; **CVPR budget locked Oct 10**.
+**Status**: **lab training in progress**. Preconditions: G0 PASS (met), G2 PASS (met).
+**Artifacts**: `doc/results/cvpr2027/g5/` (README + `EXPERIMENT_TRACKER.md` + logs). Paper numbers use **lab** runs under `records/lab_g5/`, not home/USB AAAI LLaVA ckpts.
+**Ladder** (CVPR): LLaVA-1.5-7B on lab RTX 4090 → strong L0 → S2 → DEK → dual extract with BLIP-2. Qwen2-VL-2B fallback only if LLaVA blocked.
 
-### Setup inventory (Oct 6)
+### CVPR training + extraction plan (Oct 10)
+
+| Phase | Work | Budget / note |
+|---|---|---|
+| A | Fresh lab LLaVA L0 → S2 → DEK | L0: `dn=500`, **`eps=20`**; S2/DEK: `dn=500`, **`eps=1`** |
+| B | LLaVA grounding eval + leak taxonomy | Lab ckpts only |
+| C | **Re-extract BLIP-2** L0 / S2 / DEK | Same eval scripts + probes as B (existing AAAI ckpts; no silent metric drift) |
+| D | G5 gate write-up | Disclose: BLIP-2 full-set L0×20 vs LLaVA short-n L0×20 |
+
+AAAI-era LLaVA `dn=500×3` was a deadline shortcut. Oct 10 `eps=1` lab L0 is **smoke only**, not paper L0.
+
+### Setup inventory
 
 | Asset | Status |
 |---|---|
-| Weights `../models/llava-1.5-7b-hf` | **present** (~14 GB safetensors) |
-| Config `configs/liveedit/llava-v1.5-7b.yaml` | present (`llm_layer_tmp: model.language_model.layers.{}`) |
-| L0 ckpt `VLKEB_llava_L0_dn500` epoch-3 | **present** (`epoch-3-i-1900-ema_loss-8.1575`) |
-| LLaVA S2 / DEK ckpts | **missing** — train next after load smoke |
-| `bitsandbytes` (4-bit) | **not installed** in `liveedit` env — fp16 first; install only if OOM |
+| Lab weights `/.../models/llava-1.5-7b-hf` | **present** (validated safetensors Oct 10) |
+| Config `configs/liveedit/llava-v1.5-7b.yaml` | present |
+| Home L0 `VLKEB_llava_L0_dn500` epoch-3 | archive only — **not** for CVPR G5 numbers |
+| Lab LLaVA L0 / S2 / DEK (`records/lab_g5/`) | **in progress** — strong L0 next |
 | Qwen2-VL | not wired yet — fallback only |
 
-### Smoke (Oct 6)
+### Smoke (Oct 6 / Oct 10)
 
-`tools/smoke_g5_llava_load.py` → `doc/results/cvpr2027/g5/smoke_llava_load.json`: **PASS** (load L0 ckpt + 1 edit + `probe_routing` in 21.5 s). Peak alloc **~14.5 GB / 16 GB** — local headroom is thin; S2/DEK (+DINOv2 patch) may OOM → rent or 4-bit if needed. Note: smoke `n_retrieved=0` on the single reliability probe — re-check after S2/DEK (not a load failure).
+- Oct 6 home: `tools/smoke_g5_llava_load.py` → **PASS** (thin 16 GB headroom).
+- Oct 10 lab: model load OK after weight repair; detached `eps=1` L0 used for env/data path check only.
 
 ### Result
-_(pending — S2/DEK train + grounding)_
+_(pending — strong L0 + S2/DEK + dual extract)_
 
 ### Good
-- Weights + L0 dn500 ckpt reusable from AAAI stress; no re-download.
-- Load smoke PASS on local GPU.
+- Lab 4090 available; git sync on `lab/g5-code-only`; tracker + results pull scripts ready.
+- CVPR budget explicit: L0×20 at `dn=500`, then same-protocol BLIP-2 re-extract.
 
 ### Bad
-- ~14.5 GB used at L0 inference — DEK train/eval on this card is high-risk.
-- LLaVA S2/DEK checkpoints still missing.
+- Home/USB LLaVA shards were corrupt once — lab now uses validated download.
+- Strong L0 (~20×500 steps) still to finish before S2/DEK.
 
 ### Carry-forward
-- **Oct 7:** local long runs stopped. S2 usable at `epoch-1-i-500`. DEK had no ckpt yet — **train DEK on a stronger GPU** from L0 (handoff: `doc/results/cvpr2027/g5/README.md`).
-- Then grounding eval L0 / S2 / DEK + taxonomy; decide by **Oct 15**.
-- Qwen2-VL-2B only if LLaVA blocked on the remote box.
+- **This week:** finish Phase A–D (see `doc/results/cvpr2027/g5/README.md`); decide by **Oct 15**.
+- Qwen2-VL-2B only if LLaVA blocked on the lab box.
 - M6 and other flags stay **deferred — later**.
 
 ---

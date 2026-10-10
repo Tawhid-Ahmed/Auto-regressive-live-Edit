@@ -1,12 +1,13 @@
 """G5 lab pipeline: fresh LLaVA L0 -> S2 -> DEK on lab GPU (no old checkpoints).
 
+CVPR main-track defaults: L0 dn=500 x 20 epochs; S2/DEK dn=500 x 1 epoch.
 Designed for RTX 4090 (~24 GB). Keeps only the latest 3 checkpoints per run.
 Writes experiment tracking under doc/results/cvpr2027/g5/ (mirrored on lab).
 
 Usage (on lab, repo root, conda activate liveedit):
   python -u tools/lab_g5_llava_fresh_pipeline.py --stages L0 S2 DEK
-  python -u tools/lab_g5_llava_fresh_pipeline.py --stages L0          # start with L0 only
-  python -u tools/lab_g5_llava_fresh_pipeline.py --stages S2 DEK --from_l0_run <run_dir>
+  python -u tools/lab_g5_llava_fresh_pipeline.py --stages L0 --eps_l0 20
+  python -u tools/lab_g5_llava_fresh_pipeline.py --stages S2 DEK --from_l0_ckpt <ckpt>
 """
 from __future__ import annotations
 
@@ -29,10 +30,11 @@ LAB_BACKUP = Path(
     )
 )
 
-# 4090-friendly defaults
+# 4090-friendly defaults (CVPR main-track: strong L0; short S2/DEK fine-tunes)
 DEFAULT_BS = 1
 DEFAULT_DN = 500
-DEFAULT_EPS = 1
+DEFAULT_EPS_L0 = 20  # match BLIP-2 L0 epoch count at dn=500 (disclose vs LiveEdit full-set)
+DEFAULT_EPS_FT = 1   # S2 / DEK
 DEFAULT_SCI = 100  # ~5 saves / 500-iter epoch; retain 3
 DEFAULT_KEEP = 3
 DEFAULT_SEED = 42
@@ -120,12 +122,19 @@ def append_tracker(event: dict) -> None:
             f.write(body)
 
 
+def stage_eps(stage: str, args: argparse.Namespace) -> int:
+    if stage == "L0":
+        return int(args.eps_l0)
+    return int(args.eps_ft)
+
+
 def run_train(stage: str, lkpt: Path | None, args: argparse.Namespace) -> tuple[int, Path | None, Path]:
     import socket
 
     host = socket.gethostname()
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    run_name = f"lab_g5_llava_{stage}_dn{args.dn}_s{args.rs}_{stamp}"
+    eps = stage_eps(stage, args)
+    run_name = f"lab_g5_llava_{stage}_dn{args.dn}_e{eps}_s{args.rs}_{stamp}"
     dpath = resolve_dpath()
     log_dir = TRACK_DIR / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -135,7 +144,7 @@ def run_train(stage: str, lkpt: Path | None, args: argparse.Namespace) -> tuple[
         sys.executable, "-u", str(ROOT / "train_vllm_editor.py"),
         "-en", "liveedit", "-mn", "llava", "-dna", "VLKEB",
         "-bs", str(args.bs), "-dvc", args.dvc, "-edvc", "0",
-        "-eps", str(args.eps), "-tnp", run_name,
+        "-eps", str(eps), "-tnp", run_name,
         "-dn", str(args.dn), "-rs", str(args.rs),
         "-sci", str(args.sci), "-lpi", "1",
         "-dpath", str(dpath),
@@ -164,8 +173,9 @@ def run_train(stage: str, lkpt: Path | None, args: argparse.Namespace) -> tuple[
         "log": str(log_path.relative_to(ROOT)),
         "note": "fresh train; no home-PC checkpoints; keep_latest_ckpts=%d" % args.keep_latest_ckpts,
         "config": {
-            "bs": args.bs, "dn": args.dn, "eps": args.eps, "sci": args.sci,
+            "bs": args.bs, "dn": args.dn, "eps": eps, "sci": args.sci,
             "seed": args.rs, "dvc": args.dvc, "lkpt": str(lkpt) if lkpt else None,
+            "eps_l0": args.eps_l0, "eps_ft": args.eps_ft,
         },
     }
     append_tracker(meta)
@@ -230,11 +240,19 @@ def main() -> int:
     ap.add_argument("-dvc", default="cuda:0")
     ap.add_argument("-bs", type=int, default=DEFAULT_BS)
     ap.add_argument("-dn", type=int, default=DEFAULT_DN)
-    ap.add_argument("-eps", type=int, default=DEFAULT_EPS)
+    ap.add_argument("--eps_l0", type=int, default=DEFAULT_EPS_L0, help="Epochs for L0 (CVPR default 20)")
+    ap.add_argument("--eps_ft", type=int, default=DEFAULT_EPS_FT, help="Epochs for S2/DEK (default 1)")
+    ap.add_argument(
+        "-eps", type=int, default=None,
+        help="Deprecated uniform epochs; if set, overrides both --eps_l0 and --eps_ft",
+    )
     ap.add_argument("-sci", type=int, default=DEFAULT_SCI)
     ap.add_argument("-rs", type=int, default=DEFAULT_SEED)
     ap.add_argument("--keep_latest_ckpts", type=int, default=DEFAULT_KEEP)
     args = ap.parse_args()
+    if args.eps is not None:
+        args.eps_l0 = args.eps
+        args.eps_ft = args.eps
 
     os.chdir(ROOT)
     l0_ckpt = Path(args.from_l0_ckpt) if args.from_l0_ckpt else None

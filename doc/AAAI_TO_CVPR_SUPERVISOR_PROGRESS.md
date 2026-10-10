@@ -16,7 +16,7 @@
 | 5 | Binary false-activation may overstate baseline leak | Done | No | — |
 | 6 | Only 100 edits; pool size untested | Partly done | No | Optional: more edit orders + Easy-VQA pool-size curve |
 | 7 | Repeated prompts / visual collisions may explain residual | Partly done | No | Optional: hard-neg difficulty strata + small human check of pairs |
-| 8 | Only one backbone and one editor | In progress | No | Finish LLaVA Dual-Expert Keys train + eval; then other editors |
+| 8 | Only one backbone and one editor | In progress | No | This week: strong lab LLaVA L0 (`dn=500`×20)→S2→DEK + eval; re-extract BLIP-2 under same protocol; then other editors |
 | 9 | Residual leak still high | Measured; no win yet | No | Method retry to cut absolute hard-neg leak under honest pools |
 
 ### Reviewer 2
@@ -27,7 +27,7 @@
 | 2 | Leak metric may be LiveEdit-specific | Not started | No | Run same leak protocol on other editors |
 | 3 | Only author-built baseline | Done | No | — |
 | 4 | No gain on Rel / Gen / Loc | Partly done | Yes | Write paper section / plot leading with leak vs reliability |
-| 5 | Single BLIP-2 backbone | In progress | No | Finish LLaVA Dual-Expert Keys train + eval (due 15 Oct) |
+| 5 | Single BLIP-2 backbone | In progress | No | Strong lab LLaVA ladder + dual result extract with BLIP-2 (due 15 Oct) |
 
 ### AI reviewer
 
@@ -58,7 +58,7 @@
 | 5 | Binary FPR may overstate leak | Soft-weight re-score; lead with hard-neg leak | Soft-weight baseline VLKEB swap ~**24%**. Hard-neg: 91→**52** (VLKEB), 96.7→**9.3** (Easy-VQA) | Done | No | — |
 | 6 | Pool size untested | Partners kept in pool; curve at 100/300/1000 | Swap leak baseline→ours: 90→**19**, 97→**15**, 100→**23**. Rel ≥ 99% | Partly done | No | Optional: more edit orders + Easy-VQA pool-size curve |
 | 7 | Prompt / visual collisions | Checked whether residual leaks sit on repeated prompts | ~**47%** on repeated prompts (not enough to blame text gate). Hard-neg residual **94% foreign** | Partly done | No | Optional: hard-neg difficulty strata + small human check of pairs |
-| 8 | One backbone / one editor | LLaVA train on stronger GPU; other editors later | Load check passed. Train/eval due **15 Oct**. No LLaVA Dual-Expert Keys eval numbers yet. Other editors: no numbers | In progress | No | Finish LLaVA Dual-Expert Keys train + eval; then other editors |
+| 8 | One backbone / one editor | Lab 4090: strong LLaVA L0 (`dn=500`×20)→S2→DEK; then same-protocol BLIP-2 re-extract | Load OK. Smoke `eps=1` L0 only. CVPR L0×20 + dual extract due **15 Oct**. Other editors later | In progress | No | Finish strong LLaVA ladder + dual extract; then other editors |
 | 9 | Residual still high | Marked absolute hard-neg under honest pools as open gap | Honest-pool hard-neg Dual-Expert Keys ~**84–86%** (baseline 100%). Relative win only | Measured; no win yet | No | Method retry to cut absolute hard-neg leak under honest pools |
 
 ---
@@ -71,7 +71,7 @@
 | 2 | Metric may be LiveEdit-only | Same leak protocol on other editors (planned) | No numbers yet | Not started | No | Run same leak protocol on other editors |
 | 3 | Author-built baseline only | Original LiveEdit + AND-alone controls | LiveEdit 88/93 @ rel 100; AND alone rel **50%**; Dual-Expert Keys **48/44** @ **100%** | Done | No | — |
 | 4 | No Rel/Gen/Loc gain | Numbers ready; paper should lead with leak vs reliability | Hard-neg @ high reliability: ours **44% / 9%** vs baseline **93% / 97%**. Only-own ~16%→**~100%** | Partly done | Yes | Write paper section / plot leading with leak vs reliability |
-| 5 | Single backbone | LLaVA second backbone | In progress; due **15 Oct**. No LLaVA Dual-Expert Keys eval numbers yet | In progress | No | Finish LLaVA Dual-Expert Keys train + eval (due 15 Oct) |
+| 5 | Single backbone | LLaVA second backbone on lab; dual extract with BLIP-2 | In progress; due **15 Oct**. Strong L0×20 planned; no final LLaVA Dual-Expert Keys eval yet | In progress | No | Strong lab LLaVA ladder + BLIP-2 re-extract (due 15 Oct) |
 
 ---
 
@@ -140,7 +140,7 @@ Lower is better for leak. Higher is better for correct route and only-own. All f
 
 | Item | Timing |
 |---|---|
-| LLaVA Dual-Expert Keys train + eval | **15 Oct** |
+| Strong lab LLaVA L0×20 → S2 → DEK + dual result extract (LLaVA + BLIP-2) | **15 Oct** |
 | Other editors under same leak protocol | After backbone |
 | Absolute hard-neg method retry | After backbone |
 | Multi-seed runs | After configs locked |

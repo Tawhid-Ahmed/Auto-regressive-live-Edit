@@ -83,6 +83,9 @@ class BaseVLLMEditData(BaseEditData):
         # Always read dataset JSON as UTF-8 (Windows default cp1252 can fail).
         with open(data_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
+        # Some grounding dumps use {"meta": ..., "data": [...]}; classic VLKEB is a list.
+        if isinstance(data, dict) and "data" in data:
+            data = data["data"]
         data_n = min(len(data), data_n)
         return_data = []
         for i in tqdm(range(data_n), 'Loading data'):
