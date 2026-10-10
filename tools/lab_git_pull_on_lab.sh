@@ -22,12 +22,14 @@ EOF
 fi
 
 git fetch origin "$BRANCH"
-# Prefer a clean tracking branch; keep local untracked models/data
+# Prefer a clean tracking branch; keep local untracked models/data.
+# First-time USB→git: working tree files exist but are untracked, so force
+# checkout once to adopt origin (large assets stay via .git/info/exclude).
 if git show-ref --verify --quiet "refs/heads/${BRANCH}"; then
   git checkout "$BRANCH"
   git pull --ff-only origin "$BRANCH"
 else
-  git checkout -B "$BRANCH" "origin/${BRANCH}"
+  git checkout -f -B "$BRANCH" "origin/${BRANCH}"
 fi
 
 echo "Lab code now at:"
