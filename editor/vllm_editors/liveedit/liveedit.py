@@ -101,6 +101,11 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         self.dek_dual_gate_enabled = False
         self.dek_text_margin = 0.0
         self.dek_text_alpha = 1.0  # AVBL: add alpha * txt_sim into binding logits
+        # G2 inference routing rule (glossary / --routing_rule). When dual_gate is on and
+        # rule is still the default, retrieve_moes treats it as ``and``.
+        self.routing_rule = "liveedit"
+        self.carml_scope_tau = 0.05  # min fused prob for CARML top-1 to fire
+        self.carml_top_k = 15
         self.pool_dedup_enabled = False
         self.pool_dedup_threshold = 0.95
         self.pool_dedup_mode = "merge"  # merge | skip
@@ -202,6 +207,8 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         self.dek_dual_gate_enabled = bool(dual_gate)
         self.dek_text_margin = float(text_margin)
         self.dek_text_alpha = float(text_alpha)
+        if dual_gate and getattr(self, "routing_rule", "liveedit") in ("liveedit", "vision_only"):
+            self.routing_rule = "and"
         self.pool_dedup_enabled = bool(pool_dedup)
         self.pool_dedup_threshold = float(pool_dedup_threshold)
         mode = str(pool_dedup_mode).lower().strip()
@@ -209,6 +216,31 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         if not self.patch_grounding_enabled:
             self.enable_patch_grounding(encoder=encoder, expert_gen=True)
         self._install_patch_image_cache_hook()
+
+    ROUTING_RULES = (
+        "liveedit",
+        "vision_only",
+        "text_only",
+        "and",
+        "or",
+        "sum",
+        "carml",
+        "always_reject",
+    )
+
+    def set_routing_rule(self, rule: str, text_margin: Optional[float] = None,
+                         carml_scope_tau: Optional[float] = None) -> None:
+        """G2: select inference routing rule (see CVPR2027 glossary ``routing_rule``)."""
+        r = str(rule).lower().strip()
+        if r not in self.ROUTING_RULES:
+            raise ValueError("routing_rule must be one of %s, got %r" % (self.ROUTING_RULES, rule))
+        self.routing_rule = r
+        if text_margin is not None:
+            self.dek_text_margin = float(text_margin)
+        if carml_scope_tau is not None:
+            self.carml_scope_tau = float(carml_scope_tau)
+        # Keep legacy flag in sync so older call sites stay consistent.
+        self.dek_dual_gate_enabled = (r == "and")
 
     def enable_adversarial_grounding(
         self,
@@ -770,14 +802,127 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         text_ok: txt_sim[i] >= max_j(txt_sim[j]) - text_margin
         Combined with prior visual gate → vision ∧ text agreement.
         """
-        if not getattr(self, "dek_dual_gate_enabled", False):
-            return retrieval_map
-        if txt_sim.numel() == 0 or not retrieval_map.any():
+        if txt_sim is None or txt_sim.numel() == 0:
+            return torch.zeros_like(retrieval_map)
+        if not retrieval_map.any():
             return retrieval_map
         margin = float(getattr(self, "dek_text_margin", 0.0))
         ref = txt_sim[0].max()
         text_ok = txt_sim[0] >= (ref - margin)
         return retrieval_map & text_ok
+
+    def _text_ok_mask(self, txt_sim: Optional[torch.Tensor], m_gate: int) -> torch.Tensor:
+        """Prompt-key survivors: txt_sim[i] >= max - text_margin."""
+        device = self.evr_pool_gated.device
+        if txt_sim is None or txt_sim.numel() == 0:
+            return torch.zeros(m_gate, dtype=torch.bool, device=device)
+        margin = float(getattr(self, "dek_text_margin", 0.0))
+        ref = txt_sim[0].max()
+        return txt_sim[0] >= (ref - margin)
+
+    def _dino_channel_sims(self, m_gate: int, pool_indices: torch.Tensor) -> Optional[torch.Tensor]:
+        """Cosine sim of query DINO key vs each gated pool expert (1, m_gate), or None."""
+        dino_pool = getattr(self, "dino_key_pool", [])
+        query_patches = self._current_query_patches()
+        m_full = int(self.evr_pool.shape[0])
+        if query_patches is None or len(dino_pool) != m_full or m_gate == 0:
+            return None
+        q = patch_mean_key(query_patches).to(self.device)
+        sims = []
+        for gi in pool_indices.tolist():
+            k = dino_pool[int(gi)].to(self.device)
+            sims.append(torch.dot(q, k))
+        return torch.stack(sims, dim=0).unsqueeze(0)  # [1, m_gate]
+
+    def _carml_retrieval_map(
+        self,
+        vis_sim: torch.Tensor,
+        txt_sim: Optional[torch.Tensor],
+        pool_indices: torch.Tensor,
+        m_gate: int,
+    ) -> torch.Tensor:
+        """CARML-style multi-channel fusion (Section 3.3-ish): per-channel softmax,
+        inverse-entropy weights, top-K overlap conflict dampening, top-1 + scope tau.
+
+        Channels: Q-Former vision, prompt key (if available), DINOv2 (if available).
+        Scope threshold ``carml_scope_tau`` is a fixed prior until train-split tuning.
+        """
+        device = vis_sim.device
+        channels = [vis_sim[0]]
+        if txt_sim is not None and txt_sim.numel() == m_gate:
+            channels.append(txt_sim[0])
+        dino = self._dino_channel_sims(m_gate, pool_indices)
+        if dino is not None:
+            channels.append(dino[0])
+        probs, entropies = [], []
+        top_sets = []
+        k = min(int(getattr(self, "carml_top_k", 15)), m_gate)
+        for ch in channels:
+            p = torch.softmax(ch, dim=0)
+            probs.append(p)
+            # entropy in nats; higher => less confident
+            ent = -(p * (p.clamp_min(1e-12).log())).sum()
+            entropies.append(ent)
+            top_sets.append(set(torch.topk(p, k=k).indices.tolist()))
+        # Inverse-entropy channel weights
+        inv = torch.stack([1.0 / (e + 1e-6) for e in entropies])
+        w = inv / inv.sum()
+        fused = torch.zeros(m_gate, device=device, dtype=probs[0].dtype)
+        for wi, p in zip(w, probs):
+            fused = fused + wi * p
+        # Conflict: mean pairwise Jaccard of top-K; low overlap => dampen peak
+        if len(top_sets) >= 2:
+            jaccs = []
+            for a in range(len(top_sets)):
+                for b in range(a + 1, len(top_sets)):
+                    inter = len(top_sets[a] & top_sets[b])
+                    union = len(top_sets[a] | top_sets[b]) or 1
+                    jaccs.append(inter / union)
+            conflict = 1.0 - float(sum(jaccs) / len(jaccs))
+            fused = fused * max(0.05, 1.0 - conflict)
+        fused = fused / fused.sum().clamp_min(1e-12)
+        top1 = int(fused.argmax().item())
+        tau = float(getattr(self, "carml_scope_tau", 0.05))
+        out = torch.zeros(m_gate, dtype=torch.bool, device=device)
+        if float(fused[top1]) >= tau:
+            out[top1] = True
+        # stash for probe_routing
+        self._last_carml_fused = fused.detach()
+        self._last_carml_channel_weights = w.detach()
+        return out
+
+    def _apply_routing_rule(
+        self,
+        rule: str,
+        vis_ok: torch.Tensor,
+        vis_sim: torch.Tensor,
+        vis_sim_prot: torch.Tensor,
+        txt_sim: Optional[torch.Tensor],
+        pool_indices: torch.Tensor,
+    ) -> torch.Tensor:
+        """Map G2 ``routing_rule`` + channel scores to a boolean retrieval map [m_gate]."""
+        m_gate = int(vis_ok.numel())
+        device = vis_ok.device
+        text_ok = self._text_ok_mask(txt_sim, m_gate)
+        if rule in ("liveedit", "vision_only"):
+            return vis_ok
+        if rule == "text_only":
+            return text_ok
+        if rule == "and":
+            return vis_ok & text_ok
+        if rule == "or":
+            return vis_ok | text_ok
+        if rule == "sum":
+            if txt_sim is None or txt_sim.numel() == 0:
+                return vis_ok
+            alpha = float(getattr(self, "dek_text_alpha", 1.0))
+            fused = vis_sim[0] + alpha * txt_sim[0]
+            return fused > vis_sim_prot[0, 0]
+        if rule == "carml":
+            return self._carml_retrieval_map(vis_sim, txt_sim, pool_indices, m_gate)
+        if rule == "always_reject":
+            return torch.zeros(m_gate, dtype=torch.bool, device=device)
+        raise ValueError("Unknown routing_rule %r" % rule)
 
     def _dino_key_for_image(self, image) -> torch.Tensor:
         dino_patches = self._encode_patches(image)
@@ -1067,19 +1212,29 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         if self.verification_gate_enabled and vis_sim_p is not None:
             ivr_prot_p = self._extract_patch_prototype_routing(query_reps)
             vis_sim_prot_p = torch.einsum("bed,bed->be", ivr_p, ivr_prot_p).mean(1, True) * self.sim_scale
-            retrieval_map_gated = (
+            vis_ok = (
                 (vis_sim_q > vis_sim_prot) & (vis_sim_p > vis_sim_prot_p)
             ).to(torch.bool)[0]
         else:
-            retrieval_map_gated = (vis_sim > vis_sim_prot).to(torch.bool)[0] # [m_gate]
-        # DEK dual-gate: require prompt-key agreement with visual survivors
+            vis_ok = (vis_sim > vis_sim_prot).to(torch.bool)[0]  # [m_gate]
+        # G2 routing_rule (liveedit / vision_only / text_only / and / or / sum / carml / always_reject).
+        # Legacy: dek_dual_gate_enabled with default rule ⇒ ``and``.
+        rule = str(getattr(self, "routing_rule", "liveedit") or "liveedit").lower()
+        if getattr(self, "dek_dual_gate_enabled", False) and rule in ("liveedit", "vision_only"):
+            rule = "and"
         txt_sim_gated = None
         iqr_for_fuse = None
-        if getattr(self, "dek_dual_gate_enabled", False):
+        need_text = rule in ("text_only", "and", "or", "sum", "carml") or return_retr_details
+        if need_text and self.eqr_pool_gated.shape[0] > 0:
             txt_sim_gated, iqr_for_fuse = self._text_routing_sim(
                 query_reps, self.eqr_pool_gated)
-            retrieval_map_gated = self._apply_dek_dual_gate(
-                retrieval_map_gated, txt_sim_gated)
+        self._last_vis_ok = vis_ok.detach()
+        self._last_txt_sim = None if txt_sim_gated is None else txt_sim_gated.detach()
+        self._last_text_ok = self._text_ok_mask(
+            txt_sim_gated, int(vis_ok.numel())).detach()
+        self._last_routing_rule = rule
+        retrieval_map_gated = self._apply_routing_rule(
+            rule, vis_ok, vis_sim, vis_sim_prot, txt_sim_gated, pool_indices)
         if getattr(self, "patch_rerank_enabled", False) and retrieval_map_gated.any():
             gated_positions = retrieval_map_gated.nonzero(as_tuple=True)[0]
             full_indices = pool_indices[gated_positions]
@@ -1161,12 +1316,27 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         query_reps = reps_f[:, vt_range[1]:query_end]
         ivr = self.inpt_extractor.extract_vision(query_reps, vision_reps)
         (
-            vis_sim, vis_sim_prot, retrieved_indices, _, _, _, _,
+            vis_sim, vis_sim_prot, retrieved_indices, _, _, _, fuse_coe,
             dino_gate_diag, qformer_full_indices,
         ) = self.retrieve_moes(
             vision_reps, query_reps, chunk_index=chunk_index,
             return_retr_details=True, skip_decode_vision_gate=skip_decode_vision_gate,
         )
+        # M3: actual residual fuse coefficients (get_moe_fuse_coe = softmax*sigmoid over prompt keys)
+        fuse_list = []
+        fuse_by_index: Dict[str, float] = {}
+        if fuse_coe is not None and len(retrieved_indices) > 0:
+            fuse_list = [float(x) for x in fuse_coe[0].detach().cpu().tolist()]
+            fuse_by_index = {str(i): w for i, w in zip(retrieved_indices, fuse_list)}
+        # Soft weights over the full pool (same formula on all experts) for weight-aware taxonomy.
+        pool_fuse: List[float] = []
+        if self.eqr_pool.shape[0] > 0:
+            iqr_all = self.inpt_extractor.extract_query(query_reps)
+            pool_fuse_t = self.get_moe_fuse_coe(iqr_all, self.eqr_pool)
+            pool_fuse = [float(x) for x in pool_fuse_t[0].detach().cpu().tolist()]
+        txt_sim = getattr(self, "_last_txt_sim", None)
+        vis_ok = getattr(self, "_last_vis_ok", None)
+        text_ok = getattr(self, "_last_text_ok", None)
         out: Dict[str, Any] = {
             'vis_sim': vis_sim[0].cpu().tolist(),
             'vis_sim_prot': float(vis_sim_prot[0, 0].cpu()),
@@ -1180,13 +1350,29 @@ class LiveEdit(VLLMBaseEditorWithTraining):
             'query_token_n': int(query_reps.shape[1]),
             'chunk_index': chunk_index,
             'routing_pool_mode': getattr(self, 'routing_pool_mode', 'mean'),
+            'routing_rule': getattr(self, '_last_routing_rule', getattr(self, 'routing_rule', 'liveedit')),
             'patch_rerank_enabled': bool(getattr(self, 'patch_rerank_enabled', False)),
             'ar_vision_gated_chunks': bool(getattr(self, 'ar_vision_gated_chunks', False)),
             'decode_vision_gate_enabled': bool(getattr(self, 'decode_vision_gate_enabled', False)),
             'decode_vision_margin': float(getattr(self, 'decode_vision_margin', 0.0)),
             'decode_vision_abs_threshold': getattr(self, 'decode_vision_abs_threshold', None),
             'skip_decode_vision_gate': bool(skip_decode_vision_gate),
+            # M3 / G2 soft weights
+            'fuse_coe': fuse_list,
+            'fuse_coe_by_index': fuse_by_index,
+            'pool_fuse_coe': pool_fuse,
+            'dek_text_margin': float(getattr(self, 'dek_text_margin', 0.0)),
         }
+        if txt_sim is not None:
+            out['txt_sim'] = txt_sim[0].cpu().tolist()
+        if vis_ok is not None:
+            out['vision_ok_indices'] = vis_ok.nonzero(as_tuple=True)[0].cpu().tolist()
+        if text_ok is not None:
+            out['text_ok_indices'] = text_ok.nonzero(as_tuple=True)[0].cpu().tolist()
+        if getattr(self, '_last_carml_fused', None) is not None:
+            out['carml_fused'] = self._last_carml_fused.cpu().tolist()
+            out['carml_channel_weights'] = self._last_carml_channel_weights.cpu().tolist()
+            out['carml_scope_tau'] = float(getattr(self, 'carml_scope_tau', 0.05))
         if dino_gate_diag is not None:
             out['dino_gate'] = dino_gate_diag
         return out

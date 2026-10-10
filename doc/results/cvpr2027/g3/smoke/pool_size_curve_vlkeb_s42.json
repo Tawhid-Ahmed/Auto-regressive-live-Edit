@@ -1,0 +1,296 @@
+{
+  "dataset": "vlkeb",
+  "seed": 42,
+  "runs": [
+    {
+      "label": "vlkeb_L0_n20",
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g3_vlkeb_L0_pc_n20_s42-2026.10.06-08.41.45",
+      "routing_diagnostics": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g3_vlkeb_L0_pc_n20_s42-2026.10.06-08.41.45/routing_diagnostics.json",
+      "probe_json": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/data/VLKEB/meeting_validation/step1/grounding/pair_closed/grounding_pairclosed_n20_s42.json",
+      "ckpt": "E:\\MSC\\MSc thesis project\\LiveEdit\\LiveEdit\\records\\liveedit\\blip2-opt-2.7b\\VLKEB_baseline-2026.04.09-08.20.07\\checkpoints\\epoch-20-i-25950-ema_loss-0.1201",
+      "eval_seed": 42,
+      "shuffled": true,
+      "row_sampling": "head",
+      "n_samples": 25,
+      "n_pool_entries": 25,
+      "n_image_swap_probes": 25,
+      "n_hard_negative_probes": 25,
+      "n_reliability_probes": 25,
+      "n_probes_relabelled_swap": 0,
+      "swap_partner_in_pool_rate": 1.0,
+      "hard_neg_partner_in_pool_rate": 1.0,
+      "swap_prompt_duplicated_rate": 0.64,
+      "mapping_check": {
+        "checked": true,
+        "n_checked": 25,
+        "n_mismatch": 0,
+        "mismatch_sids": [],
+        "sampling": "head"
+      },
+      "weight_softmax_includes_prototype": false,
+      "weight_definition": "softmax over vis_sim of retrieved experts; expert active iff weight > tau",
+      "legacy_summary": {
+        "n_samples": 25,
+        "n_pool_entries": 25,
+        "hard_negative_false_activation_rate": 1.0,
+        "image_swap_false_activation_rate": 1.0,
+        "hard_negative_false_cross_rate": 1.0,
+        "image_swap_false_cross_rate": 1.0,
+        "reliability_false_cross_rate": 0.44
+      },
+      "image_swap": {
+        "binary": {
+          "stale_leak": 0.04,
+          "foreign_leak": 0.32,
+          "correct_route": 0.64,
+          "abstain": 0.0,
+          "total_leak": 0.36,
+          "own_fired": 0.04,
+          "partner_fired": 1.0,
+          "foreign_fired": 0.32,
+          "any_fired": 1.0,
+          "counts": {
+            "correct_route": 16,
+            "foreign_leak": 8,
+            "stale_leak": 1
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.0,
+          "foreign_leak": 0.04,
+          "correct_route": 0.84,
+          "abstain": 0.12,
+          "total_leak": 0.04,
+          "own_fired": 0.0,
+          "partner_fired": 0.88,
+          "foreign_fired": 0.04,
+          "any_fired": 0.88,
+          "counts": {
+            "correct_route": 21,
+            "abstain": 3,
+            "foreign_leak": 1
+          }
+        }
+      },
+      "hard_negative": {
+        "binary": {
+          "stale_leak": 0.0,
+          "foreign_leak": 1.0,
+          "abstain": 0.0,
+          "total_leak": 1.0,
+          "own_fired": 0.0,
+          "hn_partner_fired": 1.0,
+          "any_fired": 1.0,
+          "counts": {
+            "foreign_leak": 25
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.0,
+          "foreign_leak": 1.0,
+          "abstain": 0.0,
+          "total_leak": 1.0,
+          "own_fired": 0.0,
+          "hn_partner_fired": 1.0,
+          "any_fired": 1.0,
+          "counts": {
+            "foreign_leak": 25
+          }
+        }
+      },
+      "reliability": {
+        "binary": {
+          "hit": 1.0,
+          "only_own": 0.56,
+          "cross": 0.44,
+          "miss": 0.0
+        },
+        "tau_0.1": {
+          "hit": 1.0,
+          "only_own": 0.96,
+          "cross": 0.04,
+          "miss": 0.0
+        }
+      },
+      "g3_meta": {
+        "target_n": 20,
+        "actual_n": 25,
+        "pair_closed": true,
+        "name": "vlkeb_L0_n20"
+      }
+    },
+    {
+      "label": "vlkeb_DEK_n20",
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g3_vlkeb_DEK_pc_n20_s42-2026.10.06-08.42.39",
+      "routing_diagnostics": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g3_vlkeb_DEK_pc_n20_s42-2026.10.06-08.42.39/routing_diagnostics.json",
+      "probe_json": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/data/VLKEB/meeting_validation/step1/grounding/pair_closed/grounding_pairclosed_n20_s42.json",
+      "ckpt": "E:\\MSC\\MSc thesis project\\LiveEdit\\LiveEdit\\records\\liveedit\\blip2-opt-2.7b\\VLKEB_avbt_short_DEK-2026.07.10-18.13.18\\checkpoints\\epoch-1-i-125-ema_loss-4.0100",
+      "eval_seed": 42,
+      "shuffled": true,
+      "row_sampling": "head",
+      "n_samples": 25,
+      "n_pool_entries": 25,
+      "n_image_swap_probes": 25,
+      "n_hard_negative_probes": 25,
+      "n_reliability_probes": 25,
+      "n_probes_relabelled_swap": 0,
+      "swap_partner_in_pool_rate": 1.0,
+      "hard_neg_partner_in_pool_rate": 1.0,
+      "swap_prompt_duplicated_rate": 0.64,
+      "mapping_check": {
+        "checked": true,
+        "n_checked": 25,
+        "n_mismatch": 0,
+        "mismatch_sids": [],
+        "sampling": "head"
+      },
+      "weight_softmax_includes_prototype": false,
+      "weight_definition": "softmax over vis_sim of retrieved experts; expert active iff weight > tau",
+      "legacy_summary": {
+        "n_samples": 25,
+        "n_pool_entries": 25,
+        "hard_negative_false_activation_rate": 0.8,
+        "image_swap_false_activation_rate": 0.88,
+        "hard_negative_false_cross_rate": 0.8,
+        "image_swap_false_cross_rate": 0.88,
+        "reliability_false_cross_rate": 0.0
+      },
+      "image_swap": {
+        "binary": {
+          "stale_leak": 0.04,
+          "foreign_leak": 0.16,
+          "correct_route": 0.72,
+          "abstain": 0.08,
+          "total_leak": 0.2,
+          "own_fired": 0.04,
+          "partner_fired": 0.72,
+          "foreign_fired": 0.16,
+          "any_fired": 0.92,
+          "counts": {
+            "correct_route": 18,
+            "stale_leak": 1,
+            "foreign_leak": 4,
+            "abstain": 2
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.04,
+          "foreign_leak": 0.16,
+          "correct_route": 0.72,
+          "abstain": 0.08,
+          "total_leak": 0.2,
+          "own_fired": 0.04,
+          "partner_fired": 0.72,
+          "foreign_fired": 0.16,
+          "any_fired": 0.92,
+          "counts": {
+            "correct_route": 18,
+            "stale_leak": 1,
+            "foreign_leak": 4,
+            "abstain": 2
+          }
+        }
+      },
+      "hard_negative": {
+        "binary": {
+          "stale_leak": 0.0,
+          "foreign_leak": 0.8,
+          "abstain": 0.2,
+          "total_leak": 0.8,
+          "own_fired": 0.0,
+          "hn_partner_fired": 0.8,
+          "any_fired": 0.8,
+          "counts": {
+            "foreign_leak": 20,
+            "abstain": 5
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.0,
+          "foreign_leak": 0.8,
+          "abstain": 0.2,
+          "total_leak": 0.8,
+          "own_fired": 0.0,
+          "hn_partner_fired": 0.8,
+          "any_fired": 0.8,
+          "counts": {
+            "foreign_leak": 20,
+            "abstain": 5
+          }
+        }
+      },
+      "reliability": {
+        "binary": {
+          "hit": 1.0,
+          "only_own": 1.0,
+          "cross": 0.0,
+          "miss": 0.0
+        },
+        "tau_0.1": {
+          "hit": 1.0,
+          "only_own": 1.0,
+          "cross": 0.0,
+          "miss": 0.0
+        }
+      },
+      "g3_meta": {
+        "target_n": 20,
+        "actual_n": 25,
+        "pair_closed": true,
+        "name": "vlkeb_DEK_n20"
+      }
+    }
+  ],
+  "job_results": [
+    {
+      "name": "vlkeb_L0_n20",
+      "enp": "g3_vlkeb_L0_pc_n20_s42",
+      "rule": "liveedit",
+      "dek": false,
+      "target_n": 20,
+      "actual_n": 25,
+      "pair_closed": true,
+      "exit_code": 0,
+      "runtime_sec": 68.9,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g3_vlkeb_L0_pc_n20_s42-2026.10.06-08.41.45",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g3/smoke/logs/g3_vlkeb_L0_pc_n20_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.36,
+        "image_swap_stale": 0.04,
+        "image_swap_foreign": 0.32,
+        "image_swap_correct_route": 0.64,
+        "image_swap_abstain": 0.0,
+        "hard_negative_total_leak": 1.0,
+        "rel_hit": 1.0,
+        "rel_only_own": 0.56,
+        "swap_partner_in_pool_rate": 1.0,
+        "hard_neg_partner_in_pool_rate": 1.0
+      }
+    },
+    {
+      "name": "vlkeb_DEK_n20",
+      "enp": "g3_vlkeb_DEK_pc_n20_s42",
+      "rule": "and",
+      "dek": true,
+      "target_n": 20,
+      "actual_n": 25,
+      "pair_closed": true,
+      "exit_code": 0,
+      "runtime_sec": 61.3,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g3_vlkeb_DEK_pc_n20_s42-2026.10.06-08.42.39",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g3/smoke/logs/g3_vlkeb_DEK_pc_n20_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.2,
+        "image_swap_stale": 0.04,
+        "image_swap_foreign": 0.16,
+        "image_swap_correct_route": 0.72,
+        "image_swap_abstain": 0.08,
+        "hard_negative_total_leak": 0.8,
+        "rel_hit": 1.0,
+        "rel_only_own": 1.0,
+        "swap_partner_in_pool_rate": 1.0,
+        "hard_neg_partner_in_pool_rate": 1.0
+      }
+    }
+  ]
+}

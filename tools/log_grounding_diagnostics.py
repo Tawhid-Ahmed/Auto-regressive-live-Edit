@@ -66,17 +66,24 @@ def collect_grounding_routing_diagnostics(
     """Probe routing false_cross / false_activation on a built edit pool (no model reload)."""
     editor.restore_to_original_model()
     pool_sample_ids: List[int] = []
+    import torch
     for sid, sample in enumerate(samples):
-        editor.edit_one_piece(sample["requests"][0])
+        # Eval-time edits must not retain autograd graphs — without no_grad,
+        # DEK+patch_grounding OOMs around a few hundred lifelong edits on 16GB.
+        with torch.no_grad():
+            editor.edit_one_piece(sample["requests"][0])
         n_new = len(editor.requests_pool) - len(pool_sample_ids)
         pool_sample_ids.extend([sid] * n_new)
+        if (sid + 1) % 50 == 0 and torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
     probes_log: List[Dict[str, Any]] = []
     aggregate: Dict[str, List[bool]] = defaultdict(list)
 
     for sid, sample in enumerate(samples):
         for probe_name, prompt, image, target in _probe_specs(sample):
-            routing = editor.probe_routing(editor.vllm, prompt, image, target=target)
+            with torch.no_grad():
+                routing = editor.probe_routing(editor.vllm, prompt, image, target=target)
             classification = _classify_routing(
                 probe_name if probe_name != "image_swap" else "image_rephrase",
                 sid,
@@ -90,7 +97,10 @@ def collect_grounding_routing_diagnostics(
                     if i < len(pool_sample_ids)
                 )
                 classification["false_activation"] = classification["false_cross_edit"]
-            entry = {"probe": probe_name, **routing, **classification}
+            # probe_name must win: _classify_routing embeds its own "probe" key
+            # (image_swap is classified via the image_rephrase branch), which used
+            # to clobber image_swap -> image_rephrase in stored logs (M4 / G0).
+            entry = {**routing, **classification, "probe": probe_name}
             probes_log.append(entry)
             if probe_name in ("hard_negative", "image_swap"):
                 aggregate[f"{probe_name}_false_activation"].append(

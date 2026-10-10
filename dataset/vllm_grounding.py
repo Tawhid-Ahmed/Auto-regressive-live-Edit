@@ -178,7 +178,11 @@ class GroundingVLKEB(BaseVLLMEditData):
                 }
 
             if gp.get("image_swap"):
-                structured["generality"]["image_swap"] = [_probe(gp["image_swap"], src, alt)]
+                swap_probe = _probe(gp["image_swap"], src, alt)
+                # y_j for the shown partner image (emits_y_i / emits_y_j scoring).
+                if gp.get("target_partner") is not None:
+                    swap_probe["target_partner"] = gp["target_partner"]
+                structured["generality"]["image_swap"] = [swap_probe]
             if gp.get("hard_neg_image"):
                 structured["generality"]["hard_negative"] = [_probe(gp["hard_neg_image"], src, alt)]
             consistency_img = gp.get("modality_consistency_image") or raw.get("image_rephrase")

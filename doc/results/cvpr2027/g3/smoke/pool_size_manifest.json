@@ -1,0 +1,75 @@
+{
+  "started": "2026-10-06T08:41:26",
+  "smoke": true,
+  "seed": 42,
+  "pools": {
+    "20": {
+      "path": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/data/VLKEB/meeting_validation/step1/grounding/pair_closed/grounding_pairclosed_n20_s42.json",
+      "actual_n": 25,
+      "verify": {
+        "n": 25,
+        "partner_in_pool_swap_rate": 1.0,
+        "partner_in_pool_hard_neg_rate": 1.0,
+        "missing_swap_partner": 0,
+        "missing_hard_neg_partner": 0
+      }
+    }
+  },
+  "jobs_planned": [
+    "vlkeb_L0_n20",
+    "vlkeb_DEK_n20"
+  ],
+  "results": [
+    {
+      "name": "vlkeb_L0_n20",
+      "enp": "g3_vlkeb_L0_pc_n20_s42",
+      "rule": "liveedit",
+      "dek": false,
+      "target_n": 20,
+      "actual_n": 25,
+      "pair_closed": true,
+      "exit_code": 0,
+      "runtime_sec": 68.9,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g3_vlkeb_L0_pc_n20_s42-2026.10.06-08.41.45",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g3/smoke/logs/g3_vlkeb_L0_pc_n20_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.36,
+        "image_swap_stale": 0.04,
+        "image_swap_foreign": 0.32,
+        "image_swap_correct_route": 0.64,
+        "image_swap_abstain": 0.0,
+        "hard_negative_total_leak": 1.0,
+        "rel_hit": 1.0,
+        "rel_only_own": 0.56,
+        "swap_partner_in_pool_rate": 1.0,
+        "hard_neg_partner_in_pool_rate": 1.0
+      }
+    },
+    {
+      "name": "vlkeb_DEK_n20",
+      "enp": "g3_vlkeb_DEK_pc_n20_s42",
+      "rule": "and",
+      "dek": true,
+      "target_n": 20,
+      "actual_n": 25,
+      "pair_closed": true,
+      "exit_code": 0,
+      "runtime_sec": 61.3,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g3_vlkeb_DEK_pc_n20_s42-2026.10.06-08.42.39",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g3/smoke/logs/g3_vlkeb_DEK_pc_n20_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.2,
+        "image_swap_stale": 0.04,
+        "image_swap_foreign": 0.16,
+        "image_swap_correct_route": 0.72,
+        "image_swap_abstain": 0.08,
+        "hard_negative_total_leak": 0.8,
+        "rel_hit": 1.0,
+        "rel_only_own": 1.0,
+        "swap_partner_in_pool_rate": 1.0,
+        "hard_neg_partner_in_pool_rate": 1.0
+      }
+    }
+  ],
+  "finished": "2026-10-06T08:43:37"
+}

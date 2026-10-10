@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-10-06T12:12:00",
+  "model_name": "llava-v1.5-7b",
+  "model_path": "E:/MSC/MSc thesis project/LiveEdit/models/llava-1.5-7b-hf",
+  "model_path_exists": true,
+  "device": "cuda:0",
+  "cuda_available": true,
+  "ckpt": "E:\\MSC\\MSc thesis project\\LiveEdit\\LiveEdit\\records\\liveedit\\llava-v1.5-7b\\VLKEB_llava_L0_dn500-2026.07.25-19.25.39\\checkpoints\\epoch-3-i-1900-ema_loss-8.1575",
+  "steps": [
+    {
+      "load_editor_sec": 14.7
+    },
+    {
+      "cuda_alloc_gb": 14.539,
+      "cuda_reserved_gb": 14.546
+    },
+    {
+      "edit_probe_sec": 6.8,
+      "n_retrieved": 0,
+      "retrieved_indices": []
+    },
+    {
+      "cuda_alloc_gb_after": 14.549,
+      "cuda_reserved_gb_after": 14.67
+    }
+  ],
+  "ok": true,
+  "total_sec": 21.5
+}

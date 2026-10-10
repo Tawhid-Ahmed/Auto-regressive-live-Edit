@@ -174,6 +174,9 @@ def build_grounding_rows(
         new_row["grounding_probes"] = {
             "image_swap": rows[swap_j]["image"],
             "image_swap_partner_index": int(swap_j),
+            # Partner's edited answer y_j (shown-image-correct on image_swap).
+            # Used by emits_y_j in the grounding eval (G0 / CVPR 2027 glossary).
+            "target_partner": rows[swap_j]["alt"],
             "hard_neg_image": rows[hard_j]["image"],
             "hard_neg_partner_index": int(hard_j),
             "conflict_prompt": conflict_prompt,

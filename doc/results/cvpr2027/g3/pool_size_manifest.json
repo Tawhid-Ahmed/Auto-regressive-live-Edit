@@ -1,0 +1,74 @@
+{
+  "started": "2026-10-06T10:45:04",
+  "smoke": false,
+  "seed": 42,
+  "pools": {
+    "1000": {
+      "path": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/data/VLKEB/meeting_validation/step1/grounding/pair_closed/grounding_pairclosed_n1000_s42.json",
+      "actual_n": 1000,
+      "verify": {
+        "n": 1000,
+        "partner_in_pool_swap_rate": 1.0,
+        "partner_in_pool_hard_neg_rate": 1.0,
+        "missing_swap_partner": 0,
+        "missing_hard_neg_partner": 0
+      }
+    }
+  },
+  "jobs_planned": [
+    "vlkeb_L0_n1000",
+    "vlkeb_DEK_n1000"
+  ],
+  "results": [
+    {
+      "name": "vlkeb_L0_n1000",
+      "enp": "g3_vlkeb_L0_pc_n1000_s42",
+      "rule": "liveedit",
+      "dek": false,
+      "target_n": 1000,
+      "actual_n": 1000,
+      "pair_closed": true,
+      "exit_code": 0,
+      "skipped": true,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g3_vlkeb_L0_pc_n1000_s42-2026.10.06-08.43.50",
+      "taxonomy": {
+        "image_swap_total_leak": 1.0,
+        "image_swap_stale": 0.109,
+        "image_swap_foreign": 0.891,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 0.0,
+        "hard_negative_total_leak": 1.0,
+        "rel_hit": 1.0,
+        "rel_only_own": 0.008,
+        "swap_partner_in_pool_rate": 1.0,
+        "hard_neg_partner_in_pool_rate": 1.0
+      }
+    },
+    {
+      "name": "vlkeb_DEK_n1000",
+      "enp": "g3_vlkeb_DEK_pc_n1000_s42",
+      "rule": "and",
+      "dek": true,
+      "target_n": 1000,
+      "actual_n": 1000,
+      "pair_closed": true,
+      "exit_code": 0,
+      "runtime_sec": 619.0,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g3_vlkeb_DEK_pc_n1000_s42-2026.10.06-10.45.07",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g3/logs/g3_vlkeb_DEK_pc_n1000_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.23299999999999998,
+        "image_swap_stale": 0.02,
+        "image_swap_foreign": 0.213,
+        "image_swap_correct_route": 0.618,
+        "image_swap_abstain": 0.149,
+        "hard_negative_total_leak": 0.836,
+        "rel_hit": 0.992,
+        "rel_only_own": 0.992,
+        "swap_partner_in_pool_rate": 1.0,
+        "hard_neg_partner_in_pool_rate": 1.0
+      }
+    }
+  ],
+  "finished": "2026-10-06T10:55:33"
+}

@@ -131,6 +131,27 @@ def get_attr():
         action="store_true",
         help="After token eval, log false_cross / false_activation routing rates into mean_results.json",
     )
+    parser.add_argument(
+        "--routing_only",
+        action="store_true",
+        help="Run --log_routing and skip sequential token eval (G3 large-pool memory path).",
+    )
+    parser.add_argument(
+        "--routing_rule",
+        type=str,
+        default=None,
+        choices=[
+            "liveedit", "vision_only", "text_only", "and", "or", "sum", "carml", "always_reject",
+        ],
+        help="G2 inference routing rule (overrides --dek_dual_gate when set). "
+             "Glossary: liveedit/vision_only/text_only/and/or/sum/carml/always_reject.",
+    )
+    parser.add_argument(
+        "--carml_scope_tau",
+        type=float,
+        default=0.05,
+        help="CARML: min fused probability for top-1 expert to fire (default 0.05)",
+    )
     args = parser.parse_args()
     if isinstance(args.editor_ckpt_path, str) and args.editor_ckpt_path.strip().lower() in {"none", "null", ""}:
         args.editor_ckpt_path = None
@@ -170,14 +191,21 @@ if __name__ == "__main__":
         getattr(cfg, "fused_expert_key", False)
         or getattr(cfg, "pool_dedup", False)
         or getattr(cfg, "dek_dual_gate", False)
+        or getattr(cfg, "routing_rule", None) in ("and", "carml")
     ):
         editor.enable_dek(
             fused_expert_key=getattr(cfg, "fused_expert_key", False),
             pool_dedup=getattr(cfg, "pool_dedup", False),
             pool_dedup_threshold=getattr(cfg, "pool_dedup_threshold", 0.95),
-            dual_gate=getattr(cfg, "dek_dual_gate", False),
+            dual_gate=getattr(cfg, "dek_dual_gate", False) or getattr(cfg, "routing_rule", None) == "and",
             text_margin=getattr(cfg, "dek_text_margin", 0.0),
             pool_dedup_mode=getattr(cfg, "pool_dedup_mode", "merge"),
+        )
+    if getattr(cfg, "routing_rule", None):
+        editor.set_routing_rule(
+            cfg.routing_rule,
+            text_margin=getattr(cfg, "dek_text_margin", 0.0),
+            carml_scope_tau=getattr(cfg, "carml_scope_tau", 0.05),
         )
     if ablation_layer:
         from tools.meeting_validation.step6.layer_ablation import AblationConfig, apply_ablation_config
@@ -225,6 +253,9 @@ if __name__ == "__main__":
     eval_seed = getattr(cfg, "eval_seed", None)
     meeting_step = getattr(cfg, "meeting_step", 1)
     eval_results_root = f"eval_results/meeting_validation/step{meeting_step}"
+    routing_only = getattr(cfg, "routing_only", False)
+    if routing_only and not getattr(cfg, "log_routing", False):
+        cfg.log_routing = True
     routing_result = None
     if getattr(cfg, "log_routing", False):
         from copy import deepcopy
@@ -243,37 +274,68 @@ if __name__ == "__main__":
                 "seed": eval_seed if use_random else 42,
                 "device": cfg.device,
                 "ar_mode": getattr(cfg, "ar_mode", False),
+                "routing_only": bool(routing_only),
             },
         )
         editor.restore_to_original_model()
-    ev = VLLMEditorEvaluation(
-        editor, eval_data, cfg.evaluation_name, eval_results_root,
-        ar_chunk_size=getattr(cfg, "chunk_size", 16),
-    )
-    t0 = time.time()
-    ev.evaluate_sequential_edit(cfg.sequential_edit_n, use_random, eval_seed)
-    elapsed = time.time() - t0
+        try:
+            import torch
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+        except Exception:
+            pass
 
-    mean_results_fname = ("seed_%s_mean_results.json" % eval_seed) if use_random else "mean_results.json"
-    mean_results_path = os.path.join(
-        ev.result_dir, "sequential_edit_%s" % cfg.sequential_edit_n, mean_results_fname
-    )
-    if os.path.exists(mean_results_path):
-        with open(mean_results_path, "r") as f:
-            data = json.load(f)
-        data["runtime_seconds"] = round(elapsed, 2)
-        data["runtime_minutes"] = round(elapsed / 60, 2)
-        data["grounding_eval_json"] = data_path
-        data["meeting_step"] = meeting_step
-        if image_size is not None:
-            data["image_size"] = image_size
-        elif hasattr(editor.vllm, "eval_image_size") and editor.vllm.eval_image_size is not None:
-            data["image_size"] = editor.vllm.eval_image_size
-        if routing_result is not None:
-            data["routing_diagnostics"] = routing_result["summary"]
-            routing_out = os.path.join(ev.result_dir, "routing_diagnostics.json")
-            with open(routing_out, "w", encoding="utf-8") as rf:
-                json.dump(routing_result, rf, indent=2)
-        with open(mean_results_path, "w") as f:
+    if routing_only:
+        # Skip sequential token eval; still write a result dir the G3 scorer can find.
+        result_dir = os.path.join(
+            ROOT_PATH, eval_results_root, cfg.editor_name, cfg.edit_model_name, cfg.evaluation_name
+        )
+        seq_dir = os.path.join(result_dir, "sequential_edit_%s" % cfg.sequential_edit_n)
+        os.makedirs(seq_dir, exist_ok=True)
+        mean_results_fname = ("seed_%s_mean_results.json" % eval_seed) if use_random else "mean_results.json"
+        mean_results_path = os.path.join(seq_dir, mean_results_fname)
+        data = {
+            "runtime_seconds": None,
+            "routing_only": True,
+            "grounding_eval_json": data_path,
+            "meeting_step": meeting_step,
+            "routing_diagnostics": (routing_result or {}).get("summary"),
+        }
+        with open(mean_results_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
-    print("[Timer] Total elapsed: %.2f s (%.2f min)" % (elapsed, elapsed / 60))
+        if routing_result is not None:
+            with open(os.path.join(result_dir, "routing_diagnostics.json"), "w", encoding="utf-8") as rf:
+                json.dump(routing_result, rf, indent=2)
+        print("[Timer] routing_only complete; wrote", result_dir)
+    else:
+        ev = VLLMEditorEvaluation(
+            editor, eval_data, cfg.evaluation_name, eval_results_root,
+            ar_chunk_size=getattr(cfg, "chunk_size", 16),
+        )
+        t0 = time.time()
+        ev.evaluate_sequential_edit(cfg.sequential_edit_n, use_random, eval_seed)
+        elapsed = time.time() - t0
+
+        mean_results_fname = ("seed_%s_mean_results.json" % eval_seed) if use_random else "mean_results.json"
+        mean_results_path = os.path.join(
+            ev.result_dir, "sequential_edit_%s" % cfg.sequential_edit_n, mean_results_fname
+        )
+        if os.path.exists(mean_results_path):
+            with open(mean_results_path, "r") as f:
+                data = json.load(f)
+            data["runtime_seconds"] = round(elapsed, 2)
+            data["runtime_minutes"] = round(elapsed / 60, 2)
+            data["grounding_eval_json"] = data_path
+            data["meeting_step"] = meeting_step
+            if image_size is not None:
+                data["image_size"] = image_size
+            elif hasattr(editor.vllm, "eval_image_size") and editor.vllm.eval_image_size is not None:
+                data["image_size"] = editor.vllm.eval_image_size
+            if routing_result is not None:
+                data["routing_diagnostics"] = routing_result["summary"]
+                routing_out = os.path.join(ev.result_dir, "routing_diagnostics.json")
+                with open(routing_out, "w", encoding="utf-8") as rf:
+                    json.dump(routing_result, rf, indent=2)
+            with open(mean_results_path, "w") as f:
+                json.dump(data, f, indent=4)
+        print("[Timer] Total elapsed: %.2f s (%.2f min)" % (elapsed, elapsed / 60))

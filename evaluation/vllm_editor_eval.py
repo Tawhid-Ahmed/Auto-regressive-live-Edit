@@ -5,6 +5,7 @@ from typing import List, Dict, Union
 from collections import defaultdict
 from datetime import datetime
 from copy import deepcopy
+import re
 import torch, os, json
 from tqdm import tqdm
 from time import time
@@ -23,6 +24,36 @@ def _length_bin_name(num_tokens: int) -> str:
     if num_tokens <= LENGTH_BIN_EDGES[2]:
         return "33-64"
     return "65+"
+
+
+def _norm_answer(s) -> str:
+    """Normalize an answer string for emits_y_i / emits_y_j matching."""
+    return " ".join(str(s).lower().replace("_", " ").split())
+
+
+def _answer_emits(pred, target) -> bool:
+    """True if free-running ``pred`` emits ``target``.
+
+    Exact match after normalize, or first sentence/line equals target, or
+    whole-word containment for targets of length >= 4 (skipping 'not <target>').
+    Empty predictions never match (``'' in s`` is True in Python).
+    """
+    p, t = _norm_answer(pred), _norm_answer(target)
+    if not p or not t:
+        return False
+    if p == t:
+        return True
+    first = re.split(r"[.\n]", p, maxsplit=1)[0].strip()
+    if first == t:
+        return True
+    if len(t) < 4:
+        return False
+    for m in re.finditer(r"(?<!\w)" + re.escape(t) + r"(?!\w)", p):
+        prefix = p[max(0, m.start() - 4) : m.start()]
+        if prefix.endswith("not "):
+            continue
+        return True
+    return False
 
 
 def _chunk_em_f1(pre_y: torch.Tensor, label_ids: torch.Tensor, label_masks: torch.Tensor, chunk_size: int):
@@ -415,6 +446,21 @@ class VLLMEditorEvaluation():
                     pre_y_c = pre_y_c[:, -label_masks_c.shape[1]:] if pre_y_c.shape[1] >= label_masks_c.shape[1] else torch.cat([torch.zeros(1, label_masks_c.shape[1] - pre_y_c.shape[1], dtype=pre_y_c.dtype), pre_y_c], dim=1)
                 rdg['predict_after_edit'] = tokenizer.decode(pre_y_c[label_masks_c.to(bool)])
                 rdg['acc'] = acc
+                # G0 answer-level metrics on image_swap (glossary: emits_y_i / emits_y_j).
+                # Free-running decode: teacher-forced predict_after_edit is length-tied to y_i
+                # and is not a fair answer-level comparison against y_j.
+                if gen_name == "image_swap" and edg.get("target_partner") is not None:
+                    y_i = edg.get("target", rdg.get("target", ""))
+                    y_j = edg["target_partner"]
+                    max_new = max(16, 4 + max(len(str(y_i).split()), len(str(y_j).split())) * 2)
+                    max_new = min(max_new, 64)
+                    gen_text, gen_ids = self.__generate_free_running__(
+                        vllm, edg["prompt"], edg["image"], max_new)
+                    rdg["prediction_freegen"] = gen_text
+                    rdg["target_partner"] = y_j
+                    rdg["gen_token_count"] = len(gen_ids)
+                    rdg["emits_y_i"] = float(_answer_emits(gen_text, y_i))
+                    rdg["emits_y_j"] = float(_answer_emits(gen_text, y_j))
         # locality
         for loc_name in ed['locality']:
             for rdl, edl in zip(rd['locality'][loc_name], ed['locality'][loc_name]):

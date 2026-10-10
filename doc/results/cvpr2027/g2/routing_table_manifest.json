@@ -1,0 +1,428 @@
+{
+  "started": "2026-10-04T20:00:20",
+  "jobs_planned": [
+    "vlkeb_L0_liveedit",
+    "vlkeb_L0_vision_only",
+    "vlkeb_L0_text_only",
+    "vlkeb_L0_and",
+    "vlkeb_L0_or",
+    "vlkeb_L0_sum",
+    "vlkeb_L0_carml",
+    "vlkeb_L0_always_reject",
+    "vlkeb_DEK_and",
+    "vlkeb_DEK_liveedit",
+    "evqa_L0_liveedit",
+    "evqa_L0_vision_only",
+    "evqa_L0_text_only",
+    "evqa_L0_and",
+    "evqa_L0_or",
+    "evqa_L0_sum",
+    "evqa_L0_carml",
+    "evqa_L0_always_reject",
+    "evqa_DEK_and",
+    "evqa_DEK_liveedit"
+  ],
+  "results": [
+    {
+      "name": "vlkeb_L0_liveedit",
+      "enp": "g2_vlkeb_L0_liveedit_s42",
+      "rule": "liveedit",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 146.7,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g2_vlkeb_L0_liveedit_s42-2026.10.04-20.00.24",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g2/logs/g2_vlkeb_L0_liveedit_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.88,
+        "image_swap_stale": 0.09,
+        "image_swap_foreign": 0.79,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 0.12,
+        "hard_negative_total_leak": 0.93,
+        "rel_hit": 1.0,
+        "rel_only_own": 0.21
+      }
+    },
+    {
+      "name": "vlkeb_L0_vision_only",
+      "enp": "g2_vlkeb_L0_vision_only_s42",
+      "rule": "vision_only",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 146.4,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g2_vlkeb_L0_vision_only_s42-2026.10.04-20.02.50",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g2/logs/g2_vlkeb_L0_vision_only_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.88,
+        "image_swap_stale": 0.09,
+        "image_swap_foreign": 0.79,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 0.12,
+        "hard_negative_total_leak": 0.93,
+        "rel_hit": 1.0,
+        "rel_only_own": 0.21
+      }
+    },
+    {
+      "name": "vlkeb_L0_text_only",
+      "enp": "g2_vlkeb_L0_text_only_s42",
+      "rule": "text_only",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 150.7,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g2_vlkeb_L0_text_only_s42-2026.10.04-20.05.17",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g2/logs/g2_vlkeb_L0_text_only_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.99,
+        "image_swap_stale": 0.37,
+        "image_swap_foreign": 0.62,
+        "image_swap_correct_route": 0.01,
+        "image_swap_abstain": 0.0,
+        "hard_negative_total_leak": 1.0,
+        "rel_hit": 1.0,
+        "rel_only_own": 1.0
+      }
+    },
+    {
+      "name": "vlkeb_L0_and",
+      "enp": "g2_vlkeb_L0_and_s42",
+      "rule": "and",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 197.2,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g2_vlkeb_L0_and_s42-2026.10.04-20.07.48",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g2/logs/g2_vlkeb_L0_and_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.0,
+        "image_swap_stale": 0.0,
+        "image_swap_foreign": 0.0,
+        "image_swap_correct_route": 0.01,
+        "image_swap_abstain": 0.99,
+        "hard_negative_total_leak": 0.05,
+        "rel_hit": 0.5,
+        "rel_only_own": 0.5
+      }
+    },
+    {
+      "name": "vlkeb_L0_or",
+      "enp": "g2_vlkeb_L0_or_s42",
+      "rule": "or",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 150.9,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g2_vlkeb_L0_or_s42-2026.10.04-20.11.05",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g2/logs/g2_vlkeb_L0_or_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 1.0,
+        "image_swap_stale": 0.39,
+        "image_swap_foreign": 0.61,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 0.0,
+        "hard_negative_total_leak": 1.0,
+        "rel_hit": 1.0,
+        "rel_only_own": 0.21
+      }
+    },
+    {
+      "name": "vlkeb_L0_sum",
+      "enp": "g2_vlkeb_L0_sum_s42",
+      "rule": "sum",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 145.5,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g2_vlkeb_L0_sum_s42-2026.10.04-20.13.36",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g2/logs/g2_vlkeb_L0_sum_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.6799999999999999,
+        "image_swap_stale": 0.21,
+        "image_swap_foreign": 0.47,
+        "image_swap_correct_route": 0.01,
+        "image_swap_abstain": 0.31,
+        "hard_negative_total_leak": 0.71,
+        "rel_hit": 1.0,
+        "rel_only_own": 0.34
+      }
+    },
+    {
+      "name": "vlkeb_L0_carml",
+      "enp": "g2_vlkeb_L0_carml_s42",
+      "rule": "carml",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 200.1,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g2_vlkeb_L0_carml_s42-2026.10.04-20.16.01",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g2/logs/g2_vlkeb_L0_carml_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.99,
+        "image_swap_stale": 0.35,
+        "image_swap_foreign": 0.64,
+        "image_swap_correct_route": 0.01,
+        "image_swap_abstain": 0.0,
+        "hard_negative_total_leak": 1.0,
+        "rel_hit": 1.0,
+        "rel_only_own": 1.0
+      }
+    },
+    {
+      "name": "vlkeb_L0_always_reject",
+      "enp": "g2_vlkeb_L0_always_reject_s42",
+      "rule": "always_reject",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 141.6,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g2_vlkeb_L0_always_reject_s42-2026.10.04-20.19.21",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g2/logs/g2_vlkeb_L0_always_reject_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.0,
+        "image_swap_stale": 0.0,
+        "image_swap_foreign": 0.0,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 1.0,
+        "hard_negative_total_leak": 0.0,
+        "rel_hit": 0.0,
+        "rel_only_own": 0.0
+      }
+    },
+    {
+      "name": "vlkeb_DEK_and",
+      "enp": "g2_vlkeb_DEK_and_s42",
+      "rule": "and",
+      "dek": true,
+      "exit_code": 0,
+      "runtime_sec": 193.5,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g2_vlkeb_DEK_and_s42-2026.10.04-20.21.43",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g2/logs/g2_vlkeb_DEK_and_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.48,
+        "image_swap_stale": 0.15,
+        "image_swap_foreign": 0.33,
+        "image_swap_correct_route": 0.01,
+        "image_swap_abstain": 0.51,
+        "hard_negative_total_leak": 0.44,
+        "rel_hit": 1.0,
+        "rel_only_own": 1.0
+      }
+    },
+    {
+      "name": "vlkeb_DEK_liveedit",
+      "enp": "g2_vlkeb_DEK_liveedit_s42",
+      "rule": "liveedit",
+      "dek": true,
+      "exit_code": 0,
+      "runtime_sec": 194.9,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g2_vlkeb_DEK_liveedit_s42-2026.10.04-20.24.57",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g2/logs/g2_vlkeb_DEK_liveedit_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.86,
+        "image_swap_stale": 0.28,
+        "image_swap_foreign": 0.58,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 0.14,
+        "hard_negative_total_leak": 0.98,
+        "rel_hit": 1.0,
+        "rel_only_own": 0.08
+      }
+    },
+    {
+      "name": "evqa_L0_liveedit",
+      "enp": "g2_evqa_L0_liveedit_s42",
+      "rule": "liveedit",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 399.6,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g2_evqa_L0_liveedit_s42-2026.10.04-20.28.11",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g2/logs/g2_evqa_L0_liveedit_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.1433333333333333,
+        "image_swap_stale": 0.006666666666666667,
+        "image_swap_foreign": 0.13666666666666666,
+        "image_swap_correct_route": 0.85,
+        "image_swap_abstain": 0.006666666666666667,
+        "hard_negative_total_leak": 0.9700000000000001,
+        "rel_hit": 0.9933333333333333,
+        "rel_only_own": 0.31
+      }
+    },
+    {
+      "name": "evqa_L0_vision_only",
+      "enp": "g2_evqa_L0_vision_only_s42",
+      "rule": "vision_only",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 393.6,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g2_evqa_L0_vision_only_s42-2026.10.04-20.34.51",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g2/logs/g2_evqa_L0_vision_only_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.1433333333333333,
+        "image_swap_stale": 0.006666666666666667,
+        "image_swap_foreign": 0.13666666666666666,
+        "image_swap_correct_route": 0.85,
+        "image_swap_abstain": 0.006666666666666667,
+        "hard_negative_total_leak": 0.9700000000000001,
+        "rel_hit": 0.9933333333333333,
+        "rel_only_own": 0.31
+      }
+    },
+    {
+      "name": "evqa_L0_text_only",
+      "enp": "g2_evqa_L0_text_only_s42",
+      "rule": "text_only",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 397.0,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g2_evqa_L0_text_only_s42-2026.10.04-20.41.25",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g2/logs/g2_evqa_L0_text_only_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.99,
+        "image_swap_stale": 0.94,
+        "image_swap_foreign": 0.05,
+        "image_swap_correct_route": 0.01,
+        "image_swap_abstain": 0.0,
+        "hard_negative_total_leak": 1.0,
+        "rel_hit": 0.9933333333333333,
+        "rel_only_own": 0.9933333333333333
+      }
+    },
+    {
+      "name": "evqa_L0_and",
+      "enp": "g2_evqa_L0_and_s42",
+      "rule": "and",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 534.9,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g2_evqa_L0_and_s42-2026.10.04-20.48.02",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g2/logs/g2_evqa_L0_and_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.0,
+        "image_swap_stale": 0.0,
+        "image_swap_foreign": 0.0,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 1.0,
+        "hard_negative_total_leak": 0.02,
+        "rel_hit": 0.6133333333333333,
+        "rel_only_own": 0.6133333333333333
+      }
+    },
+    {
+      "name": "evqa_L0_or",
+      "enp": "g2_evqa_L0_or_s42",
+      "rule": "or",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 433.3,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g2_evqa_L0_or_s42-2026.10.04-20.56.58",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g2/logs/g2_evqa_L0_or_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 1.0,
+        "image_swap_stale": 0.94,
+        "image_swap_foreign": 0.06,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 0.0,
+        "hard_negative_total_leak": 1.0,
+        "rel_hit": 1.0,
+        "rel_only_own": 0.31666666666666665
+      }
+    },
+    {
+      "name": "evqa_L0_sum",
+      "enp": "g2_evqa_L0_sum_s42",
+      "rule": "sum",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 413.8,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g2_evqa_L0_sum_s42-2026.10.04-21.04.11",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g2/logs/g2_evqa_L0_sum_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.17333333333333334,
+        "image_swap_stale": 0.15,
+        "image_swap_foreign": 0.023333333333333334,
+        "image_swap_correct_route": 0.08333333333333333,
+        "image_swap_abstain": 0.7433333333333333,
+        "hard_negative_total_leak": 0.5,
+        "rel_hit": 1.0,
+        "rel_only_own": 0.6566666666666666
+      }
+    },
+    {
+      "name": "evqa_L0_carml",
+      "enp": "g2_evqa_L0_carml_s42",
+      "rule": "carml",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 534.4,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g2_evqa_L0_carml_s42-2026.10.04-21.11.04",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g2/logs/g2_evqa_L0_carml_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.7366666666666667,
+        "image_swap_stale": 0.7133333333333334,
+        "image_swap_foreign": 0.023333333333333334,
+        "image_swap_correct_route": 0.2633333333333333,
+        "image_swap_abstain": 0.0,
+        "hard_negative_total_leak": 1.0,
+        "rel_hit": 0.9933333333333333,
+        "rel_only_own": 0.9933333333333333
+      }
+    },
+    {
+      "name": "evqa_L0_always_reject",
+      "enp": "g2_evqa_L0_always_reject_s42",
+      "rule": "always_reject",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 408.3,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g2_evqa_L0_always_reject_s42-2026.10.04-21.19.59",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g2/logs/g2_evqa_L0_always_reject_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.0,
+        "image_swap_stale": 0.0,
+        "image_swap_foreign": 0.0,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 1.0,
+        "hard_negative_total_leak": 0.0,
+        "rel_hit": 0.0,
+        "rel_only_own": 0.0
+      }
+    },
+    {
+      "name": "evqa_DEK_and",
+      "enp": "g2_evqa_DEK_and_s42",
+      "rule": "and",
+      "dek": true,
+      "exit_code": 0,
+      "runtime_sec": 526.6,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g2_evqa_DEK_and_s42-2026.10.04-21.26.46",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g2/logs/g2_evqa_DEK_and_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.016666666666666666,
+        "image_swap_stale": 0.01,
+        "image_swap_foreign": 0.006666666666666667,
+        "image_swap_correct_route": 0.016666666666666666,
+        "image_swap_abstain": 0.9666666666666667,
+        "hard_negative_total_leak": 0.09,
+        "rel_hit": 0.99,
+        "rel_only_own": 0.99
+      }
+    },
+    {
+      "name": "evqa_DEK_liveedit",
+      "enp": "g2_evqa_DEK_liveedit_s42",
+      "rule": "liveedit",
+      "dek": true,
+      "exit_code": 0,
+      "runtime_sec": 526.3,
+      "run_dir": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/eval_results/meeting_validation/step6/liveedit/blip2-opt-2.7b/VLKEB_GROUNDING-g2_evqa_DEK_liveedit_s42-2026.10.04-21.35.34",
+      "log": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g2/logs/g2_evqa_DEK_liveedit_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.14666666666666667,
+        "image_swap_stale": 0.01,
+        "image_swap_foreign": 0.13666666666666666,
+        "image_swap_correct_route": 0.85,
+        "image_swap_abstain": 0.0033333333333333335,
+        "hard_negative_total_leak": 0.98,
+        "rel_hit": 1.0,
+        "rel_only_own": 0.29
+      }
+    }
+  ],
+  "finished": "2026-10-04T21:44:39"
+}
