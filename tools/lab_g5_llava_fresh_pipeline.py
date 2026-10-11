@@ -154,6 +154,8 @@ def run_train(stage: str, lkpt: Path | None, args: argparse.Namespace) -> tuple[
     if lkpt is not None:
         cmd.extend(["-lkpt", str(lkpt)])
     if stage in ("S2", "DEK"):
+        # Prefetch buffer=1: ParallelDataset + shared LLaVA can OOM on 24GB with AVBL.
+        cmd.extend(["-dbs", "1"])
         cmd.extend([
             "--patch_grounding", "--adversarial_grounding",
             "--adv_grounding_lambda", "0.3",

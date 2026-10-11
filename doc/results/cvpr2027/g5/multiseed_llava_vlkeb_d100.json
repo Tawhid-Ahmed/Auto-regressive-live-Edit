@@ -1,0 +1,610 @@
+{
+  "backbone": "llava-v1.5-7b",
+  "dataset": "vlkeb",
+  "dsn": 100,
+  "seeds": [
+    42,
+    0,
+    1,
+    2,
+    3
+  ],
+  "summary": {
+    "L0": {
+      "swap_total_leak": {
+        "mean": 1.0,
+        "std": 0.0,
+        "n": 5,
+        "per_seed": {
+          "42": 1.0,
+          "0": 1.0,
+          "1": 1.0,
+          "2": 1.0,
+          "3": 1.0
+        }
+      },
+      "hn_total_leak": {
+        "mean": 0.9960000000000001,
+        "std": 0.008944271909999166,
+        "n": 5,
+        "per_seed": {
+          "42": 0.98,
+          "0": 1.0,
+          "1": 1.0,
+          "2": 1.0,
+          "3": 1.0
+        }
+      },
+      "rel_hit": {
+        "mean": 0.766,
+        "std": 0.05412947441089743,
+        "n": 5,
+        "per_seed": {
+          "42": 0.79,
+          "0": 0.78,
+          "1": 0.79,
+          "2": 0.67,
+          "3": 0.8
+        }
+      },
+      "only_own": {
+        "mean": 0.0,
+        "std": 0.0,
+        "n": 5,
+        "per_seed": {
+          "42": 0.0,
+          "0": 0.0,
+          "1": 0.0,
+          "2": 0.0,
+          "3": 0.0
+        }
+      },
+      "correct_route": {
+        "mean": 0.0,
+        "std": 0.0,
+        "n": 5,
+        "per_seed": {
+          "42": 0.0,
+          "0": 0.0,
+          "1": 0.0,
+          "2": 0.0,
+          "3": 0.0
+        }
+      },
+      "abstain": {
+        "mean": 0.0,
+        "std": 0.0,
+        "n": 5,
+        "per_seed": {
+          "42": 0.0,
+          "0": 0.0,
+          "1": 0.0,
+          "2": 0.0,
+          "3": 0.0
+        }
+      },
+      "swap_stale": {
+        "mean": 0.24,
+        "std": 0.056124860801609125,
+        "n": 5,
+        "per_seed": {
+          "42": 0.24,
+          "0": 0.18,
+          "1": 0.31,
+          "2": 0.19,
+          "3": 0.28
+        }
+      },
+      "swap_foreign": {
+        "mean": 0.76,
+        "std": 0.05612486080160914,
+        "n": 5,
+        "per_seed": {
+          "42": 0.76,
+          "0": 0.82,
+          "1": 0.69,
+          "2": 0.81,
+          "3": 0.72
+        }
+      }
+    },
+    "S2": {
+      "swap_total_leak": {
+        "mean": 1.0,
+        "std": 0.0,
+        "n": 5,
+        "per_seed": {
+          "42": 1.0,
+          "0": 1.0,
+          "1": 1.0,
+          "2": 1.0,
+          "3": 1.0
+        }
+      },
+      "hn_total_leak": {
+        "mean": 1.0,
+        "std": 0.0,
+        "n": 5,
+        "per_seed": {
+          "42": 1.0,
+          "0": 1.0,
+          "1": 1.0,
+          "2": 1.0,
+          "3": 1.0
+        }
+      },
+      "rel_hit": {
+        "mean": 0.9879999999999999,
+        "std": 0.008366600265340763,
+        "n": 5,
+        "per_seed": {
+          "42": 0.98,
+          "0": 1.0,
+          "1": 0.99,
+          "2": 0.99,
+          "3": 0.98
+        }
+      },
+      "only_own": {
+        "mean": 0.002,
+        "std": 0.00447213595499958,
+        "n": 5,
+        "per_seed": {
+          "42": 0.0,
+          "0": 0.0,
+          "1": 0.01,
+          "2": 0.0,
+          "3": 0.0
+        }
+      },
+      "correct_route": {
+        "mean": 0.0,
+        "std": 0.0,
+        "n": 5,
+        "per_seed": {
+          "42": 0.0,
+          "0": 0.0,
+          "1": 0.0,
+          "2": 0.0,
+          "3": 0.0
+        }
+      },
+      "abstain": {
+        "mean": 0.0,
+        "std": 0.0,
+        "n": 5,
+        "per_seed": {
+          "42": 0.0,
+          "0": 0.0,
+          "1": 0.0,
+          "2": 0.0,
+          "3": 0.0
+        }
+      },
+      "swap_stale": {
+        "mean": 0.37,
+        "std": 0.04795831523312718,
+        "n": 5,
+        "per_seed": {
+          "42": 0.41,
+          "0": 0.38,
+          "1": 0.32,
+          "2": 0.32,
+          "3": 0.42
+        }
+      },
+      "swap_foreign": {
+        "mean": 0.6300000000000001,
+        "std": 0.04795831523312724,
+        "n": 5,
+        "per_seed": {
+          "42": 0.59,
+          "0": 0.62,
+          "1": 0.68,
+          "2": 0.68,
+          "3": 0.58
+        }
+      }
+    },
+    "DEK": {
+      "swap_total_leak": {
+        "mean": 0.35,
+        "std": 0.07810249675906654,
+        "n": 5,
+        "per_seed": {
+          "42": 0.36,
+          "0": 0.4,
+          "1": 0.35,
+          "2": 0.42,
+          "3": 0.22
+        }
+      },
+      "hn_total_leak": {
+        "mean": 0.41200000000000003,
+        "std": 0.10232301793829185,
+        "n": 5,
+        "per_seed": {
+          "42": 0.46,
+          "0": 0.57,
+          "1": 0.33,
+          "2": 0.36,
+          "3": 0.34
+        }
+      },
+      "rel_hit": {
+        "mean": 0.006,
+        "std": 0.005477225575051661,
+        "n": 5,
+        "per_seed": {
+          "42": 0.01,
+          "0": 0.0,
+          "1": 0.01,
+          "2": 0.01,
+          "3": 0.0
+        }
+      },
+      "only_own": {
+        "mean": 0.006,
+        "std": 0.005477225575051661,
+        "n": 5,
+        "per_seed": {
+          "42": 0.01,
+          "0": 0.0,
+          "1": 0.01,
+          "2": 0.01,
+          "3": 0.0
+        }
+      },
+      "correct_route": {
+        "mean": 0.006,
+        "std": 0.00894427190999916,
+        "n": 5,
+        "per_seed": {
+          "42": 0.0,
+          "0": 0.0,
+          "1": 0.02,
+          "2": 0.0,
+          "3": 0.01
+        }
+      },
+      "abstain": {
+        "mean": 0.644,
+        "std": 0.07436396977031286,
+        "n": 5,
+        "per_seed": {
+          "42": 0.64,
+          "0": 0.6,
+          "1": 0.63,
+          "2": 0.58,
+          "3": 0.77
+        }
+      },
+      "swap_stale": {
+        "mean": 0.002,
+        "std": 0.00447213595499958,
+        "n": 5,
+        "per_seed": {
+          "42": 0.01,
+          "0": 0.0,
+          "1": 0.0,
+          "2": 0.0,
+          "3": 0.0
+        }
+      },
+      "swap_foreign": {
+        "mean": 0.348,
+        "std": 0.07791020472312982,
+        "n": 5,
+        "per_seed": {
+          "42": 0.35,
+          "0": 0.4,
+          "1": 0.35,
+          "2": 0.42,
+          "3": 0.22
+        }
+      }
+    }
+  },
+  "job_results": [
+    {
+      "method": "L0",
+      "seed": 42,
+      "enp": "g5_llava_ms_L0_s42_d100",
+      "exit_code": 0,
+      "runtime_sec": 50.9,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_L0_s42_d100-2026.10.11-17.27.48",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_L0_s42_d100.log",
+      "taxonomy": {
+        "seed": 42,
+        "swap_total_leak": 1.0,
+        "swap_stale": 0.24,
+        "swap_foreign": 0.76,
+        "correct_route": 0.0,
+        "abstain": 0.0,
+        "hn_total_leak": 0.98,
+        "rel_hit": 0.79,
+        "only_own": 0.0
+      }
+    },
+    {
+      "method": "S2",
+      "seed": 42,
+      "enp": "g5_llava_ms_S2_s42_d100",
+      "exit_code": 0,
+      "runtime_sec": 162.7,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_S2_s42_d100-2026.10.11-17.28.39",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_S2_s42_d100.log",
+      "taxonomy": {
+        "seed": 42,
+        "swap_total_leak": 1.0,
+        "swap_stale": 0.41,
+        "swap_foreign": 0.59,
+        "correct_route": 0.0,
+        "abstain": 0.0,
+        "hn_total_leak": 1.0,
+        "rel_hit": 0.98,
+        "only_own": 0.0
+      }
+    },
+    {
+      "method": "DEK",
+      "seed": 42,
+      "enp": "g5_llava_ms_DEK_s42_d100",
+      "exit_code": 0,
+      "runtime_sec": 151.9,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_DEK_s42_d100-2026.10.11-17.31.22",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_DEK_s42_d100.log",
+      "taxonomy": {
+        "seed": 42,
+        "swap_total_leak": 0.36,
+        "swap_stale": 0.01,
+        "swap_foreign": 0.35,
+        "correct_route": 0.0,
+        "abstain": 0.64,
+        "hn_total_leak": 0.46,
+        "rel_hit": 0.01,
+        "only_own": 0.01
+      }
+    },
+    {
+      "method": "L0",
+      "seed": 0,
+      "enp": "g5_llava_ms_L0_s0_d100",
+      "exit_code": 0,
+      "runtime_sec": 53.9,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_L0_s0_d100-2026.10.11-17.33.54",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_L0_s0_d100.log",
+      "taxonomy": {
+        "seed": 0,
+        "swap_total_leak": 1.0,
+        "swap_stale": 0.18,
+        "swap_foreign": 0.82,
+        "correct_route": 0.0,
+        "abstain": 0.0,
+        "hn_total_leak": 1.0,
+        "rel_hit": 0.78,
+        "only_own": 0.0
+      }
+    },
+    {
+      "method": "S2",
+      "seed": 0,
+      "enp": "g5_llava_ms_S2_s0_d100",
+      "exit_code": 0,
+      "runtime_sec": 152.7,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_S2_s0_d100-2026.10.11-17.34.48",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_S2_s0_d100.log",
+      "taxonomy": {
+        "seed": 0,
+        "swap_total_leak": 1.0,
+        "swap_stale": 0.38,
+        "swap_foreign": 0.62,
+        "correct_route": 0.0,
+        "abstain": 0.0,
+        "hn_total_leak": 1.0,
+        "rel_hit": 1.0,
+        "only_own": 0.0
+      }
+    },
+    {
+      "method": "DEK",
+      "seed": 0,
+      "enp": "g5_llava_ms_DEK_s0_d100",
+      "exit_code": 0,
+      "runtime_sec": 149.4,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_DEK_s0_d100-2026.10.11-17.37.20",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_DEK_s0_d100.log",
+      "taxonomy": {
+        "seed": 0,
+        "swap_total_leak": 0.4,
+        "swap_stale": 0.0,
+        "swap_foreign": 0.4,
+        "correct_route": 0.0,
+        "abstain": 0.6,
+        "hn_total_leak": 0.57,
+        "rel_hit": 0.0,
+        "only_own": 0.0
+      }
+    },
+    {
+      "method": "L0",
+      "seed": 1,
+      "enp": "g5_llava_ms_L0_s1_d100",
+      "exit_code": 0,
+      "runtime_sec": 54.0,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_L0_s1_d100-2026.10.11-17.39.50",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_L0_s1_d100.log",
+      "taxonomy": {
+        "seed": 1,
+        "swap_total_leak": 1.0,
+        "swap_stale": 0.31,
+        "swap_foreign": 0.69,
+        "correct_route": 0.0,
+        "abstain": 0.0,
+        "hn_total_leak": 1.0,
+        "rel_hit": 0.79,
+        "only_own": 0.0
+      }
+    },
+    {
+      "method": "S2",
+      "seed": 1,
+      "enp": "g5_llava_ms_S2_s1_d100",
+      "exit_code": 0,
+      "runtime_sec": 150.8,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_S2_s1_d100-2026.10.11-17.40.44",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_S2_s1_d100.log",
+      "taxonomy": {
+        "seed": 1,
+        "swap_total_leak": 1.0,
+        "swap_stale": 0.32,
+        "swap_foreign": 0.68,
+        "correct_route": 0.0,
+        "abstain": 0.0,
+        "hn_total_leak": 1.0,
+        "rel_hit": 0.99,
+        "only_own": 0.01
+      }
+    },
+    {
+      "method": "DEK",
+      "seed": 1,
+      "enp": "g5_llava_ms_DEK_s1_d100",
+      "exit_code": 0,
+      "runtime_sec": 155.2,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_DEK_s1_d100-2026.10.11-17.43.15",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_DEK_s1_d100.log",
+      "taxonomy": {
+        "seed": 1,
+        "swap_total_leak": 0.35,
+        "swap_stale": 0.0,
+        "swap_foreign": 0.35,
+        "correct_route": 0.02,
+        "abstain": 0.63,
+        "hn_total_leak": 0.33,
+        "rel_hit": 0.01,
+        "only_own": 0.01
+      }
+    },
+    {
+      "method": "L0",
+      "seed": 2,
+      "enp": "g5_llava_ms_L0_s2_d100",
+      "exit_code": 0,
+      "runtime_sec": 52.8,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_L0_s2_d100-2026.10.11-17.45.50",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_L0_s2_d100.log",
+      "taxonomy": {
+        "seed": 2,
+        "swap_total_leak": 1.0,
+        "swap_stale": 0.19,
+        "swap_foreign": 0.81,
+        "correct_route": 0.0,
+        "abstain": 0.0,
+        "hn_total_leak": 1.0,
+        "rel_hit": 0.67,
+        "only_own": 0.0
+      }
+    },
+    {
+      "method": "S2",
+      "seed": 2,
+      "enp": "g5_llava_ms_S2_s2_d100",
+      "exit_code": 0,
+      "runtime_sec": 152.6,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_S2_s2_d100-2026.10.11-17.46.43",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_S2_s2_d100.log",
+      "taxonomy": {
+        "seed": 2,
+        "swap_total_leak": 1.0,
+        "swap_stale": 0.32,
+        "swap_foreign": 0.68,
+        "correct_route": 0.0,
+        "abstain": 0.0,
+        "hn_total_leak": 1.0,
+        "rel_hit": 0.99,
+        "only_own": 0.0
+      }
+    },
+    {
+      "method": "DEK",
+      "seed": 2,
+      "enp": "g5_llava_ms_DEK_s2_d100",
+      "exit_code": 0,
+      "runtime_sec": 152.6,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_DEK_s2_d100-2026.10.11-17.49.15",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_DEK_s2_d100.log",
+      "taxonomy": {
+        "seed": 2,
+        "swap_total_leak": 0.42,
+        "swap_stale": 0.0,
+        "swap_foreign": 0.42,
+        "correct_route": 0.0,
+        "abstain": 0.58,
+        "hn_total_leak": 0.36,
+        "rel_hit": 0.01,
+        "only_own": 0.01
+      }
+    },
+    {
+      "method": "L0",
+      "seed": 3,
+      "enp": "g5_llava_ms_L0_s3_d100",
+      "exit_code": 0,
+      "runtime_sec": 52.0,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_L0_s3_d100-2026.10.11-17.51.48",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_L0_s3_d100.log",
+      "taxonomy": {
+        "seed": 3,
+        "swap_total_leak": 1.0,
+        "swap_stale": 0.28,
+        "swap_foreign": 0.72,
+        "correct_route": 0.0,
+        "abstain": 0.0,
+        "hn_total_leak": 1.0,
+        "rel_hit": 0.8,
+        "only_own": 0.0
+      }
+    },
+    {
+      "method": "S2",
+      "seed": 3,
+      "enp": "g5_llava_ms_S2_s3_d100",
+      "exit_code": 0,
+      "runtime_sec": 147.5,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_S2_s3_d100-2026.10.11-17.52.40",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_S2_s3_d100.log",
+      "taxonomy": {
+        "seed": 3,
+        "swap_total_leak": 1.0,
+        "swap_stale": 0.42,
+        "swap_foreign": 0.58,
+        "correct_route": 0.0,
+        "abstain": 0.0,
+        "hn_total_leak": 1.0,
+        "rel_hit": 0.98,
+        "only_own": 0.0
+      }
+    },
+    {
+      "method": "DEK",
+      "seed": 3,
+      "enp": "g5_llava_ms_DEK_s3_d100",
+      "exit_code": 0,
+      "runtime_sec": 150.6,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_DEK_s3_d100-2026.10.11-17.55.08",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_DEK_s3_d100.log",
+      "taxonomy": {
+        "seed": 3,
+        "swap_total_leak": 0.22,
+        "swap_stale": 0.0,
+        "swap_foreign": 0.22,
+        "correct_route": 0.01,
+        "abstain": 0.77,
+        "hn_total_leak": 0.34,
+        "rel_hit": 0.0,
+        "only_own": 0.0
+      }
+    }
+  ]
+}

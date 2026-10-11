@@ -1,0 +1,220 @@
+{
+  "started": "2026-10-11T10:59:40Z",
+  "eta_min_estimate": 40,
+  "eta_utc": "2026-10-11T11:39:40Z",
+  "jobs_planned": [
+    "llava_L0_liveedit",
+    "llava_L0_vision_only",
+    "llava_L0_text_only",
+    "llava_L0_and",
+    "llava_L0_or",
+    "llava_L0_sum",
+    "llava_L0_carml",
+    "llava_L0_always_reject",
+    "llava_DEK_and",
+    "llava_DEK_liveedit"
+  ],
+  "results": [
+    {
+      "name": "llava_L0_liveedit",
+      "enp": "g5_llava_L0_liveedit_s42",
+      "rule": "liveedit",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 66.3,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_L0_liveedit_s42-2026.10.11-16.59.41",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_L0_liveedit_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 1.0,
+        "image_swap_stale": 0.24,
+        "image_swap_foreign": 0.76,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 0.0,
+        "hard_negative_total_leak": 0.98,
+        "rel_hit": 0.79,
+        "rel_only_own": 0.0
+      }
+    },
+    {
+      "name": "llava_L0_vision_only",
+      "enp": "g5_llava_L0_vision_only_s42",
+      "rule": "vision_only",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 52.0,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_L0_vision_only_s42-2026.10.11-17.00.47",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_L0_vision_only_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 1.0,
+        "image_swap_stale": 0.24,
+        "image_swap_foreign": 0.76,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 0.0,
+        "hard_negative_total_leak": 0.98,
+        "rel_hit": 0.79,
+        "rel_only_own": 0.0
+      }
+    },
+    {
+      "name": "llava_L0_text_only",
+      "enp": "g5_llava_L0_text_only_s42",
+      "rule": "text_only",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 51.2,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_L0_text_only_s42-2026.10.11-17.01.39",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_L0_text_only_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 1.0,
+        "image_swap_stale": 0.0,
+        "image_swap_foreign": 1.0,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 0.0,
+        "hard_negative_total_leak": 1.0,
+        "rel_hit": 0.02,
+        "rel_only_own": 0.02
+      }
+    },
+    {
+      "name": "llava_L0_and",
+      "enp": "g5_llava_L0_and_s42",
+      "rule": "and",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 152.3,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_L0_and_s42-2026.10.11-17.02.30",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_L0_and_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.02,
+        "image_swap_stale": 0.0,
+        "image_swap_foreign": 0.02,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 0.98,
+        "hard_negative_total_leak": 0.04,
+        "rel_hit": 0.01,
+        "rel_only_own": 0.01
+      }
+    },
+    {
+      "name": "llava_L0_or",
+      "enp": "g5_llava_L0_or_s42",
+      "rule": "or",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 51.3,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_L0_or_s42-2026.10.11-17.05.03",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_L0_or_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 1.0,
+        "image_swap_stale": 0.24,
+        "image_swap_foreign": 0.76,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 0.0,
+        "hard_negative_total_leak": 1.0,
+        "rel_hit": 0.79,
+        "rel_only_own": 0.0
+      }
+    },
+    {
+      "name": "llava_L0_sum",
+      "enp": "g5_llava_L0_sum_s42",
+      "rule": "sum",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 51.0,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_L0_sum_s42-2026.10.11-17.05.54",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_L0_sum_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 1.0,
+        "image_swap_stale": 0.27,
+        "image_swap_foreign": 0.73,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 0.0,
+        "hard_negative_total_leak": 0.98,
+        "rel_hit": 0.79,
+        "rel_only_own": 0.0
+      }
+    },
+    {
+      "name": "llava_L0_carml",
+      "enp": "g5_llava_L0_carml_s42",
+      "rule": "carml",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 152.1,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_L0_carml_s42-2026.10.11-17.06.45",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_L0_carml_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.73,
+        "image_swap_stale": 0.01,
+        "image_swap_foreign": 0.72,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 0.27,
+        "hard_negative_total_leak": 0.96,
+        "rel_hit": 0.41,
+        "rel_only_own": 0.41
+      }
+    },
+    {
+      "name": "llava_L0_always_reject",
+      "enp": "g5_llava_L0_always_reject_s42",
+      "rule": "always_reject",
+      "dek": false,
+      "exit_code": 0,
+      "runtime_sec": 50.8,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_L0_always_reject_s42-2026.10.11-17.09.17",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_L0_always_reject_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.0,
+        "image_swap_stale": 0.0,
+        "image_swap_foreign": 0.0,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 1.0,
+        "hard_negative_total_leak": 0.0,
+        "rel_hit": 0.0,
+        "rel_only_own": 0.0
+      }
+    },
+    {
+      "name": "llava_DEK_and",
+      "enp": "g5_llava_DEK_and_s42",
+      "rule": "and",
+      "dek": true,
+      "exit_code": 0,
+      "runtime_sec": 158.0,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_DEK_and_s42-2026.10.11-17.10.08",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_DEK_and_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.36,
+        "image_swap_stale": 0.01,
+        "image_swap_foreign": 0.35,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 0.64,
+        "hard_negative_total_leak": 0.46,
+        "rel_hit": 0.01,
+        "rel_only_own": 0.01
+      }
+    },
+    {
+      "name": "llava_DEK_liveedit",
+      "enp": "g5_llava_DEK_liveedit_s42",
+      "rule": "liveedit",
+      "dek": true,
+      "exit_code": 0,
+      "runtime_sec": 153.3,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_DEK_liveedit_s42-2026.10.11-17.12.46",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_DEK_liveedit_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 1.0,
+        "image_swap_stale": 0.41,
+        "image_swap_foreign": 0.59,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 0.0,
+        "hard_negative_total_leak": 1.0,
+        "rel_hit": 0.98,
+        "rel_only_own": 0.0
+      }
+    }
+  ],
+  "finished": "2026-10-11T11:15:19Z"
+}

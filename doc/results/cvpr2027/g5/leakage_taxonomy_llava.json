@@ -1,0 +1,564 @@
+{
+  "taus": [
+    0.05,
+    0.1,
+    0.2
+  ],
+  "weight_softmax_includes_prototype": false,
+  "runs": [
+    {
+      "label": "L0",
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_L0_short-2026.10.11-12.10.05",
+      "routing_diagnostics": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_L0_short-2026.10.11-12.10.05/routing_diagnostics.json",
+      "probe_json": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/data/VLKEB/meeting_validation/step1/grounding/grounding_eval_short.json",
+      "ckpt": "records/lab_g5/liveedit/llava-v1.5-7b/lab_g5_llava_L0_dn500_e20_s42_20261010_231536-2026.10.10-23.15.41/checkpoints/epoch-20-i-10200-ema_loss-2.2061",
+      "eval_seed": 42,
+      "shuffled": true,
+      "row_sampling": "subsample",
+      "n_samples": 100,
+      "n_pool_entries": 100,
+      "n_image_swap_probes": 100,
+      "n_hard_negative_probes": 100,
+      "n_reliability_probes": 100,
+      "n_probes_relabelled_swap": 0,
+      "swap_partner_in_pool_rate": 0.01,
+      "hard_neg_partner_in_pool_rate": 0.06,
+      "swap_prompt_duplicated_rate": 0.22,
+      "mapping_check": {
+        "checked": true,
+        "n_checked": 100,
+        "n_mismatch": 0,
+        "mismatch_sids": [],
+        "sampling": "subsample"
+      },
+      "weight_softmax_includes_prototype": false,
+      "weight_definition": "softmax over vis_sim of retrieved experts; expert active iff weight > tau",
+      "legacy_summary": {
+        "n_samples": 100,
+        "n_pool_entries": 100,
+        "hard_negative_false_activation_rate": 0.98,
+        "image_swap_false_activation_rate": 1.0,
+        "hard_negative_false_cross_rate": 0.98,
+        "image_swap_false_cross_rate": 1.0,
+        "reliability_false_cross_rate": 1.0
+      },
+      "image_swap": {
+        "binary": {
+          "stale_leak": 0.24,
+          "foreign_leak": 0.76,
+          "correct_route": 0.0,
+          "abstain": 0.0,
+          "total_leak": 1.0,
+          "own_fired": 0.24,
+          "partner_fired": 0.01,
+          "foreign_fired": 1.0,
+          "any_fired": 1.0,
+          "counts": {
+            "foreign_leak": 76,
+            "stale_leak": 24
+          }
+        },
+        "tau_0.05": {
+          "stale_leak": 0.02,
+          "foreign_leak": 0.42,
+          "correct_route": 0.0,
+          "abstain": 0.56,
+          "total_leak": 0.44,
+          "own_fired": 0.02,
+          "partner_fired": 0.0,
+          "foreign_fired": 0.44,
+          "any_fired": 0.44,
+          "counts": {
+            "foreign_leak": 42,
+            "abstain": 56,
+            "stale_leak": 2
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.01,
+          "foreign_leak": 0.12,
+          "correct_route": 0.0,
+          "abstain": 0.87,
+          "total_leak": 0.13,
+          "own_fired": 0.01,
+          "partner_fired": 0.0,
+          "foreign_fired": 0.13,
+          "any_fired": 0.13,
+          "counts": {
+            "abstain": 87,
+            "foreign_leak": 12,
+            "stale_leak": 1
+          }
+        },
+        "tau_0.2": {
+          "stale_leak": 0.0,
+          "foreign_leak": 0.02,
+          "correct_route": 0.0,
+          "abstain": 0.98,
+          "total_leak": 0.02,
+          "own_fired": 0.0,
+          "partner_fired": 0.0,
+          "foreign_fired": 0.02,
+          "any_fired": 0.02,
+          "counts": {
+            "abstain": 98,
+            "foreign_leak": 2
+          }
+        }
+      },
+      "hard_negative": {
+        "binary": {
+          "stale_leak": 0.24,
+          "foreign_leak": 0.74,
+          "abstain": 0.02,
+          "total_leak": 0.98,
+          "own_fired": 0.24,
+          "hn_partner_fired": 0.05,
+          "any_fired": 0.98,
+          "counts": {
+            "foreign_leak": 74,
+            "stale_leak": 24,
+            "abstain": 2
+          }
+        },
+        "tau_0.05": {
+          "stale_leak": 0.03,
+          "foreign_leak": 0.54,
+          "abstain": 0.43,
+          "total_leak": 0.5700000000000001,
+          "own_fired": 0.03,
+          "hn_partner_fired": 0.02,
+          "any_fired": 0.57,
+          "counts": {
+            "foreign_leak": 54,
+            "abstain": 43,
+            "stale_leak": 3
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.01,
+          "foreign_leak": 0.37,
+          "abstain": 0.62,
+          "total_leak": 0.38,
+          "own_fired": 0.01,
+          "hn_partner_fired": 0.0,
+          "any_fired": 0.38,
+          "counts": {
+            "foreign_leak": 37,
+            "abstain": 62,
+            "stale_leak": 1
+          }
+        },
+        "tau_0.2": {
+          "stale_leak": 0.0,
+          "foreign_leak": 0.05,
+          "abstain": 0.95,
+          "total_leak": 0.05,
+          "own_fired": 0.0,
+          "hn_partner_fired": 0.0,
+          "any_fired": 0.05,
+          "counts": {
+            "abstain": 95,
+            "foreign_leak": 5
+          }
+        }
+      },
+      "reliability": {
+        "binary": {
+          "hit": 0.79,
+          "only_own": 0.0,
+          "cross": 1.0,
+          "miss": 0.21
+        },
+        "tau_0.05": {
+          "hit": 0.12,
+          "only_own": 0.01,
+          "cross": 0.4,
+          "miss": 0.88
+        },
+        "tau_0.1": {
+          "hit": 0.02,
+          "only_own": 0.01,
+          "cross": 0.1,
+          "miss": 0.98
+        },
+        "tau_0.2": {
+          "hit": 0.0,
+          "only_own": 0.0,
+          "cross": 0.02,
+          "miss": 1.0
+        }
+      }
+    },
+    {
+      "label": "S2",
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_S2_short-2026.10.11-12.14.11",
+      "routing_diagnostics": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_S2_short-2026.10.11-12.14.11/routing_diagnostics.json",
+      "probe_json": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/data/VLKEB/meeting_validation/step1/grounding/grounding_eval_short.json",
+      "ckpt": "records/lab_g5/liveedit/llava-v1.5-7b/lab_g5_llava_S2_dn500_e1_s42_20261011_104554-2026.10.11-10.45.58/checkpoints/epoch-1-i-500-ema_loss-3.8904",
+      "eval_seed": 42,
+      "shuffled": true,
+      "row_sampling": "subsample",
+      "n_samples": 100,
+      "n_pool_entries": 100,
+      "n_image_swap_probes": 100,
+      "n_hard_negative_probes": 100,
+      "n_reliability_probes": 100,
+      "n_probes_relabelled_swap": 0,
+      "swap_partner_in_pool_rate": 0.01,
+      "hard_neg_partner_in_pool_rate": 0.06,
+      "swap_prompt_duplicated_rate": 0.22,
+      "mapping_check": {
+        "checked": true,
+        "n_checked": 100,
+        "n_mismatch": 0,
+        "mismatch_sids": [],
+        "sampling": "subsample"
+      },
+      "weight_softmax_includes_prototype": false,
+      "weight_definition": "softmax over vis_sim of retrieved experts; expert active iff weight > tau",
+      "legacy_summary": {
+        "n_samples": 100,
+        "n_pool_entries": 100,
+        "hard_negative_false_activation_rate": 1.0,
+        "image_swap_false_activation_rate": 1.0,
+        "hard_negative_false_cross_rate": 1.0,
+        "image_swap_false_cross_rate": 1.0,
+        "reliability_false_cross_rate": 1.0
+      },
+      "image_swap": {
+        "binary": {
+          "stale_leak": 0.41,
+          "foreign_leak": 0.59,
+          "correct_route": 0.0,
+          "abstain": 0.0,
+          "total_leak": 1.0,
+          "own_fired": 0.41,
+          "partner_fired": 0.01,
+          "foreign_fired": 1.0,
+          "any_fired": 1.0,
+          "counts": {
+            "foreign_leak": 59,
+            "stale_leak": 41
+          }
+        },
+        "tau_0.05": {
+          "stale_leak": 0.01,
+          "foreign_leak": 0.34,
+          "correct_route": 0.0,
+          "abstain": 0.65,
+          "total_leak": 0.35000000000000003,
+          "own_fired": 0.01,
+          "partner_fired": 0.0,
+          "foreign_fired": 0.35,
+          "any_fired": 0.35,
+          "counts": {
+            "foreign_leak": 34,
+            "abstain": 65,
+            "stale_leak": 1
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.01,
+          "foreign_leak": 0.33,
+          "correct_route": 0.0,
+          "abstain": 0.66,
+          "total_leak": 0.34,
+          "own_fired": 0.01,
+          "partner_fired": 0.0,
+          "foreign_fired": 0.34,
+          "any_fired": 0.34,
+          "counts": {
+            "foreign_leak": 33,
+            "abstain": 66,
+            "stale_leak": 1
+          }
+        },
+        "tau_0.2": {
+          "stale_leak": 0.0,
+          "foreign_leak": 0.15,
+          "correct_route": 0.0,
+          "abstain": 0.85,
+          "total_leak": 0.15,
+          "own_fired": 0.0,
+          "partner_fired": 0.0,
+          "foreign_fired": 0.15,
+          "any_fired": 0.15,
+          "counts": {
+            "abstain": 85,
+            "foreign_leak": 15
+          }
+        }
+      },
+      "hard_negative": {
+        "binary": {
+          "stale_leak": 0.47,
+          "foreign_leak": 0.53,
+          "abstain": 0.0,
+          "total_leak": 1.0,
+          "own_fired": 0.47,
+          "hn_partner_fired": 0.06,
+          "any_fired": 1.0,
+          "counts": {
+            "foreign_leak": 53,
+            "stale_leak": 47
+          }
+        },
+        "tau_0.05": {
+          "stale_leak": 0.03,
+          "foreign_leak": 0.11,
+          "abstain": 0.86,
+          "total_leak": 0.14,
+          "own_fired": 0.03,
+          "hn_partner_fired": 0.02,
+          "any_fired": 0.14,
+          "counts": {
+            "abstain": 86,
+            "foreign_leak": 11,
+            "stale_leak": 3
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.01,
+          "foreign_leak": 0.06,
+          "abstain": 0.93,
+          "total_leak": 0.06999999999999999,
+          "own_fired": 0.01,
+          "hn_partner_fired": 0.0,
+          "any_fired": 0.07,
+          "counts": {
+            "abstain": 93,
+            "foreign_leak": 6,
+            "stale_leak": 1
+          }
+        },
+        "tau_0.2": {
+          "stale_leak": 0.0,
+          "foreign_leak": 0.03,
+          "abstain": 0.97,
+          "total_leak": 0.03,
+          "own_fired": 0.0,
+          "hn_partner_fired": 0.0,
+          "any_fired": 0.03,
+          "counts": {
+            "abstain": 97,
+            "foreign_leak": 3
+          }
+        }
+      },
+      "reliability": {
+        "binary": {
+          "hit": 0.98,
+          "only_own": 0.0,
+          "cross": 1.0,
+          "miss": 0.02
+        },
+        "tau_0.05": {
+          "hit": 0.11,
+          "only_own": 0.01,
+          "cross": 0.19,
+          "miss": 0.89
+        },
+        "tau_0.1": {
+          "hit": 0.05,
+          "only_own": 0.0,
+          "cross": 0.05,
+          "miss": 0.95
+        },
+        "tau_0.2": {
+          "hit": 0.02,
+          "only_own": 0.0,
+          "cross": 0.03,
+          "miss": 0.98
+        }
+      }
+    },
+    {
+      "label": "DEK",
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_DEK_short-2026.10.11-12.22.23",
+      "routing_diagnostics": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_DEK_short-2026.10.11-12.22.23/routing_diagnostics.json",
+      "probe_json": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/data/VLKEB/meeting_validation/step1/grounding/grounding_eval_short.json",
+      "ckpt": "records/lab_g5/liveedit/llava-v1.5-7b/lab_g5_llava_DEK_dn500_e1_s42_20261011_111542-2026.10.11-11.16.06/checkpoints/epoch-1-i-500-ema_loss-3.8851",
+      "eval_seed": 42,
+      "shuffled": true,
+      "row_sampling": "subsample",
+      "n_samples": 100,
+      "n_pool_entries": 100,
+      "n_image_swap_probes": 100,
+      "n_hard_negative_probes": 100,
+      "n_reliability_probes": 100,
+      "n_probes_relabelled_swap": 0,
+      "swap_partner_in_pool_rate": 0.01,
+      "hard_neg_partner_in_pool_rate": 0.06,
+      "swap_prompt_duplicated_rate": 0.22,
+      "mapping_check": {
+        "checked": true,
+        "n_checked": 100,
+        "n_mismatch": 0,
+        "mismatch_sids": [],
+        "sampling": "subsample"
+      },
+      "weight_softmax_includes_prototype": false,
+      "weight_definition": "softmax over vis_sim of retrieved experts; expert active iff weight > tau",
+      "legacy_summary": {
+        "n_samples": 100,
+        "n_pool_entries": 100,
+        "hard_negative_false_activation_rate": 0.45,
+        "image_swap_false_activation_rate": 0.35,
+        "hard_negative_false_cross_rate": 0.45,
+        "image_swap_false_cross_rate": 0.35,
+        "reliability_false_cross_rate": 0.55
+      },
+      "image_swap": {
+        "binary": {
+          "stale_leak": 0.01,
+          "foreign_leak": 0.35,
+          "correct_route": 0.0,
+          "abstain": 0.64,
+          "total_leak": 0.36,
+          "own_fired": 0.01,
+          "partner_fired": 0.0,
+          "foreign_fired": 0.35,
+          "any_fired": 0.36,
+          "counts": {
+            "foreign_leak": 35,
+            "abstain": 64,
+            "stale_leak": 1
+          }
+        },
+        "tau_0.05": {
+          "stale_leak": 0.01,
+          "foreign_leak": 0.35,
+          "correct_route": 0.0,
+          "abstain": 0.64,
+          "total_leak": 0.36,
+          "own_fired": 0.01,
+          "partner_fired": 0.0,
+          "foreign_fired": 0.35,
+          "any_fired": 0.36,
+          "counts": {
+            "foreign_leak": 35,
+            "abstain": 64,
+            "stale_leak": 1
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.01,
+          "foreign_leak": 0.35,
+          "correct_route": 0.0,
+          "abstain": 0.64,
+          "total_leak": 0.36,
+          "own_fired": 0.01,
+          "partner_fired": 0.0,
+          "foreign_fired": 0.35,
+          "any_fired": 0.36,
+          "counts": {
+            "foreign_leak": 35,
+            "abstain": 64,
+            "stale_leak": 1
+          }
+        },
+        "tau_0.2": {
+          "stale_leak": 0.01,
+          "foreign_leak": 0.35,
+          "correct_route": 0.0,
+          "abstain": 0.64,
+          "total_leak": 0.36,
+          "own_fired": 0.01,
+          "partner_fired": 0.0,
+          "foreign_fired": 0.35,
+          "any_fired": 0.36,
+          "counts": {
+            "foreign_leak": 35,
+            "abstain": 64,
+            "stale_leak": 1
+          }
+        }
+      },
+      "hard_negative": {
+        "binary": {
+          "stale_leak": 0.01,
+          "foreign_leak": 0.45,
+          "abstain": 0.54,
+          "total_leak": 0.46,
+          "own_fired": 0.01,
+          "hn_partner_fired": 0.01,
+          "any_fired": 0.46,
+          "counts": {
+            "abstain": 54,
+            "foreign_leak": 45,
+            "stale_leak": 1
+          }
+        },
+        "tau_0.05": {
+          "stale_leak": 0.01,
+          "foreign_leak": 0.45,
+          "abstain": 0.54,
+          "total_leak": 0.46,
+          "own_fired": 0.01,
+          "hn_partner_fired": 0.01,
+          "any_fired": 0.46,
+          "counts": {
+            "abstain": 54,
+            "foreign_leak": 45,
+            "stale_leak": 1
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.01,
+          "foreign_leak": 0.45,
+          "abstain": 0.54,
+          "total_leak": 0.46,
+          "own_fired": 0.01,
+          "hn_partner_fired": 0.01,
+          "any_fired": 0.46,
+          "counts": {
+            "abstain": 54,
+            "foreign_leak": 45,
+            "stale_leak": 1
+          }
+        },
+        "tau_0.2": {
+          "stale_leak": 0.01,
+          "foreign_leak": 0.45,
+          "abstain": 0.54,
+          "total_leak": 0.46,
+          "own_fired": 0.01,
+          "hn_partner_fired": 0.01,
+          "any_fired": 0.46,
+          "counts": {
+            "abstain": 54,
+            "foreign_leak": 45,
+            "stale_leak": 1
+          }
+        }
+      },
+      "reliability": {
+        "binary": {
+          "hit": 0.01,
+          "only_own": 0.01,
+          "cross": 0.55,
+          "miss": 0.99
+        },
+        "tau_0.05": {
+          "hit": 0.01,
+          "only_own": 0.01,
+          "cross": 0.55,
+          "miss": 0.99
+        },
+        "tau_0.1": {
+          "hit": 0.01,
+          "only_own": 0.01,
+          "cross": 0.55,
+          "miss": 0.99
+        },
+        "tau_0.2": {
+          "hit": 0.01,
+          "only_own": 0.01,
+          "cross": 0.55,
+          "miss": 0.99
+        }
+      }
+    }
+  ]
+}

@@ -3,6 +3,8 @@
 **Started:** 2026-10-06  
 **Decision due:** 2026-10-15  
 **Gate log:** [`../../CVPR2027_GATE_LOG.md`](../../CVPR2027_GATE_LOG.md) § G5  
+**Results tables:** [`G5_RESULTS_TABLES.md`](G5_RESULTS_TABLES.md) (LLaVA filled; BLIP-2 TBD)  
+**Gate write-up (LLaVA-only):** [`G5_GATE_WRITEUP_LLAVA.md`](G5_GATE_WRITEUP_LLAVA.md) — provisional **WEAK**  
 **Track target:** CVPR 2027 **main track** (stronger L0 than AAAI deadline shortcut)
 
 ## Goal
@@ -128,12 +130,12 @@ bash tools/lab_git_pull_on_lab.sh
 - [x] Keep-latest-3 ckpt retention in trainer
 - [x] Fresh pipeline + experiment tracker + sync scripts
 - [x] Valid LLaVA weight shards on lab (manual HF download)
-- [ ] Lab: **strong L0** (`dn=500`, `eps=20`) — smoke `eps=1` does not count
-- [ ] Lab: S2 train from strong L0
-- [ ] Lab: DEK train from strong L0
-- [ ] Lab: LLaVA grounding eval + taxonomy
+- [x] Lab: **strong L0** (`dn=500`, `eps=20`) — smoke `eps=1` does not count
+- [x] Lab: S2 train from strong L0
+- [x] Lab: DEK train from strong L0
+- [x] Lab: LLaVA grounding eval + taxonomy (`leakage_taxonomy_llava.json`, 2026-10-11)
 - [ ] Home/lab: **BLIP-2 re-extract** under the same eval protocol
-- [ ] Pull results to this repo
+- [x] Pull results to this repo
 - [ ] Fill G5 Result in gate log by Oct 15
 
 ## Deferred (after G5)

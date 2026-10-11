@@ -1,0 +1,877 @@
+{
+  "backbone": "llava-v1.5-7b",
+  "dataset": "vlkeb",
+  "seed": 42,
+  "runs": [
+    {
+      "label": "llava_L0_n100",
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_L0_pc_n100_s42-2026.10.11-12.56.49",
+      "routing_diagnostics": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_L0_pc_n100_s42-2026.10.11-12.56.49/routing_diagnostics.json",
+      "probe_json": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/data/VLKEB/meeting_validation/step1/grounding/pair_closed/grounding_pairclosed_n100_s42.json",
+      "ckpt": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/records/lab_g5/liveedit/llava-v1.5-7b/lab_g5_llava_L0_dn500_e20_s42_20261010_231536-2026.10.10-23.15.41/checkpoints/epoch-20-i-10200-ema_loss-2.2061",
+      "eval_seed": 42,
+      "shuffled": true,
+      "row_sampling": "head",
+      "n_samples": 100,
+      "n_pool_entries": 100,
+      "n_image_swap_probes": 100,
+      "n_hard_negative_probes": 100,
+      "n_reliability_probes": 100,
+      "n_probes_relabelled_swap": 0,
+      "swap_partner_in_pool_rate": 1.0,
+      "hard_neg_partner_in_pool_rate": 1.0,
+      "swap_prompt_duplicated_rate": 0.59,
+      "mapping_check": {
+        "checked": true,
+        "n_checked": 100,
+        "n_mismatch": 0,
+        "mismatch_sids": [],
+        "sampling": "head"
+      },
+      "weight_softmax_includes_prototype": false,
+      "weight_definition": "softmax over vis_sim of retrieved experts; expert active iff weight > tau",
+      "legacy_summary": {
+        "n_samples": 100,
+        "n_pool_entries": 100,
+        "hard_negative_false_activation_rate": 1.0,
+        "image_swap_false_activation_rate": 1.0,
+        "hard_negative_false_cross_rate": 1.0,
+        "image_swap_false_cross_rate": 1.0,
+        "reliability_false_cross_rate": 1.0
+      },
+      "image_swap": {
+        "binary": {
+          "stale_leak": 0.2,
+          "foreign_leak": 0.8,
+          "correct_route": 0.0,
+          "abstain": 0.0,
+          "total_leak": 1.0,
+          "own_fired": 0.2,
+          "partner_fired": 0.94,
+          "foreign_fired": 1.0,
+          "any_fired": 1.0,
+          "counts": {
+            "stale_leak": 20,
+            "foreign_leak": 80
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.0,
+          "foreign_leak": 0.1,
+          "correct_route": 0.0,
+          "abstain": 0.9,
+          "total_leak": 0.1,
+          "own_fired": 0.0,
+          "partner_fired": 0.05,
+          "foreign_fired": 0.1,
+          "any_fired": 0.1,
+          "counts": {
+            "abstain": 90,
+            "foreign_leak": 10
+          }
+        }
+      },
+      "hard_negative": {
+        "binary": {
+          "stale_leak": 0.19,
+          "foreign_leak": 0.81,
+          "abstain": 0.0,
+          "total_leak": 1.0,
+          "own_fired": 0.19,
+          "hn_partner_fired": 0.63,
+          "any_fired": 1.0,
+          "counts": {
+            "foreign_leak": 81,
+            "stale_leak": 19
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.0,
+          "foreign_leak": 0.19,
+          "abstain": 0.81,
+          "total_leak": 0.19,
+          "own_fired": 0.0,
+          "hn_partner_fired": 0.01,
+          "any_fired": 0.19,
+          "counts": {
+            "foreign_leak": 19,
+            "abstain": 81
+          }
+        }
+      },
+      "reliability": {
+        "binary": {
+          "hit": 0.77,
+          "only_own": 0.0,
+          "cross": 1.0,
+          "miss": 0.23
+        },
+        "tau_0.1": {
+          "hit": 0.03,
+          "only_own": 0.0,
+          "cross": 0.12,
+          "miss": 0.97
+        }
+      },
+      "e2_meta": {
+        "target_n": 100,
+        "actual_n": 100,
+        "pair_closed": true,
+        "name": "llava_L0_n100",
+        "routing_only": false
+      }
+    },
+    {
+      "label": "llava_DEK_n100",
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_DEK_pc_n100_s42-2026.10.11-13.01.28",
+      "routing_diagnostics": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_DEK_pc_n100_s42-2026.10.11-13.01.28/routing_diagnostics.json",
+      "probe_json": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/data/VLKEB/meeting_validation/step1/grounding/pair_closed/grounding_pairclosed_n100_s42.json",
+      "ckpt": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/records/lab_g5/liveedit/llava-v1.5-7b/lab_g5_llava_DEK_dn500_e1_s42_20261011_111542-2026.10.11-11.16.06/checkpoints/epoch-1-i-500-ema_loss-3.8851",
+      "eval_seed": 42,
+      "shuffled": true,
+      "row_sampling": "head",
+      "n_samples": 100,
+      "n_pool_entries": 100,
+      "n_image_swap_probes": 100,
+      "n_hard_negative_probes": 100,
+      "n_reliability_probes": 100,
+      "n_probes_relabelled_swap": 0,
+      "swap_partner_in_pool_rate": 1.0,
+      "hard_neg_partner_in_pool_rate": 1.0,
+      "swap_prompt_duplicated_rate": 0.59,
+      "mapping_check": {
+        "checked": true,
+        "n_checked": 100,
+        "n_mismatch": 0,
+        "mismatch_sids": [],
+        "sampling": "head"
+      },
+      "weight_softmax_includes_prototype": false,
+      "weight_definition": "softmax over vis_sim of retrieved experts; expert active iff weight > tau",
+      "legacy_summary": {
+        "n_samples": 100,
+        "n_pool_entries": 100,
+        "hard_negative_false_activation_rate": 0.31,
+        "image_swap_false_activation_rate": 0.2,
+        "hard_negative_false_cross_rate": 0.31,
+        "image_swap_false_cross_rate": 0.2,
+        "reliability_false_cross_rate": 0.36
+      },
+      "image_swap": {
+        "binary": {
+          "stale_leak": 0.0,
+          "foreign_leak": 0.2,
+          "correct_route": 0.0,
+          "abstain": 0.8,
+          "total_leak": 0.2,
+          "own_fired": 0.0,
+          "partner_fired": 0.0,
+          "foreign_fired": 0.2,
+          "any_fired": 0.2,
+          "counts": {
+            "abstain": 80,
+            "foreign_leak": 20
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.0,
+          "foreign_leak": 0.2,
+          "correct_route": 0.0,
+          "abstain": 0.8,
+          "total_leak": 0.2,
+          "own_fired": 0.0,
+          "partner_fired": 0.0,
+          "foreign_fired": 0.2,
+          "any_fired": 0.2,
+          "counts": {
+            "abstain": 80,
+            "foreign_leak": 20
+          }
+        }
+      },
+      "hard_negative": {
+        "binary": {
+          "stale_leak": 0.0,
+          "foreign_leak": 0.31,
+          "abstain": 0.69,
+          "total_leak": 0.31,
+          "own_fired": 0.0,
+          "hn_partner_fired": 0.0,
+          "any_fired": 0.31,
+          "counts": {
+            "abstain": 69,
+            "foreign_leak": 31
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.0,
+          "foreign_leak": 0.31,
+          "abstain": 0.69,
+          "total_leak": 0.31,
+          "own_fired": 0.0,
+          "hn_partner_fired": 0.0,
+          "any_fired": 0.31,
+          "counts": {
+            "abstain": 69,
+            "foreign_leak": 31
+          }
+        }
+      },
+      "reliability": {
+        "binary": {
+          "hit": 0.0,
+          "only_own": 0.0,
+          "cross": 0.36,
+          "miss": 1.0
+        },
+        "tau_0.1": {
+          "hit": 0.0,
+          "only_own": 0.0,
+          "cross": 0.36,
+          "miss": 1.0
+        }
+      },
+      "e2_meta": {
+        "target_n": 100,
+        "actual_n": 100,
+        "pair_closed": true,
+        "name": "llava_DEK_n100",
+        "routing_only": false
+      }
+    },
+    {
+      "label": "llava_L0_n300",
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_L0_pc_n300_s42-2026.10.11-13.08.44",
+      "routing_diagnostics": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_L0_pc_n300_s42-2026.10.11-13.08.44/routing_diagnostics.json",
+      "probe_json": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/data/VLKEB/meeting_validation/step1/grounding/pair_closed/grounding_pairclosed_n300_s42.json",
+      "ckpt": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/records/lab_g5/liveedit/llava-v1.5-7b/lab_g5_llava_L0_dn500_e20_s42_20261010_231536-2026.10.10-23.15.41/checkpoints/epoch-20-i-10200-ema_loss-2.2061",
+      "eval_seed": 42,
+      "shuffled": true,
+      "row_sampling": "head",
+      "n_samples": 302,
+      "n_pool_entries": 302,
+      "n_image_swap_probes": 302,
+      "n_hard_negative_probes": 302,
+      "n_reliability_probes": 302,
+      "n_probes_relabelled_swap": 0,
+      "swap_partner_in_pool_rate": 1.0,
+      "hard_neg_partner_in_pool_rate": 1.0,
+      "swap_prompt_duplicated_rate": 0.6788079470198676,
+      "mapping_check": {
+        "checked": false,
+        "reason": "no seed_*_results.json next to the log",
+        "sampling": "head"
+      },
+      "weight_softmax_includes_prototype": false,
+      "weight_definition": "softmax over vis_sim of retrieved experts; expert active iff weight > tau",
+      "legacy_summary": {
+        "n_samples": 302,
+        "n_pool_entries": 302,
+        "hard_negative_false_activation_rate": 0.9933774834437086,
+        "image_swap_false_activation_rate": 1.0,
+        "hard_negative_false_cross_rate": 0.9933774834437086,
+        "image_swap_false_cross_rate": 1.0,
+        "reliability_false_cross_rate": 0.9966887417218543
+      },
+      "image_swap": {
+        "binary": {
+          "stale_leak": 0.25496688741721857,
+          "foreign_leak": 0.7450331125827815,
+          "correct_route": 0.0,
+          "abstain": 0.0,
+          "total_leak": 1.0,
+          "own_fired": 0.25496688741721857,
+          "partner_fired": 0.8543046357615894,
+          "foreign_fired": 1.0,
+          "any_fired": 1.0,
+          "counts": {
+            "stale_leak": 77,
+            "foreign_leak": 225
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.0,
+          "foreign_leak": 0.0,
+          "correct_route": 0.0,
+          "abstain": 1.0,
+          "total_leak": 0.0,
+          "own_fired": 0.0,
+          "partner_fired": 0.0,
+          "foreign_fired": 0.0,
+          "any_fired": 0.0,
+          "counts": {
+            "abstain": 302
+          }
+        }
+      },
+      "hard_negative": {
+        "binary": {
+          "stale_leak": 0.2582781456953642,
+          "foreign_leak": 0.7350993377483444,
+          "abstain": 0.006622516556291391,
+          "total_leak": 0.9933774834437086,
+          "own_fired": 0.2582781456953642,
+          "hn_partner_fired": 0.6456953642384106,
+          "any_fired": 0.9933774834437086,
+          "counts": {
+            "foreign_leak": 222,
+            "stale_leak": 78,
+            "abstain": 2
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.0,
+          "foreign_leak": 0.029801324503311258,
+          "abstain": 0.9701986754966887,
+          "total_leak": 0.029801324503311258,
+          "own_fired": 0.0,
+          "hn_partner_fired": 0.0,
+          "any_fired": 0.029801324503311258,
+          "counts": {
+            "abstain": 293,
+            "foreign_leak": 9
+          }
+        }
+      },
+      "reliability": {
+        "binary": {
+          "hit": 0.7748344370860927,
+          "only_own": 0.0,
+          "cross": 0.9966887417218543,
+          "miss": 0.2251655629139073
+        },
+        "tau_0.1": {
+          "hit": 0.0,
+          "only_own": 0.0,
+          "cross": 0.019867549668874173,
+          "miss": 1.0
+        }
+      },
+      "e2_meta": {
+        "target_n": 300,
+        "actual_n": 302,
+        "pair_closed": true,
+        "name": "llava_L0_n300",
+        "routing_only": true
+      }
+    },
+    {
+      "label": "llava_DEK_n300",
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_DEK_pc_n300_s42-2026.10.11-13.11.16",
+      "routing_diagnostics": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_DEK_pc_n300_s42-2026.10.11-13.11.16/routing_diagnostics.json",
+      "probe_json": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/data/VLKEB/meeting_validation/step1/grounding/pair_closed/grounding_pairclosed_n300_s42.json",
+      "ckpt": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/records/lab_g5/liveedit/llava-v1.5-7b/lab_g5_llava_DEK_dn500_e1_s42_20261011_111542-2026.10.11-11.16.06/checkpoints/epoch-1-i-500-ema_loss-3.8851",
+      "eval_seed": 42,
+      "shuffled": true,
+      "row_sampling": "head",
+      "n_samples": 302,
+      "n_pool_entries": 302,
+      "n_image_swap_probes": 302,
+      "n_hard_negative_probes": 302,
+      "n_reliability_probes": 302,
+      "n_probes_relabelled_swap": 0,
+      "swap_partner_in_pool_rate": 1.0,
+      "hard_neg_partner_in_pool_rate": 1.0,
+      "swap_prompt_duplicated_rate": 0.6788079470198676,
+      "mapping_check": {
+        "checked": false,
+        "reason": "no seed_*_results.json next to the log",
+        "sampling": "head"
+      },
+      "weight_softmax_includes_prototype": false,
+      "weight_definition": "softmax over vis_sim of retrieved experts; expert active iff weight > tau",
+      "legacy_summary": {
+        "n_samples": 302,
+        "n_pool_entries": 302,
+        "hard_negative_false_activation_rate": 0.3841059602649007,
+        "image_swap_false_activation_rate": 0.4205298013245033,
+        "hard_negative_false_cross_rate": 0.3841059602649007,
+        "image_swap_false_cross_rate": 0.4205298013245033,
+        "reliability_false_cross_rate": 0.4470198675496689
+      },
+      "image_swap": {
+        "binary": {
+          "stale_leak": 0.0033112582781456954,
+          "foreign_leak": 0.41721854304635764,
+          "correct_route": 0.0033112582781456954,
+          "abstain": 0.5761589403973509,
+          "total_leak": 0.42052980132450335,
+          "own_fired": 0.0033112582781456954,
+          "partner_fired": 0.0033112582781456954,
+          "foreign_fired": 0.41721854304635764,
+          "any_fired": 0.423841059602649,
+          "counts": {
+            "abstain": 174,
+            "foreign_leak": 126,
+            "correct_route": 1,
+            "stale_leak": 1
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.0033112582781456954,
+          "foreign_leak": 0.41721854304635764,
+          "correct_route": 0.0033112582781456954,
+          "abstain": 0.5761589403973509,
+          "total_leak": 0.42052980132450335,
+          "own_fired": 0.0033112582781456954,
+          "partner_fired": 0.0033112582781456954,
+          "foreign_fired": 0.41721854304635764,
+          "any_fired": 0.423841059602649,
+          "counts": {
+            "abstain": 174,
+            "foreign_leak": 126,
+            "correct_route": 1,
+            "stale_leak": 1
+          }
+        }
+      },
+      "hard_negative": {
+        "binary": {
+          "stale_leak": 0.0033112582781456954,
+          "foreign_leak": 0.3841059602649007,
+          "abstain": 0.6125827814569537,
+          "total_leak": 0.3874172185430464,
+          "own_fired": 0.0033112582781456954,
+          "hn_partner_fired": 0.0033112582781456954,
+          "any_fired": 0.38741721854304634,
+          "counts": {
+            "abstain": 185,
+            "foreign_leak": 116,
+            "stale_leak": 1
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.0033112582781456954,
+          "foreign_leak": 0.3841059602649007,
+          "abstain": 0.6125827814569537,
+          "total_leak": 0.3874172185430464,
+          "own_fired": 0.0033112582781456954,
+          "hn_partner_fired": 0.0033112582781456954,
+          "any_fired": 0.38741721854304634,
+          "counts": {
+            "abstain": 185,
+            "foreign_leak": 116,
+            "stale_leak": 1
+          }
+        }
+      },
+      "reliability": {
+        "binary": {
+          "hit": 0.0033112582781456954,
+          "only_own": 0.0033112582781456954,
+          "cross": 0.4470198675496689,
+          "miss": 0.9966887417218543
+        },
+        "tau_0.1": {
+          "hit": 0.0033112582781456954,
+          "only_own": 0.0033112582781456954,
+          "cross": 0.4470198675496689,
+          "miss": 0.9966887417218543
+        }
+      },
+      "e2_meta": {
+        "target_n": 300,
+        "actual_n": 302,
+        "pair_closed": true,
+        "name": "llava_DEK_n300",
+        "routing_only": true
+      }
+    },
+    {
+      "label": "llava_L0_n1000",
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_L0_pc_n1000_s42-2026.10.11-13.18.48",
+      "routing_diagnostics": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_L0_pc_n1000_s42-2026.10.11-13.18.48/routing_diagnostics.json",
+      "probe_json": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/data/VLKEB/meeting_validation/step1/grounding/pair_closed/grounding_pairclosed_n1000_s42.json",
+      "ckpt": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/records/lab_g5/liveedit/llava-v1.5-7b/lab_g5_llava_L0_dn500_e20_s42_20261010_231536-2026.10.10-23.15.41/checkpoints/epoch-20-i-10200-ema_loss-2.2061",
+      "eval_seed": 42,
+      "shuffled": true,
+      "row_sampling": "head",
+      "n_samples": 1000,
+      "n_pool_entries": 1000,
+      "n_image_swap_probes": 1000,
+      "n_hard_negative_probes": 1000,
+      "n_reliability_probes": 1000,
+      "n_probes_relabelled_swap": 0,
+      "swap_partner_in_pool_rate": 1.0,
+      "hard_neg_partner_in_pool_rate": 1.0,
+      "swap_prompt_duplicated_rate": 0.737,
+      "mapping_check": {
+        "checked": false,
+        "reason": "no seed_*_results.json next to the log",
+        "sampling": "head"
+      },
+      "weight_softmax_includes_prototype": false,
+      "weight_definition": "softmax over vis_sim of retrieved experts; expert active iff weight > tau",
+      "legacy_summary": {
+        "n_samples": 1000,
+        "n_pool_entries": 1000,
+        "hard_negative_false_activation_rate": 0.998,
+        "image_swap_false_activation_rate": 1.0,
+        "hard_negative_false_cross_rate": 0.998,
+        "image_swap_false_cross_rate": 1.0,
+        "reliability_false_cross_rate": 0.999
+      },
+      "image_swap": {
+        "binary": {
+          "stale_leak": 0.286,
+          "foreign_leak": 0.714,
+          "correct_route": 0.0,
+          "abstain": 0.0,
+          "total_leak": 1.0,
+          "own_fired": 0.286,
+          "partner_fired": 0.862,
+          "foreign_fired": 1.0,
+          "any_fired": 1.0,
+          "counts": {
+            "stale_leak": 286,
+            "foreign_leak": 714
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.0,
+          "foreign_leak": 0.0,
+          "correct_route": 0.0,
+          "abstain": 1.0,
+          "total_leak": 0.0,
+          "own_fired": 0.0,
+          "partner_fired": 0.0,
+          "foreign_fired": 0.0,
+          "any_fired": 0.0,
+          "counts": {
+            "abstain": 1000
+          }
+        }
+      },
+      "hard_negative": {
+        "binary": {
+          "stale_leak": 0.306,
+          "foreign_leak": 0.692,
+          "abstain": 0.002,
+          "total_leak": 0.998,
+          "own_fired": 0.306,
+          "hn_partner_fired": 0.676,
+          "any_fired": 0.998,
+          "counts": {
+            "stale_leak": 306,
+            "foreign_leak": 692,
+            "abstain": 2
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.0,
+          "foreign_leak": 0.004,
+          "abstain": 0.996,
+          "total_leak": 0.004,
+          "own_fired": 0.0,
+          "hn_partner_fired": 0.0,
+          "any_fired": 0.004,
+          "counts": {
+            "abstain": 996,
+            "foreign_leak": 4
+          }
+        }
+      },
+      "reliability": {
+        "binary": {
+          "hit": 0.815,
+          "only_own": 0.0,
+          "cross": 0.999,
+          "miss": 0.185
+        },
+        "tau_0.1": {
+          "hit": 0.0,
+          "only_own": 0.0,
+          "cross": 0.002,
+          "miss": 1.0
+        }
+      },
+      "e2_meta": {
+        "target_n": 1000,
+        "actual_n": 1000,
+        "pair_closed": true,
+        "name": "llava_L0_n1000",
+        "routing_only": true
+      }
+    },
+    {
+      "label": "llava_DEK_n1000",
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_DEK_pc_n1000_s42-2026.10.11-13.27.37",
+      "routing_diagnostics": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_DEK_pc_n1000_s42-2026.10.11-13.27.37/routing_diagnostics.json",
+      "probe_json": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/data/VLKEB/meeting_validation/step1/grounding/pair_closed/grounding_pairclosed_n1000_s42.json",
+      "ckpt": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/records/lab_g5/liveedit/llava-v1.5-7b/lab_g5_llava_DEK_dn500_e1_s42_20261011_111542-2026.10.11-11.16.06/checkpoints/epoch-1-i-500-ema_loss-3.8851",
+      "eval_seed": 42,
+      "shuffled": true,
+      "row_sampling": "head",
+      "n_samples": 1000,
+      "n_pool_entries": 1000,
+      "n_image_swap_probes": 1000,
+      "n_hard_negative_probes": 1000,
+      "n_reliability_probes": 1000,
+      "n_probes_relabelled_swap": 0,
+      "swap_partner_in_pool_rate": 1.0,
+      "hard_neg_partner_in_pool_rate": 1.0,
+      "swap_prompt_duplicated_rate": 0.737,
+      "mapping_check": {
+        "checked": false,
+        "reason": "no seed_*_results.json next to the log",
+        "sampling": "head"
+      },
+      "weight_softmax_includes_prototype": false,
+      "weight_definition": "softmax over vis_sim of retrieved experts; expert active iff weight > tau",
+      "legacy_summary": {
+        "n_samples": 1000,
+        "n_pool_entries": 1000,
+        "hard_negative_false_activation_rate": 0.389,
+        "image_swap_false_activation_rate": 0.337,
+        "hard_negative_false_cross_rate": 0.389,
+        "image_swap_false_cross_rate": 0.337,
+        "reliability_false_cross_rate": 0.439
+      },
+      "image_swap": {
+        "binary": {
+          "stale_leak": 0.001,
+          "foreign_leak": 0.336,
+          "correct_route": 0.001,
+          "abstain": 0.662,
+          "total_leak": 0.337,
+          "own_fired": 0.001,
+          "partner_fired": 0.001,
+          "foreign_fired": 0.336,
+          "any_fired": 0.338,
+          "counts": {
+            "foreign_leak": 336,
+            "abstain": 662,
+            "correct_route": 1,
+            "stale_leak": 1
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.001,
+          "foreign_leak": 0.336,
+          "correct_route": 0.001,
+          "abstain": 0.662,
+          "total_leak": 0.337,
+          "own_fired": 0.001,
+          "partner_fired": 0.001,
+          "foreign_fired": 0.336,
+          "any_fired": 0.338,
+          "counts": {
+            "foreign_leak": 336,
+            "abstain": 662,
+            "correct_route": 1,
+            "stale_leak": 1
+          }
+        }
+      },
+      "hard_negative": {
+        "binary": {
+          "stale_leak": 0.001,
+          "foreign_leak": 0.389,
+          "abstain": 0.61,
+          "total_leak": 0.39,
+          "own_fired": 0.001,
+          "hn_partner_fired": 0.002,
+          "any_fired": 0.39,
+          "counts": {
+            "foreign_leak": 389,
+            "abstain": 610,
+            "stale_leak": 1
+          }
+        },
+        "tau_0.1": {
+          "stale_leak": 0.001,
+          "foreign_leak": 0.389,
+          "abstain": 0.61,
+          "total_leak": 0.39,
+          "own_fired": 0.001,
+          "hn_partner_fired": 0.002,
+          "any_fired": 0.39,
+          "counts": {
+            "foreign_leak": 389,
+            "abstain": 610,
+            "stale_leak": 1
+          }
+        }
+      },
+      "reliability": {
+        "binary": {
+          "hit": 0.002,
+          "only_own": 0.002,
+          "cross": 0.439,
+          "miss": 0.998
+        },
+        "tau_0.1": {
+          "hit": 0.002,
+          "only_own": 0.002,
+          "cross": 0.439,
+          "miss": 0.998
+        }
+      },
+      "e2_meta": {
+        "target_n": 1000,
+        "actual_n": 1000,
+        "pair_closed": true,
+        "name": "llava_DEK_n1000",
+        "routing_only": true
+      }
+    }
+  ],
+  "job_results": [
+    {
+      "name": "llava_L0_n100",
+      "enp": "g5_llava_L0_pc_n100_s42",
+      "rule": "liveedit",
+      "dek": false,
+      "target_n": 100,
+      "actual_n": 100,
+      "pair_closed": true,
+      "routing_only": false,
+      "exit_code": 0,
+      "runtime_sec": 278.4,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_L0_pc_n100_s42-2026.10.11-12.56.49",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_L0_pc_n100_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 1.0,
+        "image_swap_stale": 0.2,
+        "image_swap_foreign": 0.8,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 0.0,
+        "hard_negative_total_leak": 1.0,
+        "rel_hit": 0.77,
+        "rel_only_own": 0.0,
+        "swap_partner_in_pool_rate": 1.0,
+        "hard_neg_partner_in_pool_rate": 1.0
+      }
+    },
+    {
+      "name": "llava_DEK_n100",
+      "enp": "g5_llava_DEK_pc_n100_s42",
+      "rule": "and",
+      "dek": true,
+      "target_n": 100,
+      "actual_n": 100,
+      "pair_closed": true,
+      "routing_only": false,
+      "exit_code": 0,
+      "runtime_sec": 437.1,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_DEK_pc_n100_s42-2026.10.11-13.01.28",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_DEK_pc_n100_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.2,
+        "image_swap_stale": 0.0,
+        "image_swap_foreign": 0.2,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 0.8,
+        "hard_negative_total_leak": 0.31,
+        "rel_hit": 0.0,
+        "rel_only_own": 0.0,
+        "swap_partner_in_pool_rate": 1.0,
+        "hard_neg_partner_in_pool_rate": 1.0
+      }
+    },
+    {
+      "name": "llava_L0_n300",
+      "enp": "g5_llava_L0_pc_n300_s42",
+      "rule": "liveedit",
+      "dek": false,
+      "target_n": 300,
+      "actual_n": 302,
+      "pair_closed": true,
+      "routing_only": true,
+      "exit_code": 0,
+      "runtime_sec": 151.9,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_L0_pc_n300_s42-2026.10.11-13.08.44",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_L0_pc_n300_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 1.0,
+        "image_swap_stale": 0.25496688741721857,
+        "image_swap_foreign": 0.7450331125827815,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 0.0,
+        "hard_negative_total_leak": 0.9933774834437086,
+        "rel_hit": 0.7748344370860927,
+        "rel_only_own": 0.0,
+        "swap_partner_in_pool_rate": 1.0,
+        "hard_neg_partner_in_pool_rate": 1.0
+      }
+    },
+    {
+      "name": "llava_DEK_n300",
+      "enp": "g5_llava_DEK_pc_n300_s42",
+      "rule": "and",
+      "dek": true,
+      "target_n": 300,
+      "actual_n": 302,
+      "pair_closed": true,
+      "routing_only": true,
+      "exit_code": 0,
+      "runtime_sec": 452.8,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_DEK_pc_n300_s42-2026.10.11-13.11.16",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_DEK_pc_n300_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.42052980132450335,
+        "image_swap_stale": 0.0033112582781456954,
+        "image_swap_foreign": 0.41721854304635764,
+        "image_swap_correct_route": 0.0033112582781456954,
+        "image_swap_abstain": 0.5761589403973509,
+        "hard_negative_total_leak": 0.3874172185430464,
+        "rel_hit": 0.0033112582781456954,
+        "rel_only_own": 0.0033112582781456954,
+        "swap_partner_in_pool_rate": 1.0,
+        "hard_neg_partner_in_pool_rate": 1.0
+      }
+    },
+    {
+      "name": "llava_L0_n1000",
+      "enp": "g5_llava_L0_pc_n1000_s42",
+      "rule": "liveedit",
+      "dek": false,
+      "target_n": 1000,
+      "actual_n": 1000,
+      "pair_closed": true,
+      "routing_only": true,
+      "exit_code": 0,
+      "runtime_sec": 519.1,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_L0_pc_n1000_s42-2026.10.11-13.18.48",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_L0_pc_n1000_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 1.0,
+        "image_swap_stale": 0.286,
+        "image_swap_foreign": 0.714,
+        "image_swap_correct_route": 0.0,
+        "image_swap_abstain": 0.0,
+        "hard_negative_total_leak": 0.998,
+        "rel_hit": 0.815,
+        "rel_only_own": 0.0,
+        "swap_partner_in_pool_rate": 1.0,
+        "hard_neg_partner_in_pool_rate": 1.0
+      }
+    },
+    {
+      "name": "llava_DEK_n1000",
+      "enp": "g5_llava_DEK_pc_n1000_s42",
+      "rule": "and",
+      "dek": true,
+      "target_n": 1000,
+      "actual_n": 1000,
+      "pair_closed": true,
+      "routing_only": true,
+      "exit_code": 0,
+      "runtime_sec": 1489.2,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_DEK_pc_n1000_s42-2026.10.11-13.27.37",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_DEK_pc_n1000_s42.log",
+      "taxonomy": {
+        "image_swap_total_leak": 0.337,
+        "image_swap_stale": 0.001,
+        "image_swap_foreign": 0.336,
+        "image_swap_correct_route": 0.001,
+        "image_swap_abstain": 0.662,
+        "hard_negative_total_leak": 0.39,
+        "rel_hit": 0.002,
+        "rel_only_own": 0.002,
+        "swap_partner_in_pool_rate": 1.0,
+        "hard_neg_partner_in_pool_rate": 1.0
+      }
+    }
+  ]
+}

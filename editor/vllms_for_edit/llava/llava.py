@@ -21,6 +21,18 @@ class LlavaForEdit(BaseVLLMForEdit):
         # self.processor.patch_size = self.model.config.vision_config.patch_size
         # self.processor.vision_feature_select_strategy = self.model.config.vision_feature_select_strategy
         self.model = self.model.eval().requires_grad_(False)
+        # Cut activation memory for AVBL multi-forward on ~24GB (LLaVA-7B).
+        try:
+            if hasattr(self.model, "gradient_checkpointing_enable"):
+                self.model.gradient_checkpointing_enable()
+            elif hasattr(self.model, "language_model") and hasattr(
+                self.model.language_model, "gradient_checkpointing_enable"
+            ):
+                self.model.language_model.gradient_checkpointing_enable()
+        except Exception as e:
+            print("[LlavaForEdit] gradient_checkpointing_enable skipped:", e)
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         super().__init__(self.model, device, auto_add_img_special_token)
 
     def get_llm_tokenizer(self):

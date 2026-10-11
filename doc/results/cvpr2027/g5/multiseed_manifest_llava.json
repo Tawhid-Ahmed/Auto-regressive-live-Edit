@@ -1,0 +1,316 @@
+{
+  "started": "2026-10-11T11:27:47Z",
+  "eta_min_estimate": 37,
+  "eta_utc": "2026-10-11T12:04:47Z",
+  "seeds": [
+    42,
+    0,
+    1,
+    2,
+    3
+  ],
+  "dsn": 100,
+  "results": [
+    {
+      "method": "L0",
+      "seed": 42,
+      "enp": "g5_llava_ms_L0_s42_d100",
+      "exit_code": 0,
+      "runtime_sec": 50.9,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_L0_s42_d100-2026.10.11-17.27.48",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_L0_s42_d100.log",
+      "taxonomy": {
+        "seed": 42,
+        "swap_total_leak": 1.0,
+        "swap_stale": 0.24,
+        "swap_foreign": 0.76,
+        "correct_route": 0.0,
+        "abstain": 0.0,
+        "hn_total_leak": 0.98,
+        "rel_hit": 0.79,
+        "only_own": 0.0
+      }
+    },
+    {
+      "method": "S2",
+      "seed": 42,
+      "enp": "g5_llava_ms_S2_s42_d100",
+      "exit_code": 0,
+      "runtime_sec": 162.7,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_S2_s42_d100-2026.10.11-17.28.39",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_S2_s42_d100.log",
+      "taxonomy": {
+        "seed": 42,
+        "swap_total_leak": 1.0,
+        "swap_stale": 0.41,
+        "swap_foreign": 0.59,
+        "correct_route": 0.0,
+        "abstain": 0.0,
+        "hn_total_leak": 1.0,
+        "rel_hit": 0.98,
+        "only_own": 0.0
+      }
+    },
+    {
+      "method": "DEK",
+      "seed": 42,
+      "enp": "g5_llava_ms_DEK_s42_d100",
+      "exit_code": 0,
+      "runtime_sec": 151.9,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_DEK_s42_d100-2026.10.11-17.31.22",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_DEK_s42_d100.log",
+      "taxonomy": {
+        "seed": 42,
+        "swap_total_leak": 0.36,
+        "swap_stale": 0.01,
+        "swap_foreign": 0.35,
+        "correct_route": 0.0,
+        "abstain": 0.64,
+        "hn_total_leak": 0.46,
+        "rel_hit": 0.01,
+        "only_own": 0.01
+      }
+    },
+    {
+      "method": "L0",
+      "seed": 0,
+      "enp": "g5_llava_ms_L0_s0_d100",
+      "exit_code": 0,
+      "runtime_sec": 53.9,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_L0_s0_d100-2026.10.11-17.33.54",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_L0_s0_d100.log",
+      "taxonomy": {
+        "seed": 0,
+        "swap_total_leak": 1.0,
+        "swap_stale": 0.18,
+        "swap_foreign": 0.82,
+        "correct_route": 0.0,
+        "abstain": 0.0,
+        "hn_total_leak": 1.0,
+        "rel_hit": 0.78,
+        "only_own": 0.0
+      }
+    },
+    {
+      "method": "S2",
+      "seed": 0,
+      "enp": "g5_llava_ms_S2_s0_d100",
+      "exit_code": 0,
+      "runtime_sec": 152.7,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_S2_s0_d100-2026.10.11-17.34.48",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_S2_s0_d100.log",
+      "taxonomy": {
+        "seed": 0,
+        "swap_total_leak": 1.0,
+        "swap_stale": 0.38,
+        "swap_foreign": 0.62,
+        "correct_route": 0.0,
+        "abstain": 0.0,
+        "hn_total_leak": 1.0,
+        "rel_hit": 1.0,
+        "only_own": 0.0
+      }
+    },
+    {
+      "method": "DEK",
+      "seed": 0,
+      "enp": "g5_llava_ms_DEK_s0_d100",
+      "exit_code": 0,
+      "runtime_sec": 149.4,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_DEK_s0_d100-2026.10.11-17.37.20",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_DEK_s0_d100.log",
+      "taxonomy": {
+        "seed": 0,
+        "swap_total_leak": 0.4,
+        "swap_stale": 0.0,
+        "swap_foreign": 0.4,
+        "correct_route": 0.0,
+        "abstain": 0.6,
+        "hn_total_leak": 0.57,
+        "rel_hit": 0.0,
+        "only_own": 0.0
+      }
+    },
+    {
+      "method": "L0",
+      "seed": 1,
+      "enp": "g5_llava_ms_L0_s1_d100",
+      "exit_code": 0,
+      "runtime_sec": 54.0,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_L0_s1_d100-2026.10.11-17.39.50",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_L0_s1_d100.log",
+      "taxonomy": {
+        "seed": 1,
+        "swap_total_leak": 1.0,
+        "swap_stale": 0.31,
+        "swap_foreign": 0.69,
+        "correct_route": 0.0,
+        "abstain": 0.0,
+        "hn_total_leak": 1.0,
+        "rel_hit": 0.79,
+        "only_own": 0.0
+      }
+    },
+    {
+      "method": "S2",
+      "seed": 1,
+      "enp": "g5_llava_ms_S2_s1_d100",
+      "exit_code": 0,
+      "runtime_sec": 150.8,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_S2_s1_d100-2026.10.11-17.40.44",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_S2_s1_d100.log",
+      "taxonomy": {
+        "seed": 1,
+        "swap_total_leak": 1.0,
+        "swap_stale": 0.32,
+        "swap_foreign": 0.68,
+        "correct_route": 0.0,
+        "abstain": 0.0,
+        "hn_total_leak": 1.0,
+        "rel_hit": 0.99,
+        "only_own": 0.01
+      }
+    },
+    {
+      "method": "DEK",
+      "seed": 1,
+      "enp": "g5_llava_ms_DEK_s1_d100",
+      "exit_code": 0,
+      "runtime_sec": 155.2,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_DEK_s1_d100-2026.10.11-17.43.15",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_DEK_s1_d100.log",
+      "taxonomy": {
+        "seed": 1,
+        "swap_total_leak": 0.35,
+        "swap_stale": 0.0,
+        "swap_foreign": 0.35,
+        "correct_route": 0.02,
+        "abstain": 0.63,
+        "hn_total_leak": 0.33,
+        "rel_hit": 0.01,
+        "only_own": 0.01
+      }
+    },
+    {
+      "method": "L0",
+      "seed": 2,
+      "enp": "g5_llava_ms_L0_s2_d100",
+      "exit_code": 0,
+      "runtime_sec": 52.8,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_L0_s2_d100-2026.10.11-17.45.50",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_L0_s2_d100.log",
+      "taxonomy": {
+        "seed": 2,
+        "swap_total_leak": 1.0,
+        "swap_stale": 0.19,
+        "swap_foreign": 0.81,
+        "correct_route": 0.0,
+        "abstain": 0.0,
+        "hn_total_leak": 1.0,
+        "rel_hit": 0.67,
+        "only_own": 0.0
+      }
+    },
+    {
+      "method": "S2",
+      "seed": 2,
+      "enp": "g5_llava_ms_S2_s2_d100",
+      "exit_code": 0,
+      "runtime_sec": 152.6,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_S2_s2_d100-2026.10.11-17.46.43",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_S2_s2_d100.log",
+      "taxonomy": {
+        "seed": 2,
+        "swap_total_leak": 1.0,
+        "swap_stale": 0.32,
+        "swap_foreign": 0.68,
+        "correct_route": 0.0,
+        "abstain": 0.0,
+        "hn_total_leak": 1.0,
+        "rel_hit": 0.99,
+        "only_own": 0.0
+      }
+    },
+    {
+      "method": "DEK",
+      "seed": 2,
+      "enp": "g5_llava_ms_DEK_s2_d100",
+      "exit_code": 0,
+      "runtime_sec": 152.6,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_DEK_s2_d100-2026.10.11-17.49.15",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_DEK_s2_d100.log",
+      "taxonomy": {
+        "seed": 2,
+        "swap_total_leak": 0.42,
+        "swap_stale": 0.0,
+        "swap_foreign": 0.42,
+        "correct_route": 0.0,
+        "abstain": 0.58,
+        "hn_total_leak": 0.36,
+        "rel_hit": 0.01,
+        "only_own": 0.01
+      }
+    },
+    {
+      "method": "L0",
+      "seed": 3,
+      "enp": "g5_llava_ms_L0_s3_d100",
+      "exit_code": 0,
+      "runtime_sec": 52.0,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_L0_s3_d100-2026.10.11-17.51.48",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_L0_s3_d100.log",
+      "taxonomy": {
+        "seed": 3,
+        "swap_total_leak": 1.0,
+        "swap_stale": 0.28,
+        "swap_foreign": 0.72,
+        "correct_route": 0.0,
+        "abstain": 0.0,
+        "hn_total_leak": 1.0,
+        "rel_hit": 0.8,
+        "only_own": 0.0
+      }
+    },
+    {
+      "method": "S2",
+      "seed": 3,
+      "enp": "g5_llava_ms_S2_s3_d100",
+      "exit_code": 0,
+      "runtime_sec": 147.5,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_S2_s3_d100-2026.10.11-17.52.40",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_S2_s3_d100.log",
+      "taxonomy": {
+        "seed": 3,
+        "swap_total_leak": 1.0,
+        "swap_stale": 0.42,
+        "swap_foreign": 0.58,
+        "correct_route": 0.0,
+        "abstain": 0.0,
+        "hn_total_leak": 1.0,
+        "rel_hit": 0.98,
+        "only_own": 0.0
+      }
+    },
+    {
+      "method": "DEK",
+      "seed": 3,
+      "enp": "g5_llava_ms_DEK_s3_d100",
+      "exit_code": 0,
+      "runtime_sec": 150.6,
+      "run_dir": "/home/user/TWD/LiveEdit_lab_usb/LiveEdit/eval_results/meeting_validation/step6/liveedit/llava-v1.5-7b/VLKEB_GROUNDING-g5_llava_ms_DEK_s3_d100-2026.10.11-17.55.08",
+      "log": "doc/results/cvpr2027/g5/logs/g5_llava_ms_DEK_s3_d100.log",
+      "taxonomy": {
+        "seed": 3,
+        "swap_total_leak": 0.22,
+        "swap_stale": 0.0,
+        "swap_foreign": 0.22,
+        "correct_route": 0.01,
+        "abstain": 0.77,
+        "hn_total_leak": 0.34,
+        "rel_hit": 0.0,
+        "only_own": 0.0
+      }
+    }
+  ],
+  "finished": "2026-10-11T11:57:38Z"
+}

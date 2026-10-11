@@ -99,7 +99,7 @@ Non-exclusive flags, reported alongside: `own_fired`, `partner_fired`, `foreign_
 | G2b margin / abstain sweep | Oct 11 - Oct 16 | **not triggered** (G0 was PASS, not WEAK) | - | [G2b](#g2b-can-stale-leakage-be-fixed-at-inference) |
 | G3 pool-size curve | Oct 14 - Oct 24 | **complete (Oct 6)** | **PASS** — DEK advantage holds; **HIGH FLAG** pair-closed hn ~84% (M6) | [G3](#g3-does-the-lifelong-scaling-claim-survive) |
 | G4 other editors | Oct 17 - Oct 28 | not started | - | [G4](#g4-does-the-protocol-transfer-to-other-editors) |
-| G5 second backbone | Oct 15 (fixed) | **lab 4090 (Oct 10)** — CVPR strong LLaVA L0 (`dn=500`×`eps=20`) then S2/DEK; dual extract with BLIP-2 | - | [G5](#g5-second-backbone-decision) |
+| G5 second backbone | Oct 15 (fixed) | **LLaVA extract done (Oct 11)** — provisional **WEAK**; Phase C BLIP-2 re-extract open | WEAK (LLaVA-only) | [G5](#g5-second-backbone-decision) |
 | G6 writing checkpoint | Oct 27 (fixed) | not started | - | [G6](#g6-writing-checkpoint) |
 
 Current track: **G5 on lab RTX 4090 for CVPR main track** (strong LLaVA L0 → S2 → DEK → eval; then re-extract BLIP-2 under the same protocol; decision due Oct 15). Plan A (DEK) unchanged for BLIP-2. **Deferred → later**: M6, `emits_y_i`, EVQA pair-closed, 5-seed, G4, MSCKE, CARML tau.
@@ -433,8 +433,8 @@ _(pending)_
 ## G5: second backbone decision
 
 **Date**: decision due **Oct 15, 2026** (fixed). Setup started Oct 6; **CVPR budget locked Oct 10**.
-**Status**: **lab training in progress**. Preconditions: G0 PASS (met), G2 PASS (met).
-**Artifacts**: `doc/results/cvpr2027/g5/` (README + `EXPERIMENT_TRACKER.md` + logs). Paper numbers use **lab** runs under `records/lab_g5/`, not home/USB AAAI LLaVA ckpts.
+**Status**: **LLaVA ladder + extract done (Oct 11)**; provisional write-up **WEAK** — Phase C BLIP-2 re-extract still open. Preconditions: G0 PASS (met), G2 PASS (met).
+**Artifacts**: `doc/results/cvpr2027/g5/` — especially [`G5_GATE_WRITEUP_LLAVA.md`](results/cvpr2027/g5/G5_GATE_WRITEUP_LLAVA.md) + `G5_RESULTS_TABLES.md`. Paper LLaVA numbers use **lab** `records/lab_g5/`, not home/USB AAAI LLaVA ckpts.
 **Ladder** (CVPR): LLaVA-1.5-7B on lab RTX 4090 → strong L0 → S2 → DEK → dual extract with BLIP-2. Qwen2-VL-2B fallback only if LLaVA blocked.
 
 ### CVPR training + extraction plan (Oct 10)
@@ -464,19 +464,24 @@ AAAI-era LLaVA `dn=500×3` was a deadline shortcut. Oct 10 `eps=1` lab L0 is **s
 - Oct 10 lab: model load OK after weight repair; detached `eps=1` L0 used for env/data path check only.
 
 ### Result
-_(pending — strong L0 + S2/DEK + dual extract)_
+**LLaVA-only provisional: WEAK** (full write-up: [`results/cvpr2027/g5/G5_GATE_WRITEUP_LLAVA.md`](results/cvpr2027/g5/G5_GATE_WRITEUP_LLAVA.md)).
+
+- VLKEB DEK vs L0: swap `total_leak` 100→**36** (−64 pp), hard-neg 98→**46** (−52 pp); Rel hit 79→**1%** (collapse via abstain).
+- Easy-VQA: swap 100→**13**; hn 100→**91**; Rel hit 71→**1%**.
+- 5-seed VLKEB: DEK swap **35.0±7.8**, hn **41.2±10.2**, Rel hit **0.6±0.5**.
+- Final G5 PASS/WEAK/FAIL on the board waits on Phase C (BLIP-2 re-extract) or an explicit Oct-15 accept of WEAK.
 
 ### Good
-- Lab 4090 available; git sync on `lab/g5-code-only`; tracker + results pull scripts ready.
-- CVPR budget explicit: L0×20 at `dn=500`, then same-protocol BLIP-2 re-extract.
+- Fresh lab L0×20→S2→DEK + B1/E1–E4 extracts complete; tables in `G5_RESULTS_TABLES.md`.
+- Leak reduction on a second backbone is large and multi-seed stable.
 
 ### Bad
-- Home/USB LLaVA shards were corrupt once — lab now uses validated download.
-- Strong L0 (~20×500 steps) still to finish before S2/DEK.
+- Reliability hit collapse blocks a clean second-backbone PASS (not the BLIP-2 G0 pattern).
+- Phase C still open — no same-protocol BLIP-2 dual column yet.
 
 ### Carry-forward
-- **This week:** finish Phase A–D (see `doc/results/cvpr2027/g5/README.md`); decide by **Oct 15**.
-- Qwen2-VL-2B only if LLaVA blocked on the lab box.
+- **Phase C** BLIP-2 re-extract, then finalize G5 board status by **Oct 15**.
+- Paper: if citing LLaVA now, frame as leak stress + Rel collapse / abstain; no LLaVA Rel/only-own claim.
 - M6 and other flags stay **deferred — later**.
 
 ---

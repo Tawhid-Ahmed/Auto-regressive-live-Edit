@@ -627,9 +627,20 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         log["avbl_neg_anchor_scale"] = neg_scale
         own_idx = int(own_pool_indices[0]) if own_pool_indices else 0
         refuse_lambda = float(getattr(self, "avbl_refuse_lambda", 0.0))
+        # Optional cap (e.g. LIVEEDIT_AVBL_MAX_NEGS=1) for 24GB LLaVA-7B + AVBL.
+        try:
+            max_negs = int(os.environ.get("LIVEEDIT_AVBL_MAX_NEGS", "0") or "0")
+        except ValueError:
+            max_negs = 0
+        neg_i = 0
         for i, adv_img in enumerate(adversarial_images):
             if adv_img is None:
                 continue
+            if max_negs > 0 and neg_i >= max_negs:
+                break
+            neg_i += 1
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
             hard_nb: Optional[int] = None
             mined: Optional[Tuple[str, int]] = None
             if getattr(self, "avbl_dino_neighbor_mine", False) and batch_edit_images:
@@ -679,7 +690,10 @@ class LiveEdit(VLLMBaseEditorWithTraining):
 
     def _get_patch_encoder(self) -> FrozenPatchEncoder:
         if self._patch_encoder is None:
-            self._patch_encoder = FrozenPatchEncoder(self.patch_encoder_name, self.device)
+            # DINOv2 on CPU frees VRAM for LLaVA-7B + AVBL (encode_patches already
+            # returns CPU tensors; keys are moved to GPU in _encode_patches).
+            enc_device = "cpu" if self.patch_encoder_name == "dinov2" else self.device
+            self._patch_encoder = FrozenPatchEncoder(self.patch_encoder_name, enc_device)
         return self._patch_encoder
 
     @torch.no_grad()
@@ -1997,6 +2011,8 @@ class LiveEdit(VLLMBaseEditorWithTraining):
             loss += patch_routing_loss * self.cfg.train_cfg.hard_routing_lambda
         adv_lambda = float(getattr(self, "adversarial_grounding_lambda", 0.0))
         if adv_lambda > 0 and batch_adv_specs and self.patch_grounding_enabled:
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
             evrs = torch.cat([ne[1] for ne in new_edit], 0)
             evr_patch = (
                 torch.cat([ne[4] for ne in new_edit], 0)

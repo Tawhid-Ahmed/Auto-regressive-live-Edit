@@ -24,7 +24,30 @@ scp -q "${LabHost}:${LabRepo}/doc/results/cvpr2027/g5/EXPERIMENT_TRACKER.md" (Jo
 scp -q "${LabHost}:${LabRepo}/doc/results/cvpr2027/g5/experiments.jsonl" (Join-Path $LocalG5 "experiments.jsonl") 2>$null
 scp -q "${LabHost}:${LabRepo}/doc/results/cvpr2027/g5/LAST_CODE_SYNC.txt" (Join-Path $LocalG5 "LAST_CODE_SYNC.txt") 2>$null
 ssh -o BatchMode=yes $LabHost "mkdir -p '$LabRepo/doc/results/cvpr2027/g5/logs'; ls '$LabRepo/doc/results/cvpr2027/g5/logs' 2>/dev/null | head"
-scp -r -q "${LabHost}:${LabRepo}/doc/results/cvpr2027/g5/logs/." (Join-Path $LocalG5 "logs\") 2>$null
+# Per-file scp (avoid scp -r with spaces in Windows local path)
+$logNames = ssh -o BatchMode=yes $LabHost "ls '$LabRepo/doc/results/cvpr2027/g5/logs' 2>/dev/null"
+foreach ($name in ($logNames -split "`n")) {
+    $n = $name.Trim()
+    if (-not $n) { continue }
+    scp -q "${LabHost}:${LabRepo}/doc/results/cvpr2027/g5/logs/$n" (Join-Path $LocalG5 "logs\$n") 2>$null
+}
+
+# Taxonomy + any small G5 result JSONs written under doc/results/cvpr2027/g5/
+scp -q "${LabHost}:${LabRepo}/doc/results/cvpr2027/g5/leakage_taxonomy_llava.json" (Join-Path $LocalG5 "leakage_taxonomy_llava.json") 2>$null
+
+# Lightweight eval summaries for g5_llava_* runs (not full generations)
+$evalMirror = Join-Path $LocalG5 "lab_mirror\eval_results"
+New-Item -ItemType Directory -Force -Path $evalMirror | Out-Null
+$evalFiles = ssh -o BatchMode=yes $LabHost "find '$LabRepo/eval_results/meeting_validation/step6' -type f \( -name seed_42_mean_results.json -o -name routing_diagnostics.json -o -name meta.json \) -path '*g5_llava*' 2>/dev/null"
+foreach ($line in ($evalFiles -split "`n")) {
+    $rp = $line.Trim()
+    if (-not $rp) { continue }
+    $rel = $rp.Substring($LabRepo.Length).TrimStart('/')
+    $dest = Join-Path $evalMirror ($rel -replace '/', '\')
+    $destDir = Split-Path $dest -Parent
+    New-Item -ItemType Directory -Force -Path $destDir | Out-Null
+    scp -q "${LabHost}:$rp" $dest
+}
 
 # Lab backup copy
 $backupLocal = Join-Path $LocalG5 "lab_mirror\experiment_backup"

@@ -33,12 +33,26 @@ from utils.GLOBAL import ROOT_PATH
 
 
 def _architecture_summary() -> Dict[str, Any]:
-    """Static bottleneck analysis from BLIP2 + LiveEdit wiring (no model load)."""
-    from transformers import Blip2Config
+    """Static bottleneck notes for LiveEdit wiring (optional; BLIP-2 weights not required).
+
+    Metadata only — taxonomy / routing probe scores do not depend on this block.
+    When blip2-opt-2.7b weights are absent (e.g. LLaVA-only lab tree), return a
+    stub so ``--log_routing`` evals on other backbones still complete.
+    """
     from utils.GLOBAL import model_path_map
 
-    mp = model_path_map["blip2-opt-2.7b"]
-    cfg = Blip2Config.from_json_file(os.path.join(mp, "config.json"))
+    mp = model_path_map.get("blip2-opt-2.7b")
+    cfg_json = os.path.join(mp, "config.json") if mp else ""
+    if not cfg_json or not os.path.isfile(cfg_json):
+        return {
+            "available": False,
+            "note": "BLIP-2 config.json not on disk; architecture summary skipped",
+            "routing_key_collapse": "mean(2) over eqe_n cross-attn outputs → scalar per pool entry",
+        }
+
+    from transformers import Blip2Config
+
+    cfg = Blip2Config.from_json_file(cfg_json)
     nq = int(cfg.num_query_tokens)
     # EVA-ViT patch grid for default 224 input: (224/16)^2 + 1 cls ≈ 257
     vit_patches = 257
@@ -51,6 +65,7 @@ def _architecture_summary() -> Dict[str, Any]:
         eqe_n = int(y.get("retrieval_editor", {}).get("eqe_n", eqe_n))
 
     return {
+        "available": True,
         "vit_patch_tokens": vit_patches,
         "qformer_query_tokens": nq,
         "editor_routing_tokens": eqe_n,
