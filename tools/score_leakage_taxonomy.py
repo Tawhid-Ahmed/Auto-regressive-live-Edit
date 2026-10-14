@@ -16,12 +16,12 @@ Image-swap probe (p_i, x_j), four mutually exclusive outcomes (priority order):
 Hard-negative probe (p_i, x_hn): the correct outcome is abstain; any firing is
 a leak, split into stale (e_i) vs foreign (anything else).
 
-Weight-aware variant: an expert counts as active only if its softmax weight
-over the gated vision logits (``vis_sim`` of the retrieved experts) exceeds
-``tau`` (default grid 0.05 / 0.1 / 0.2).  Caveat: this is the routing-logit
-proxy the plan specifies; LiveEdit's actual residual fuse coefficient
-(``get_moe_fuse_coe``: softmax*sigmoid over prompt-key similarity) is not in
-the logs.  Per-expert soft weights are to be logged directly in G2.
+Weight-aware variant: an expert counts as active only if its soft weight
+exceeds ``tau`` (default grid 0.05 / 0.1 / 0.2).  The weight is LiveEdit's
+residual fuse coefficient (``fuse_coe`` / ``pool_fuse_coe`` from
+``get_moe_fuse_coe``) when the log has it (G2 onward, M3); older G0 logs fall
+back to a softmax over the retrieved experts' ``vis_sim`` (proxy).  The output
+records the branch actually used per run in ``weight_sources``.
 
 Reliability probe (p_i, x_i) is also re-scored (hit / only-own / cross) so a
 leak-vs-reliability view is available from the same logs.
@@ -221,6 +221,20 @@ def _softmax(x: Sequence[float]) -> np.ndarray:
     return e / e.sum()
 
 
+def weight_source(entry: Dict[str, Any]) -> str:
+    """Which soft weight ``active_experts`` uses for this entry (same preference order)."""
+    retrieved = entry.get("retrieved_indices", [])
+    if not retrieved:
+        return "none_retrieved"
+    fuse = entry.get("fuse_coe")
+    if isinstance(fuse, list) and len(fuse) == len(retrieved):
+        return "fuse_coe"
+    pool_fuse = entry.get("pool_fuse_coe") or []
+    if pool_fuse and all(int(i) < len(pool_fuse) for i in retrieved):
+        return "pool_fuse_coe"
+    return "vis_sim_proxy"
+
+
 def active_experts(entry: Dict[str, Any], tau: Optional[float], include_prot: bool) -> Tuple[Set[int], Dict[int, float]]:
     """Retrieved experts, optionally filtered by soft weight.
 
@@ -342,11 +356,13 @@ def score_run(
     n_hn_partner_in_pool = 0
     n_dup_prompt = 0
     records: List[Dict[str, Any]] = []
+    weight_sources: Counter = Counter()
 
     for e in probes:
         probe = e.get("probe")
         if probe not in ("image_swap", "hard_negative", "reliability"):
             continue
+        weight_sources[weight_source(e)] += 1
         sid = int(e["sample_id"])
         own = sid_to_pool.get(sid, set())
         row_idx = sid_to_row[sid] if sid < len(sid_to_row) else None
@@ -444,8 +460,11 @@ def score_run(
         "swap_prompt_duplicated_rate": n_dup_prompt / n_swap if n_swap else None,
         "mapping_check": mapping_check,
         "weight_softmax_includes_prototype": include_prot,
-        "weight_definition": "softmax over vis_sim of retrieved experts%s; expert active iff weight > tau" % (
-            " + vis_sim_prot" if include_prot else ""),
+        "weight_sources": dict(weight_sources),
+        "weight_definition": (
+            "per-entry preference: fuse_coe (get_moe_fuse_coe over retrieved) > pool_fuse_coe > "
+            "softmax over vis_sim of retrieved experts%s (proxy); expert active iff weight > tau; "
+            "see weight_sources for the branch actually used" % (" + vis_sim_prot" if include_prot else "")),
         "legacy_summary": {k: v for k, v in summary_in.items() if k != "mean_n_retrieved"},
         "image_swap": {key: swap_block(key) for key, _ in tau_keys},
         "hard_negative": {key: hn_block(key) for key, _ in tau_keys},

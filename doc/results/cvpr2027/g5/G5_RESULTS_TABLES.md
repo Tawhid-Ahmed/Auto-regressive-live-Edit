@@ -18,7 +18,7 @@ All % unless noted. Directions: total leak / stale leak / foreign leak / cross /
 | **E3** | Routing-rule controls on LLaVA (G2 matrix VLKEB) | **Done** 2026-10-11 (~16 min; `routing_table_llava_vlkeb_s42.md`) | §8 |
 | **E4** | Multi-seed eval (5 seeds) on LLaVA VLKEB | **Done** 2026-10-11 (~30 min; `multiseed_llava_vlkeb_d100.md`) | §9 |
 | **E1** | Easy-VQA short extract (LLaVA L0/S2/DEK) | **Done** 2026-10-11 (`leakage_taxonomy_llava_evqa.json`) | §6 |
-| **C** | BLIP-2 re-extract (same protocol) | **Deferred** (after full LLaVA set) | §4 TBD |
+| **C** | BLIP-2 re-extract (same protocol) | **Deferred** past 15 Oct (S2 ckpt missing; G5 WEAK accepted without C) | §4 TBD |
 | **B2** | Side-by-side LLaVA vs BLIP-2 dual table | After C | §5 |
 
 **LLaVA-first:** finish E1–E4 (or as far as GPU time allows) before Phase C. G5 gate write-up still needs C eventually for dual extract.
@@ -107,7 +107,9 @@ Source: `leakage_taxonomy_llava.json` (lab, 2026-10-11).
 | S2 | 47.0 | 53.0 | 100.0 | 0.0 |
 | DEK | 1.0 | 45.0 | 46.0 | 54.0 |
 
-### 2.4 Soft-weight side check (vision-logit proxy; not fuse_coe)
+### 2.4 Weight-aware counting (real `fuse_coe`, M3)
+
+Weights are the logged `fuse_coe` (`get_moe_fuse_coe`) on every non-empty probe — **not** a vision-logit proxy (audit: [`G5_METRIC_AUDIT.md`](G5_METRIC_AUDIT.md)). Under this counting DEK is **worse** than L0 on swap at τ=0.1 (36 vs 13).
 
 | Method | Variant | Swap total leak ↓ | Hard-neg total leak ↓ | Rel hit ↑ |
 |---|---|---:|---:|---:|
@@ -119,7 +121,7 @@ Source: `leakage_taxonomy_llava.json` (lab, 2026-10-11).
 | S2 | τ=0.2 | 15.0 | 3.0 | 2.0 |
 | DEK | τ=0.05 / 0.1 / 0.2 | 36.0 | 46.0 | 1.0 |
 
-DEK binary ≈ all τ rows (gate already sparse). Do not put proxy τ numbers in the paper as fuse coefficients (M3).
+DEK binary ≈ all τ rows (gate already sparse). L0/S2 weight is spread over ~20–47 retrieved experts (max `fuse_coe` ≈ 0.05), so most binary L0 leaks carry almost no residual weight.
 
 ---
 
@@ -164,7 +166,7 @@ Artifact target: `leakage_taxonomy_blip2.json` + `g5_blip2_*_short` eval dirs.
 | BLIP-2 | L0 | full-set ×20 | — | — | — | — |
 | BLIP-2 | DEK | short S2/DEK ×1 | — | — | — | — |
 
-**G5 question:** Does DEK reduce total leak on a second backbone without collapsing reliability? Current LLaVA answer: leak ↓ yes, reliability hit ↓ collapse — provisional **WEAK / investigate** until BLIP-2 re-extract confirms the extractor and we decide gate wording.
+**G5 question:** Does DEK reduce total leak on a second backbone without collapsing reliability? **Board (15 Oct): WEAK.** LLaVA does not hold Rel; historical binary leak drop is open-gate/abstain-contaminated (do not quote as method win). Canonical write-up: [`G5_GATE_WRITEUP_LLAVA.md`](G5_GATE_WRITEUP_LLAVA.md). Phase C still needed for a fair dual table.
 
 ---
 

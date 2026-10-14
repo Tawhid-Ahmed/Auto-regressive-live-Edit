@@ -1,11 +1,13 @@
-# G5 gate write-up — LLaVA-only (provisional)
+# G5 gate write-up — LLaVA second backbone
 
 **Gate:** G5 (second backbone)  
-**Date written:** 2026-10-11  
-**Decision due:** 2026-10-15  
-**Scope of this note:** **LLaVA-1.5-7B lab ladder only.** Phase C (BLIP-2 same-protocol re-extract) is **not** included; dual-backbone claim stays open until C lands.  
+**Decision date:** **2026-10-15** (accepted **2026-10-14**)  
+**Board verdict:** **WEAK**  
+**Scope:** LLaVA-1.5-7B lab ladder + root-cause follow-ups through S2-tune A. Phase C (BLIP-2 same-protocol re-extract) **not** closed.  
 **Glossary:** [`../../CVPR2027_GATE_LOG.md`](../../CVPR2027_GATE_LOG.md) § Glossary  
-**Number tables:** [`G5_RESULTS_TABLES.md`](G5_RESULTS_TABLES.md)
+**Root cause:** [`G5_LLAVA_DEK_ROOT_CAUSE.md`](G5_LLAVA_DEK_ROOT_CAUSE.md)  
+**Number tables (historical extract):** [`G5_RESULTS_TABLES.md`](G5_RESULTS_TABLES.md)  
+**Metric audit:** [`G5_METRIC_AUDIT.md`](G5_METRIC_AUDIT.md)
 
 Same four blocks as the gate log: Result · Good · Bad · Carry-forward.
 
@@ -13,85 +15,85 @@ Same four blocks as the gate log: Result · Good · Bad · Carry-forward.
 
 ## Result
 
+### G5 question
+
+Does Dual-Expert Keys reduce `total_leak` on a second backbone **without collapsing reliability hit**?
+
+### Board answer (accepted)
+
+**WEAK.** LLaVA does **not** reproduce the BLIP-2 G0 pattern (held Rel + lower leak). Plan A for **BLIP-2** is unchanged. LLaVA is a **stress / limitation** result until M8 (or equivalent) closes the vision health gate.
+
+### Why WEAK (not PASS / not FAIL)
+
+| Criterion | Evidence | Board reading |
+|---|---|---|
+| Second backbone trained + extracted | Lab L0 `dn=500`×20 → S2/DEK; B1/E1–E4 on disk | Done |
+| Reproduces BLIP-2 DEK (Rel held + leak ↓) | Rel hit collapses on the extracted DEK ladder; health gates fail after S2 | **No** |
+| Root cause identified | Vacuous / under-negatived S2 routing (`bs=1`, then residual at `bs=2`) → open vision gate → DEK degenerates | Yes — engineering + method gap, not “DEK impossible on LLaVA” |
+| Cheap fix closed the gate? | S3 `bs=2` S2 improved but still FAIL; S2-tune A (stronger AVBL) **worse** vision-ok | **No** → M8 next |
+| Dual-backbone apples-to-apples? | Phase C open (BLIP-2 S2 ckpt missing locally; F4 `head` vs `subsample`) | Dual table **deferred** |
+
 ### Protocol (disclose)
 
 | Item | Value |
 |---|---|
 | Backbone | LLaVA-1.5-7B (lab RTX 4090) |
-| Train | L0 `dn=500` × **20** → S2 / DEK `dn=500` × **1** (AVBT; DEK + dual gate) |
-| Eval | `dsn=100`, `sen=10`, seed 42 (multi-seed: `{42,0,1,2,3}`) |
-| Probes | reliability, image_swap, hard_negative (+ standard Gen/Loc in B1) |
-| Counting | binary `total_leak` = `stale_leak` + `foreign_leak` (headline) |
-| Not claimed | Matched train compute vs BLIP-2 full-set L0; answer-level swap rescue |
+| Train budget | L0 `dn=500` × **20** (`bs=2`, M7); S2/DEK targets `dn=500` × **1** |
+| Known train defect (M7 / F3) | First S2/DEK ladder used **`bs=1`** → soft/hard/AVBL routing losses vacuous |
+| Follow-ups | S3 S2 at `bs=2` (VRAM pack, λ=0.1); S2-tune A (retrieval margin 1.0, neg_w 4.0, contrast_m 0.3) — health-only |
+| Eval | `dsn=100`, `sen=10`, seed 42 (+ multi-seed E4) |
+| Health gate | Rel vision-ok % of pool ≤ 20; swap own–prot margin < 0; text top-1 ≥ L0 − 5 pp |
+| Not claimed | Matched train compute vs BLIP-2 full-set L0; LLaVA DEK as a Rel-held method win; side-by-side BLIP-2 vs LLaVA until Phase C |
 
-### Headline numbers (binary, %)
+### Routing health (canonical for Oct 15 — do not skip)
 
-**VLKEB natural pool (B1, seed 42)**
+Train-split health, `dsn=50`, seed 42. Directions: vision-ok % ↓; swap own–prot margin should be < 0; text top-1 ↑.
 
-| Method | Swap total leak ↓ | Hard-neg total leak ↓ | Rel hit ↑ | Only-own ↑ | Abstain (swap) |
-|---|---:|---:|---:|---:|---:|
-| L0 | 100.0 | 98.0 | 79.0 | 0.0 | 0.0 |
-| S2 | 100.0 | 100.0 | 98.0 | 0.0 | 0.0 |
-| DEK | **36.0** (−64 pp) | **46.0** (−52 pp) | **1.0** | 1.0 | **64.0** |
+| Run | Rel vision-ok % ↓ | Swap own–prot margin | Rel text top-1 ↑ | Health |
+|---|---:|---:|---:|---|
+| M7 L0 (`bs=2`) | 12.3 | −13.7 | 70 | **PASS** |
+| M7 S2 (`bs=1`) | 98.1 | +43.4 | 56 | FAIL |
+| S3 S2 (`bs=2`) | 33.2 | +6.73 | 78 | FAIL |
+| S2-tune A | **62.0** | **+13.11** | 74 | **FAIL** (worse than S3) |
 
-**Easy-VQA (E1, seed 42)**
+L0 is healthy. **S2 re-opens the vision gate.** Stronger AVBL knobs do not fix it. **Do not train / quote DEK** until this gate passes.
 
-| Method | Swap total leak ↓ | Hard-neg total leak ↓ | Rel hit ↑ | Abstain (swap) |
-|---|---:|---:|---:|---:|
-| L0 | 100.0 | 100.0 | 71.0 | 0.0 |
-| DEK | **13.0** (−87 pp) | **91.0** (−9 pp) | **1.0** | **87.0** |
+### Historical taxonomy extract (disclose — not a method claim)
 
-**VLKEB multi-seed (E4, mean ± std, n=5)**
+Oct 11 VLKEB binary extract on the **`bs=1` S2/DEK** ladder (open vision gate → text-argmax / abstain behavior). Useful as a stress observation; **do not** cite as “LLaVA DEK works.”
 
-| Method | Swap TL ↓ | Hn TL ↓ | Rel hit ↑ |
-|---|---:|---:|---:|
-| L0 | 100.0 ± 0.0 | 99.6 ± 0.9 | 76.6 ± 5.4 |
-| DEK | **35.0 ± 7.8** | **41.2 ± 10.2** | **0.6 ± 0.5** |
+| Method | Swap `total_leak` ↓ | Hard-neg `total_leak` ↓ | Rel hit ↑ | Note |
+|---|---:|---:|---:|---|
+| L0 | 100.0 | 98.0 | 79.0 | |
+| DEK | 36.0 | 46.0 | **1.0** | Almost all swap gain is **abstain**; `correct_route` ≈ 0% |
+| Weight-aware τ=0.1 (audit) | DEK swap TL **worse** than L0 | — | — | Leak “win” does not survive real `fuse_coe` |
 
-**Pair-closed curve (E2):** DEK swap/hn total leak stays well below L0 at n∈{100,300,1000}; Rel hit stays ~0–0.3% at every size.
+Full tables: `G5_RESULTS_TABLES.md`. Mechanism write-up: `G5_LLAVA_DEK_ROOT_CAUSE.md` (F1–F4).
 
-**Routing controls (E3):** L0+`and` / `always_reject` kill leak by collapsing Rel; DEK+`and` matches B1 DEK; DEK+`liveedit` returns saturated leak — same qualitative control story as BLIP-2 G2.
+### Verdict sentence (for board / paper footnote)
 
-### Verdict (LLaVA-only)
-
-**G5 question:** Does Dual-Expert Keys reduce `total_leak` on a second backbone **without collapsing reliability**?
-
-| Criterion | LLaVA evidence |
-|---|---|
-| Leak reduction transfers | **Yes** — VLKEB swap −64 pp, hn −52 pp; EVQA swap −87 pp; stable in 5-seed and pair-closed |
-| Reliability held | **No** — Rel hit 79%→1% (VLKEB), 71%→1% (EVQA); multi-seed Rel hit 0.6±0.5% |
-| Mechanism | Almost all swap gain is **abstain**, not `correct_route` (~0%) |
-| Answer-level | No rescue — `emits_y_i` / `emits_y_j` ~0; Rel EM ~1% |
-
-**Provisional gate verdict: WEAK (LLaVA-only).**
-
-- DEK is **not BLIP-2-only for leak reduction**, but on this LLaVA short-n ladder it behaves like a **strong abstain / AND-style gate** that sacrifices reliability hit.
-- Do **not** claim LLaVA reproduces the BLIP-2 G0 pattern (high Rel hit + lower leak).
-- Do **not** close G5 as PASS until Phase C (BLIP-2 re-extract) is filled **or** an explicit methodology note accepts LLaVA as “leak-only / Rel-failed” second-backbone stress.
-- Plan A for **BLIP-2** is unchanged by this note; LLaVA is a **stress / limitation** result, not a second primary table yet.
+**G5 = WEAK (2026-10-15):** second-backbone DEK does not yet hold reliability on LLaVA; root cause is under-negatived S2 routing that opens the vision gate (confirmed by health gates + failed S2-tune A). BLIP-2 Plan A unchanged. Next method item: **M8** (batch-independent routing negatives). Phase C dual extract deferred.
 
 ---
 
 ## Good
 
-- Fresh lab L0×20 → S2 → DEK finished; paper paths are `records/lab_g5/…`, not AAAI home smoke.
-- Honest taxonomy extract (B1) + Easy-VQA (E1) + pair-closed (E2) + routing controls (E3) + 5-seed (E4) are all on disk under `doc/results/cvpr2027/g5/`.
-- Leak advantage is **large and stable** (multi-seed; pool sizes 100→1000).
-- Stale leak on DEK image_swap is tiny (VLKEB 1%; EVQA 0%); residual is mostly **foreign leak** + abstain.
-- Control table confirms DEK’s train dual gate is doing real work vs DEK+`liveedit` (100% swap TL).
-- Budget disclosure is clear: LLaVA short-n L0×20 vs BLIP-2 full-set L0×20 (when C lands).
+- Lab L0 at `bs=2` (M7) is **routing-healthy** (vision gate PASS; text top-1 70%).
+- Root cause chain documented with artifacts (health JSONs, extractor energy, proto/foreign breakdown).
+- S3 showed F3 was real: `bs=2` cut vision-ok 98→33 and restored text top-1 — but not enough.
+- S2-tune A exhausted cheap AVBL retuning (finite train; clear FAIL) → avoids another week of knob spinning.
+- Paper can disclose a concrete limitation instead of a silent second-backbone failure.
+- BLIP-2 G0/G2/G3 Plan A untouched.
 
 ---
 
 ## Bad
 
-- **Reliability hit collapse** is the gate-breaker for a clean second-backbone PASS. DEK Rel hit ≈ 0–1% everywhere we measured.
-- **Hard-neg on Easy-VQA barely moves** (100→91) while swap collapses via abstain — dataset-dependent story; do not oversell EVQA hn.
-- **`correct_route` ≈ 0%** on LLaVA for L0 and DEK; partner routing is not learned.
-- **Only-own** stays ~0–1% (vs BLIP-2 DEK ~100% in G0) — no precision win to quote.
-- Answer-level metrics do not support DEK (same as BLIP-2 caveat, worse here because Rel EM is already near zero).
-- Soft-weight τ side check is still a **vision-logit proxy**, not `fuse_coe` (M3); do not paper those τ rows as fuse coefficients.
-- Phase C missing → no apples-to-apples BLIP-2 column in the dual table yet.
+- **No Rel-held LLaVA DEK** suitable for a second primary table.
+- Extracted DEK leak drop is **mechanism-contaminated** (open vision gate + abstain + image-conditioned prompt key); weight-aware audit reverses the swap win.
+- S2 at `bs=2` still under-negatived (1 in-batch foreign vs BLIP-2’s 3); foreign inflation + own stays hot on `image_swap`.
+- Phase C open → F4 protocol confound (`head` vs `subsample` partner-in-pool) still blocks fair dual tables.
+- Oct 15 dual-backbone PASS is **not** available.
 
 ---
 
@@ -99,11 +101,11 @@ Same four blocks as the gate log: Result · Good · Bad · Carry-forward.
 
 | Item | Action |
 |---|---|
-| **Phase C** | Re-extract BLIP-2 L0/S2/DEK with the same scripts; fill `G5_RESULTS_TABLES.md` §4–5; then finalize G5 PASS/WEAK/FAIL in the gate log |
-| **Paper** | If citing LLaVA before Rel fix: frame as **second-backbone leak stress** with explicit Rel-collapse / abstain mechanism; lead hn + four-way swap; no Rel/only-own claim for LLaVA DEK |
-| **Method** | Treat LLaVA Rel collapse as a **HIGH** open issue (alongside M6 hn under pair-closed). Candidate later tries: train-time Rel constraint, softer dual gate, or backbone-specific τ — **discuss before implementing** |
-| **Gate log** | Replace G5 “Result _(pending)_” with a short pointer to this file; update status board when Phase C closes |
-| **Supervisor progress** | R1 #8 / R2 #5: LLaVA extract done; dual extract still due 15 Oct |
+| **M8** | Batch-independent routing negatives (FIFO key bank into soft/hard/AVBL softmaxes). Discuss → add to methodology table → implement. Acceptance: health gate PASS after S2, then DEK. |
+| **Phase C** | Recover BLIP-2 short S2 ckpt; re-extract L0/S2/DEK under `subsample`; fill `G5_RESULTS_TABLES.md` §4–5. Does not unblock LLaVA Rel. |
+| **Paper** | Cite LLaVA as **WEAK / limitation**: disclose M7 `bs=1` S2/DEK defect and open vision gate; **do not** quote LLaVA DEK Rel or binary leak as a method win; lead with BLIP-2. |
+| **Not to do** | DEK from current S3/tuneA S2; more AVBL λ cranking; M10 (extractor energy not dominated); side-by-side BLIP-2 vs LLaVA until Phase C. |
+| **Supervisor** | R1 #8 / R2 #5: G5 **WEAK accepted**; dual extract + M8 remain open. |
 
 ---
 
@@ -111,14 +113,15 @@ Same four blocks as the gate log: Result · Good · Bad · Carry-forward.
 
 | Artifact | Path |
 |---|---|
-| VLKEB taxonomy | `leakage_taxonomy_llava.json` |
-| Easy-VQA taxonomy | `leakage_taxonomy_llava_evqa.json` |
-| Pair-closed curve | `pool_size_curve_llava_s42.{md,json}` |
-| Routing table | `routing_table_llava_vlkeb_s42.{md,json}` |
-| Multi-seed | `multiseed_llava_vlkeb_d100.{md,json}` |
+| Root cause + health tables | `G5_LLAVA_DEK_ROOT_CAUSE.md` |
+| S3 S2 health (FAIL) | `routing_health_s2_s3_bs2.json` |
+| L0 health (PASS) | `routing_health_l0_s3diag.json` |
+| S2-tune A health (FAIL) | `routing_health_s2_tune_a.json` |
+| Pre-M summary | `s3_pre_m_diag_summary.json` |
+| Historical VLKEB taxonomy | `leakage_taxonomy_llava.json` / `leakage_taxonomy_llava_m7.json` |
+| Metric audit | `G5_METRIC_AUDIT.md` |
 | Full tables | `G5_RESULTS_TABLES.md` |
-| Tracker | `EXPERIMENT_TRACKER.md` |
 
 ---
 
-*End of LLaVA-only G5 write-up. Final G5 board status waits on Phase C or an explicit Oct-15 decision to accept WEAK.*
+*End of G5 write-up. Board status: **WEAK accepted 2026-10-15**.*

@@ -1,0 +1,360 @@
+{
+  "l0_health_gate": {
+    "enabled": true,
+    "passed": true,
+    "max_vision_ok_pct": 20.0,
+    "require_swap_margin_neg": true,
+    "baseline_json": "doc/results/cvpr2027/g5/llava_l0_diagnosis_m7.json",
+    "baseline_text_top1_is_own_pct": 70.0,
+    "text_top1_min_delta_pp": -5.0,
+    "failures": [],
+    "notes": [
+      "vision gate OK: mean_vision_ok_pct_of_pool=12.3",
+      "swap margin OK: mean_own_vis_margin=-13.669",
+      "text top-1 OK: 70.0% >= floor 65.0% (baseline 70.0%)",
+      "text-argmax stability under image_swap: 42.0% (info only)"
+    ]
+  },
+  "comparison": {
+    "L0_reliability": {
+      "mean_vision_ok_pct_of_pool": 12.32,
+      "mean_own_vis_margin": 13.342714,
+      "text_top1_is_own_pct": 70.0,
+      "own_retrieved_pct": 72.0,
+      "mean_n_vision_ok": 6.16,
+      "own_vis_margin_neg_pct": 28.0
+    },
+    "L0_image_swap": {
+      "mean_vision_ok_pct_of_pool": 15.36,
+      "mean_own_vis_margin": -13.668869,
+      "text_top1_is_own_pct": 28.0,
+      "own_retrieved_pct": 32.0,
+      "mean_n_vision_ok": 7.68,
+      "own_vis_margin_neg_pct": 68.0
+    },
+    "S2_reliability": {
+      "mean_vision_ok_pct_of_pool": 33.24,
+      "mean_own_vis_margin": 30.82691,
+      "text_top1_is_own_pct": 78.0,
+      "own_retrieved_pct": 98.0,
+      "mean_n_vision_ok": 16.62,
+      "own_vis_margin_neg_pct": 2.0
+    },
+    "S2_image_swap": {
+      "mean_vision_ok_pct_of_pool": 38.6,
+      "mean_own_vis_margin": 6.730855,
+      "text_top1_is_own_pct": 38.0,
+      "own_retrieved_pct": 68.0,
+      "mean_n_vision_ok": 19.3,
+      "own_vis_margin_neg_pct": 32.0
+    },
+    "text_argmax_stable": {
+      "L0": 42.0,
+      "S2": 50.0
+    }
+  },
+  "extractor_energy": {
+    "L0": {
+      "ckpt": "L0",
+      "tensors": [
+        {
+          "tensor": "evr_pool",
+          "top1_share": 0.003815,
+          "top8_share": 0.025931,
+          "dominated": false,
+          "top3": [
+            [
+              799,
+              0.0038
+            ],
+            [
+              839,
+              0.0036
+            ],
+            [
+              781,
+              0.0036
+            ]
+          ]
+        },
+        {
+          "tensor": "eqr_pool",
+          "top1_share": 0.0107,
+          "top8_share": 0.073465,
+          "dominated": false,
+          "top3": [
+            [
+              6,
+              0.0107
+            ],
+            [
+              249,
+              0.0101
+            ],
+            [
+              785,
+              0.0098
+            ]
+          ]
+        },
+        {
+          "tensor": "ivr_query",
+          "top1_share": 0.003776,
+          "top8_share": 0.024505,
+          "dominated": false,
+          "top3": [
+            [
+              343,
+              0.0038
+            ],
+            [
+              893,
+              0.0032
+            ],
+            [
+              302,
+              0.0032
+            ]
+          ]
+        },
+        {
+          "tensor": "iqr_query",
+          "top1_share": 0.010753,
+          "top8_share": 0.058968,
+          "dominated": false,
+          "top3": [
+            [
+              203,
+              0.0108
+            ],
+            [
+              6,
+              0.0091
+            ],
+            [
+              151,
+              0.0085
+            ]
+          ]
+        },
+        {
+          "tensor": "ivr_visprot",
+          "top1_share": 0.00447,
+          "top8_share": 0.033499,
+          "dominated": false,
+          "top3": [
+            [
+              268,
+              0.0045
+            ],
+            [
+              624,
+              0.0043
+            ],
+            [
+              600,
+              0.0043
+            ]
+          ]
+        },
+        {
+          "tensor": "hidden_vision_layer",
+          "top1_share": 0.006523,
+          "top8_share": 0.020763,
+          "dominated": false,
+          "top3": [
+            [
+              1512,
+              0.0065
+            ],
+            [
+              1076,
+              0.0027
+            ],
+            [
+              2789,
+              0.0023
+            ]
+          ]
+        },
+        {
+          "tensor": "hidden_query_layer",
+          "top1_share": 0.00832,
+          "top8_share": 0.024725,
+          "dominated": false,
+          "top3": [
+            [
+              1512,
+              0.0083
+            ],
+            [
+              2789,
+              0.0044
+            ],
+            [
+              2298,
+              0.0026
+            ]
+          ]
+        }
+      ]
+    },
+    "S2": {
+      "ckpt": "S2",
+      "tensors": [
+        {
+          "tensor": "evr_pool",
+          "top1_share": 0.003257,
+          "top8_share": 0.023465,
+          "dominated": false,
+          "top3": [
+            [
+              799,
+              0.0033
+            ],
+            [
+              813,
+              0.0031
+            ],
+            [
+              486,
+              0.003
+            ]
+          ]
+        },
+        {
+          "tensor": "eqr_pool",
+          "top1_share": 0.009719,
+          "top8_share": 0.067575,
+          "dominated": false,
+          "top3": [
+            [
+              6,
+              0.0097
+            ],
+            [
+              249,
+              0.0094
+            ],
+            [
+              785,
+              0.0089
+            ]
+          ]
+        },
+        {
+          "tensor": "ivr_query",
+          "top1_share": 0.003348,
+          "top8_share": 0.022669,
+          "dominated": false,
+          "top3": [
+            [
+              343,
+              0.0033
+            ],
+            [
+              501,
+              0.003
+            ],
+            [
+              839,
+              0.0029
+            ]
+          ]
+        },
+        {
+          "tensor": "iqr_query",
+          "top1_share": 0.010133,
+          "top8_share": 0.056384,
+          "dominated": false,
+          "top3": [
+            [
+              203,
+              0.0101
+            ],
+            [
+              6,
+              0.0087
+            ],
+            [
+              151,
+              0.008
+            ]
+          ]
+        },
+        {
+          "tensor": "ivr_visprot",
+          "top1_share": 0.003735,
+          "top8_share": 0.027231,
+          "dominated": false,
+          "top3": [
+            [
+              318,
+              0.0037
+            ],
+            [
+              245,
+              0.0037
+            ],
+            [
+              354,
+              0.0035
+            ]
+          ]
+        },
+        {
+          "tensor": "hidden_vision_layer",
+          "top1_share": 0.006523,
+          "top8_share": 0.020763,
+          "dominated": false,
+          "top3": [
+            [
+              1512,
+              0.0065
+            ],
+            [
+              1076,
+              0.0027
+            ],
+            [
+              2789,
+              0.0023
+            ]
+          ]
+        },
+        {
+          "tensor": "hidden_query_layer",
+          "top1_share": 0.00832,
+          "top8_share": 0.024725,
+          "dominated": false,
+          "top3": [
+            [
+              1512,
+              0.0083
+            ],
+            [
+              2789,
+              0.0044
+            ],
+            [
+              2298,
+              0.0026
+            ]
+          ]
+        }
+      ]
+    }
+  },
+  "proto_foreign": {
+    "reliability_foreign_mean_n": 15.64,
+    "reliability_prot_mean": 9.899,
+    "swap_own_vision_ok_both_pct": 68.0,
+    "swap_mean_margin_drop": -24.096
+  },
+  "verdict": {
+    "M10_extractor_dominated": false,
+    "M10_note": "Extractor + layer-21 top1 L1 shares are all <1%; channel 1512 is top hidden but not mass-dominant. M10 not justified by energy.",
+    "L0_vs_S2": "L0 health PASS; S2 FAIL \u2014 S2 training re-opens the vision gate (foreign inflation), not residual L0 weakness.",
+    "prefer_next": "M8 (more negatives) and/or S2 objective tuning; not M10. M9 still optional for text stability ~50%."
+  }
+}

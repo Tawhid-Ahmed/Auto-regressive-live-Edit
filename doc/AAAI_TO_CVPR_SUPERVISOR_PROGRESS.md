@@ -16,7 +16,7 @@
 | 5 | Binary false-activation may overstate baseline leak | Done | No | — |
 | 6 | Only 100 edits; pool size untested | Partly done | No | Optional: more edit orders + Easy-VQA pool-size curve |
 | 7 | Repeated prompts / visual collisions may explain residual | Partly done | No | Optional: hard-neg difficulty strata + small human check of pairs |
-| 8 | Only one backbone and one editor | In progress | No | LLaVA ladder+eval done; next: BLIP-2 re-extract + fill dual table in `doc/results/cvpr2027/g5/G5_RESULTS_TABLES.md`; then other editors |
+| 8 | Only one backbone and one editor | **G5 WEAK accepted (15 Oct)** | No | Dual table (Phase C) + M8 for Rel-held LLaVA DEK; then other editors |
 | 9 | Residual leak still high | Measured; no win yet | No | Method retry to cut absolute hard-neg leak under honest pools |
 
 ### Reviewer 2
@@ -27,7 +27,7 @@
 | 2 | Leak metric may be LiveEdit-specific | Not started | No | Run same leak protocol on other editors |
 | 3 | Only author-built baseline | Done | No | — |
 | 4 | No gain on Rel / Gen / Loc | Partly done | Yes | Write paper section / plot leading with leak vs reliability |
-| 5 | Single BLIP-2 backbone | In progress | No | LLaVA numbers in `g5/G5_RESULTS_TABLES.md`; BLIP-2 same-protocol re-extract still due **15 Oct** |
+| 5 | Single BLIP-2 backbone | **G5 WEAK accepted (15 Oct)** | No | Phase C BLIP-2 re-extract when S2 ckpt recovered; no Rel-held LLaVA DEK claim until M8 |
 
 ### AI reviewer
 
@@ -58,7 +58,7 @@
 | 5 | Binary FPR may overstate leak | Soft-weight re-score; lead with hard-neg leak | Soft-weight baseline VLKEB swap ~**24%**. Hard-neg: 91→**52** (VLKEB), 96.7→**9.3** (Easy-VQA) | Done | No | — |
 | 6 | Pool size untested | Partners kept in pool; curve at 100/300/1000 | Swap leak baseline→ours: 90→**19**, 97→**15**, 100→**23**. Rel ≥ 99% | Partly done | No | Optional: more edit orders + Easy-VQA pool-size curve |
 | 7 | Prompt / visual collisions | Checked whether residual leaks sit on repeated prompts | ~**47%** on repeated prompts (not enough to blame text gate). Hard-neg residual **94% foreign** | Partly done | No | Optional: hard-neg difficulty strata + small human check of pairs |
-| 8 | One backbone / one editor | Lab 4090: LLaVA L0×20→S2→DEK + taxonomy; dual table doc started | LLaVA DEK swap TL **36%** (L0 100%) but Rel hit **1%** (collapse). Tables: `g5/G5_RESULTS_TABLES.md`. BLIP-2 re-extract still due **15 Oct** | In progress | No | Phase C BLIP-2 re-extract + dual table; then other editors |
+| 8 | One backbone / one editor | Lab LLaVA ladder + root cause + S2-tune A; G5 board **WEAK** | L0 healthy; S2 opens vision gate (`bs=1` and still at `bs=2`); do **not** quote DEK Rel/leak as win. Write-up: `g5/G5_GATE_WRITEUP_LLAVA.md` | **WEAK accepted** | No | Phase C dual table; M8 (discuss); then other editors |
 | 9 | Residual still high | Marked absolute hard-neg under honest pools as open gap | Honest-pool hard-neg Dual-Expert Keys ~**84–86%** (baseline 100%). Relative win only | Measured; no win yet | No | Method retry to cut absolute hard-neg leak under honest pools |
 
 ---
@@ -71,7 +71,7 @@
 | 2 | Metric may be LiveEdit-only | Same leak protocol on other editors (planned) | No numbers yet | Not started | No | Run same leak protocol on other editors |
 | 3 | Author-built baseline only | Original LiveEdit + AND-alone controls | LiveEdit 88/93 @ rel 100; AND alone rel **50%**; Dual-Expert Keys **48/44** @ **100%** | Done | No | — |
 | 4 | No Rel/Gen/Loc gain | Numbers ready; paper should lead with leak vs reliability | Hard-neg @ high reliability: ours **44% / 9%** vs baseline **93% / 97%**. Only-own ~16%→**~100%** | Partly done | Yes | Write paper section / plot leading with leak vs reliability |
-| 5 | Single backbone | LLaVA second backbone on lab; dual extract with BLIP-2 | LLaVA extract done (see `g5/G5_RESULTS_TABLES.md`). BLIP-2 re-extract + Easy-VQA / pool / controls planned after | In progress | No | BLIP-2 re-extract (due 15 Oct); then E1–E4 in results doc |
+| 5 | Single backbone | LLaVA second backbone; G5 **WEAK** accepted | No Rel-held LLaVA DEK. Write-up: `g5/G5_GATE_WRITEUP_LLAVA.md`. Phase C deferred | **WEAK accepted** | No | Phase C when S2 ckpt found; M8 discuss |
 
 ---
 
@@ -138,11 +138,14 @@ Lower is better for leak. Higher is better for correct route and only-own. All f
 
 ## Still pending
 
+**Improvement backlog (all Bad → what to fix for main-track confidence):** [`CVPR2027_MAIN_TRACK_IMPROVEMENTS.md`](CVPR2027_MAIN_TRACK_IMPROVEMENTS.md)
+
 | Item | Timing |
 |---|---|
-| BLIP-2 same-protocol re-extract + fill dual table (`g5/G5_RESULTS_TABLES.md` §4–5) | **15 Oct** |
-| Easy-VQA / pair-closed / routing controls on LLaVA (§6–8) | After dual extract |
-| Other editors under same leak protocol | After backbone |
+| G5 board decision | **WEAK accepted (15 Oct)** — see `g5/G5_GATE_WRITEUP_LLAVA.md` |
+| M8 routing key bank (LLaVA S2 vision gate) | Discuss → decide → implement |
+| BLIP-2 same-protocol re-extract + fill dual table (`g5/G5_RESULTS_TABLES.md` §4–5) | When short S2 ckpt recovered (Phase C deferred past 15 Oct) |
+| Other editors under same leak protocol | After backbone follow-ups |
 | Absolute hard-neg method retry | After backbone |
 | Multi-seed runs (§9) | After configs locked |
 | MSCKE check + paper writing | Late Oct / **27 Oct** |

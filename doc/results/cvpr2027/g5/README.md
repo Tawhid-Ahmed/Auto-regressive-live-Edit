@@ -1,10 +1,16 @@
 # G5 — Second backbone (LLaVA) on lab GPU
 
 **Started:** 2026-10-06  
-**Decision due:** 2026-10-15  
+**Decision due:** 2026-10-15 — **accepted WEAK (2026-10-14)**  
 **Gate log:** [`../../CVPR2027_GATE_LOG.md`](../../CVPR2027_GATE_LOG.md) § G5  
-**Results tables:** [`G5_RESULTS_TABLES.md`](G5_RESULTS_TABLES.md) (LLaVA filled; BLIP-2 TBD)  
-**Gate write-up (LLaVA-only):** [`G5_GATE_WRITEUP_LLAVA.md`](G5_GATE_WRITEUP_LLAVA.md) — provisional **WEAK**  
+**Results tables:** [`G5_RESULTS_TABLES.md`](G5_RESULTS_TABLES.md) (LLaVA historical extract; BLIP-2 TBD)  
+**Gate write-up:** [`G5_GATE_WRITEUP_LLAVA.md`](G5_GATE_WRITEUP_LLAVA.md) — board **WEAK**  
+
+**Metric audit:** [`G5_METRIC_AUDIT.md`](G5_METRIC_AUDIT.md)  
+**LLaVA L0 diagnosis (lab):** [`G5_LLAVA_L0_DIAGNOSIS.md`](G5_LLAVA_L0_DIAGNOSIS.md) — complete (`bs=1` soft-routing vacuity)  
+**M7 retrain (`bs≥2`) results:** [`G5_LLAVA_M7_BS_RETRAIN.md`](G5_LLAVA_M7_BS_RETRAIN.md) — complete (L0 gate PASS; S2/DEK at `bs=1`; G5 LLaVA still not PASS)  
+**LLaVA DEK root cause + fix plan:** [`G5_LLAVA_DEK_ROOT_CAUSE.md`](G5_LLAVA_DEK_ROOT_CAUSE.md) — S2-tune A **FAIL**; **M8 proposed**; G5 **WEAK accepted**; Phase C deferred  
+**Main-track improvement backlog (BLIP-2 + LLaVA Bads):** [`../../CVPR2027_MAIN_TRACK_IMPROVEMENTS.md`](../../CVPR2027_MAIN_TRACK_IMPROVEMENTS.md)  
 **Track target:** CVPR 2027 **main track** (stronger L0 than AAAI deadline shortcut)
 
 ## Goal
@@ -48,7 +54,7 @@ Keep this docs branch updated when lab code changes (cherry-pick or merge from `
 | Rule | Detail |
 |---|---|
 | Fresh trains | Do **not** reuse home-PC / USB L0–S2–DEK checkpoints for the lab G5 ladder |
-| Hardware | RTX 4090 ~24 GB; `bs=1`, fp16, `PYTORCH_ALLOC_CONF=expandable_segments:True` |
+| Hardware | RTX 4090 ~24 GB; **M7: L0 `bs≥2` (prefer 4)**; fp16, `PYTORCH_ALLOC_CONF=expandable_segments:True` |
 | Checkpoints | `--keep_latest_ckpts 3` (only newest 3 files kept per run) |
 | Code sync | Commit on `lab/g5-code-only` → push origin → on lab (visible SSH): `bash tools/lab_git_pull_on_lab.sh` |
 | Results sync | Pull tracker/logs with `tools/lab_sync_pull_results.ps1` (SCP of small artifacts only) |

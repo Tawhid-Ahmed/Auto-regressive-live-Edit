@@ -65,6 +65,12 @@ def get_attr():
                         help='Refuse hinge: penalize if mean logP(target|adv) > tau.')
     parser.add_argument('--avbl_pool_buffer', type=int, default=0,
                         help='Phase D: cross-batch buffer size for DINO neighbor mining (0=off). Try 64.')
+    parser.add_argument('--avbl_max_adv_images', type=int, default=2,
+                        help='AVBL: max adv images per sample (order: swap, hard_neg). 1=swap-only for VRAM.')
+    parser.add_argument('--no_patch_hard_routing', action='store_true',
+                        help='Skip patch hard-routing loss (keeps patch modules/AVBL; saves VRAM).')
+    parser.add_argument('--train_max_gen_types', type=int, default=None,
+                        help='Pack at most N generality probe types per batch (VRAM). Try 1-2 for LLaVA bs>=2.')
     parser.add_argument('--fused_expert_key', action='store_true',
                         help='LEGACY DEK: QFormer+patch embed fuse (collapses rel — prefer --dek_dual_gate).')
     parser.add_argument('--dek_dual_gate', action='store_true',
@@ -158,6 +164,10 @@ if __name__ == '__main__':
             encoder=getattr(cfg, 'patch_encoder', 'dinov2'),
             expert_gen=True,
         )
+    if getattr(cfg, 'no_patch_hard_routing', False):
+        editor.patch_hard_routing_enabled = False
+    if getattr(cfg, 'train_max_gen_types', None) is not None:
+        editor.train_max_gen_types = int(cfg.train_max_gen_types)
     if getattr(cfg, 'adversarial_grounding', False):
         editor.enable_adversarial_grounding(
             lambda_adv=getattr(cfg, 'adv_grounding_lambda', 1.0),
@@ -173,6 +183,7 @@ if __name__ == '__main__':
             refuse_lambda=getattr(cfg, 'avbl_refuse_lambda', 0.0),
             refuse_tau=getattr(cfg, 'avbl_refuse_tau', -1.0),
             pool_buffer_size=getattr(cfg, 'avbl_pool_buffer', 0),
+            max_adv_images=getattr(cfg, 'avbl_max_adv_images', 2),
         )
     if (
         getattr(cfg, 'fused_expert_key', False)

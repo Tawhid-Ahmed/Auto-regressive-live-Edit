@@ -31,7 +31,8 @@ LAB_BACKUP = Path(
 )
 
 # 4090-friendly defaults (CVPR main-track: strong L0; short S2/DEK fine-tunes)
-DEFAULT_BS = 1
+# M7 (2026-10-11): soft routing needs bs>=2 (prefer 4). Do not train L0 at bs=1.
+DEFAULT_BS = 2
 DEFAULT_DN = 500
 DEFAULT_EPS_L0 = 20  # match BLIP-2 L0 epoch count at dn=500 (disclose vs LiveEdit full-set)
 DEFAULT_EPS_FT = 1   # S2 / DEK
@@ -134,7 +135,9 @@ def run_train(stage: str, lkpt: Path | None, args: argparse.Namespace) -> tuple[
     host = socket.gethostname()
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     eps = stage_eps(stage, args)
-    run_name = f"lab_g5_llava_{stage}_dn{args.dn}_e{eps}_s{args.rs}_{stamp}"
+    tag = getattr(args, "run_tag", None) or ""
+    tag_part = f"_{tag}" if tag else ""
+    run_name = f"lab_g5_llava_{stage}_bs{args.bs}_dn{args.dn}_e{eps}_s{args.rs}{tag_part}_{stamp}"
     dpath = resolve_dpath()
     log_dir = TRACK_DIR / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -151,17 +154,25 @@ def run_train(stage: str, lkpt: Path | None, args: argparse.Namespace) -> tuple[
         "--keep_latest_ckpts", str(args.keep_latest_ckpts),
         "--records_dir", str(ROOT / "records" / "lab_g5"),
     ]
+    # Prefetch buffer=1: ParallelDataset + LLaVA OOMs on 24GB at bs>=2 (M7).
+    cmd.extend(["-dbs", "1"])
     if lkpt is not None:
         cmd.extend(["-lkpt", str(lkpt)])
     if stage in ("S2", "DEK"):
-        # Prefetch buffer=1: ParallelDataset + shared LLaVA can OOM on 24GB with AVBL.
-        cmd.extend(["-dbs", "1"])
         cmd.extend([
             "--patch_grounding", "--adversarial_grounding",
-            "--adv_grounding_lambda", "0.3",
-            "--adv_grounding_neg_weight", "2.5",
+            "--adv_grounding_lambda", str(getattr(args, "adv_grounding_lambda", 0.1)),
+            "--adv_grounding_neg_weight", str(getattr(args, "adv_grounding_neg_weight", 2.5)),
             "--avbl_hinge_tau", "0.3", "--avbl_contrastive",
+            "--avbl_contrastive_margin", str(getattr(args, "avbl_contrastive_margin", 0.1)),
+            # Step 2 VRAM pack for LLaVA bs>=2 on 24GB (see G5_LLAVA_DEK_ROOT_CAUSE.md).
+            "--avbl_max_adv_images", str(getattr(args, "avbl_max_adv_images", 1)),
+            "--no_patch_hard_routing",
+            "--train_max_gen_types", str(getattr(args, "train_max_gen_types", 2)),
         ])
+        ret_m = float(getattr(args, "avbl_retrieval_margin", 0.0) or 0.0)
+        if ret_m > 0:
+            cmd.extend(["--avbl_retrieval_margin", str(ret_m)])
     if stage == "DEK":
         cmd.append("--dek_dual_gate")
 
@@ -251,6 +262,34 @@ def main() -> int:
     ap.add_argument("-sci", type=int, default=DEFAULT_SCI)
     ap.add_argument("-rs", type=int, default=DEFAULT_SEED)
     ap.add_argument("--keep_latest_ckpts", type=int, default=DEFAULT_KEEP)
+    ap.add_argument(
+        "--avbl_max_adv_images", type=int, default=1,
+        help="AVBL adv images per sample (1=swap-only; needed for LLaVA bs>=2 on 24GB)",
+    )
+    ap.add_argument(
+        "--train_max_gen_types", type=int, default=2,
+        help="Max generality probe types packed per batch (VRAM; Step 2)",
+    )
+    ap.add_argument(
+        "--adv_grounding_lambda", type=float, default=0.1,
+        help="AVBL weight (0.1 safer for LLaVA bs=2; 0.3 blew up ~step 84)",
+    )
+    ap.add_argument(
+        "--adv_grounding_neg_weight", type=float, default=2.5,
+        help="AVBL negative / foreign push weight (S2-tune A uses 4.0)",
+    )
+    ap.add_argument(
+        "--avbl_contrastive_margin", type=float, default=0.1,
+        help="AVBL contrastive margin on wrong expert under adv (S2-tune A uses 0.3)",
+    )
+    ap.add_argument(
+        "--avbl_retrieval_margin", type=float, default=0.0,
+        help="Hinge: on adv, own vis logit should fall below prot by this margin (S2-tune A: 1.0)",
+    )
+    ap.add_argument(
+        "--run_tag", default=None,
+        help="Optional tag inserted into run_name (e.g. tuneA)",
+    )
     args = ap.parse_args()
     if args.eps is not None:
         args.eps_l0 = args.eps

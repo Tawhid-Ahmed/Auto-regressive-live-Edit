@@ -128,6 +128,12 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         # Phase D: cross-batch buffer of recent (dino_key, moe_c, moe_r, eqr)
         self.avbl_pool_buffer_size: int = 0
         self._avbl_pool_buffer: deque = deque()
+        # Cap AVBL adv images per sample (swap, hard_neg). 1 = swap-only (VRAM).
+        self.avbl_max_adv_images: int = 2
+        # Cap how many generality probe types are packed per batch (None=all).
+        # LLaVA+patch at bs>=2 OOMs when all grounding gen types are held at once.
+        self.train_max_gen_types: Optional[int] = None
+        self.patch_hard_routing_enabled: bool = True
         self._patch_encoder: Optional[FrozenPatchEncoder] = None
         self._last_query_patches: Optional[torch.Tensor] = None
         self.patch_grounding_module: Optional[PatchGroundingModule] = None
@@ -257,6 +263,7 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         refuse_lambda: float = 0.0,
         refuse_tau: float = -1.0,
         pool_buffer_size: int = 0,
+        max_adv_images: int = 2,
     ) -> None:
         """VG-Edit AVBL: train with swap/hard-neg visual binding negatives."""
         self.adversarial_grounding_lambda = float(lambda_adv)
@@ -272,6 +279,7 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         self.avbl_refuse_lambda = float(refuse_lambda)
         self.avbl_refuse_tau = float(refuse_tau)
         self.avbl_pool_buffer_size = max(0, int(pool_buffer_size))
+        self.avbl_max_adv_images = max(1, int(max_adv_images))
         self._avbl_pool_buffer = (
             deque(maxlen=self.avbl_pool_buffer_size)
             if self.avbl_pool_buffer_size > 0
@@ -283,7 +291,13 @@ class LiveEdit(VLLMBaseEditorWithTraining):
     def _forward_query_reps(
         self, vllm: BaseVLLMForEdit, prompt: str, image, target: str = "."
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Mid-layer query/vision reps for a probe image (differentiable)."""
+        """Mid-layer query/vision reps for a probe image.
+
+        Differentiable when called under autograd. AVBL positive/negative losses
+        wrap this in ``torch.no_grad()`` because they immediately ``.detach()``
+        the reps (gradient only through the routing extractors on detached
+        inputs) — saves VRAM for LLaVA ``bs>=2`` (Step 2 / F3).
+        """
         (input_embeds, vt_range), _, label_masks = vllm.prompts_imgs_target_to_xym(
             [prompt], [image], [target])
         query_end = input_embeds['inputs_embeds'].shape[1] - label_masks.shape[1] + 1
@@ -365,7 +379,11 @@ class LiveEdit(VLLMBaseEditorWithTraining):
     ) -> Tuple[torch.Tensor, Dict[str, float]]:
         eps = 1e-8
         log: Dict[str, float] = {}
-        vision_reps, query_reps = self._forward_query_reps(vllm, prompt, rel_image, target)
+        # Probe mid-layer under no_grad: callers detach immediately; extractor
+        # grads still flow on the detached tensors (Step 2 VRAM cut for LLaVA).
+        with torch.no_grad():
+            vision_reps, query_reps = self._forward_query_reps(
+                vllm, prompt, rel_image, target)
         vision_reps = vision_reps.detach()
         query_reps = query_reps.detach()
         dist_pos = self._fused_binding_distribution(
@@ -406,13 +424,15 @@ class LiveEdit(VLLMBaseEditorWithTraining):
     ) -> Tuple[torch.Tensor, Dict[str, float]]:
         eps = 1e-8
         log: Dict[str, float] = {}
-        v_adv, q_adv = self._forward_query_reps(vllm, prompt, adv_image, target)
+        with torch.no_grad():
+            v_adv, q_adv = self._forward_query_reps(vllm, prompt, adv_image, target)
         v_adv = v_adv.detach()
         q_adv = q_adv.detach()
         dist_neg = self._fused_binding_distribution(v_adv, q_adv, adv_image, for_avbl=True)
         if dist_neg is None:
             return torch.tensor(0.0, device=self.device), log
-        prot_prob = dist_neg[-1].clamp(eps, 1.0 - eps)
+        # Soft floor on prot mass — float16 -log(1e-8) can still destabilize AVBL.
+        prot_prob = dist_neg[-1].clamp(1e-3, 1.0 - 1e-3)
         expert_mass = dist_neg[:-1].sum()
         hinge_tau = float(getattr(self, "avbl_hinge_tau", 0.0))
         hinge = torch.relu(expert_mass - hinge_tau) if hinge_tau > 0 else torch.tensor(1.0, device=self.device)
@@ -430,9 +450,10 @@ class LiveEdit(VLLMBaseEditorWithTraining):
                     loss_neg = loss_neg + loss_contrast
                     log['avbl_contrast_loss'] = float(loss_contrast.detach())
                 if getattr(self, "avbl_targeted_false_cross", True):
-                    wp = wrong_prob.clamp(eps, 1.0 - eps)
+                    # Float16-safe barrier: keep 1-wp >= 1e-3 so -log stays <= ~6.9
+                    wp = wrong_prob.clamp(0.0, 1.0 - 1e-3)
                     w = float(getattr(self, "avbl_targeted_false_cross_weight", 1.0))
-                    loss_targeted = -torch.log(1.0 - wp) * w
+                    loss_targeted = -torch.log((1.0 - wp).clamp_min(1e-3)) * w
                     loss_neg = loss_neg + loss_targeted
                     log['avbl_targeted_loss'] = float(loss_targeted.detach())
                 log['avbl_wrong_prob'] = float(wrong_prob.detach())
@@ -444,9 +465,9 @@ class LiveEdit(VLLMBaseEditorWithTraining):
                 and int(hard_neighbor_idx) not in own_set
             ):
                 nb = int(hard_neighbor_idx)
-                nb_prob = dist_neg[nb].clamp(eps, 1.0 - eps)
+                nb_prob = dist_neg[nb].clamp(0.0, 1.0 - 1e-3)
                 nw = float(getattr(self, "avbl_neighbor_weight", 2.0))
-                loss_nb = -torch.log(1.0 - nb_prob) * nw
+                loss_nb = -torch.log((1.0 - nb_prob).clamp_min(1e-3)) * nw
                 loss_neg = loss_neg + loss_nb
                 log['avbl_dino_neighbor_idx'] = float(nb)
                 log['avbl_dino_neighbor_prob'] = float(nb_prob.detach())
@@ -1659,7 +1680,13 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         batch_edit_packs = []  # parallel to batch_edit_signal: (xym, mid, reps) per request
         rel_edit_i = [] 
         batch_rel_data = [] # for each: {'prompts': [str], 'imgs': [PILImage], 'targets': [str]}
-        batch_gen_data = {gen_name: [] for gen_name in a_batch_raw_data[0]['generality']}
+        gen_names = list(a_batch_raw_data[0]['generality'].keys())
+        max_gen = getattr(self, "train_max_gen_types", None)
+        if max_gen is not None and int(max_gen) > 0 and len(gen_names) > int(max_gen):
+            # Seeded subsample so soft-routing still sees real gen neighbors.
+            idxs = self.rng_data_proc.choice(len(gen_names), size=int(max_gen), replace=False)
+            gen_names = [gen_names[int(i)] for i in idxs]
+        batch_gen_data = {gen_name: [] for gen_name in gen_names}
         batch_loc_data = {loc_name: [] for loc_name in a_batch_raw_data[0]['locality']
                 if a_batch_raw_data[0]['locality'][loc_name][0]['image'] != None}
         for d in a_batch_raw_data:
@@ -1722,12 +1749,14 @@ class LiveEdit(VLLMBaseEditorWithTraining):
             loc_xyms = [p[0] for p in packs]
             loc_mid_reps = [p[1] for p in packs]
             loc_edit_reps = [p[2] for p in packs]
-            pre_logits = [
-                vllm.forward_from_mid_layer(
-                    input_embeds, vt_range, lmr, self.cfg.llm_layer_tmp, self.cfg.edit_layer_i
-                ).logits
-                for lmr, ((input_embeds, vt_range), label_ids, label_masks) in zip(loc_mid_reps, loc_xyms)
-            ]
+            # Teacher logits for KL — no grad (frees a full LLM graph per loc probe).
+            with torch.no_grad():
+                pre_logits = [
+                    vllm.forward_from_mid_layer(
+                        input_embeds, vt_range, lmr, self.cfg.llm_layer_tmp, self.cfg.edit_layer_i
+                    ).logits.detach()
+                    for lmr, ((input_embeds, vt_range), label_ids, label_masks) in zip(loc_mid_reps, loc_xyms)
+                ]
             packed_loc_data[k] = (loc_xyms, loc_mid_reps, pre_logits, loc_edit_reps)
         # Retrieval contrastive learning data for neighbor loss
         def get_rand_gn_ln():
@@ -1964,7 +1993,11 @@ class LiveEdit(VLLMBaseEditorWithTraining):
         hard_routing_loss = loss_retr_neb + loss_retr_prot 
         log_dict['MoE hard routing loss'] = float(hard_routing_loss)
         loss += hard_routing_loss * self.cfg.train_cfg.hard_routing_lambda
-        if self.patch_grounding_enabled and self.patch_grounding_module is not None:
+        if (
+            self.patch_grounding_enabled
+            and self.patch_grounding_module is not None
+            and getattr(self, "patch_hard_routing_enabled", True)
+        ):
             def patch_hard_routing(inpt_reps, edit_reps, inpt_imgs, edit_imgs):
                 ivrs = torch.cat([
                     self._extract_patch_routing(d[1], self._encode_patches(img))
@@ -2028,8 +2061,12 @@ class LiveEdit(VLLMBaseEditorWithTraining):
             avbl_n = 0
             for j, spec in enumerate(batch_adv_specs):
                 adv_imgs = [img for img in (spec.get("swap_image"), spec.get("hard_neg_image")) if img]
+                max_adv = int(getattr(self, "avbl_max_adv_images", 2) or 2)
+                adv_imgs = adv_imgs[: max(1, max_adv)]
                 if not adv_imgs:
                     continue
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
                 avbl_loss, avbl_log = self.compute_avbl_losses(
                     vllm, spec["prompt"], spec["rel_image"], adv_imgs, [j],
                     spec.get("target", "."),
@@ -2051,8 +2088,19 @@ class LiveEdit(VLLMBaseEditorWithTraining):
             log_dict['AVBL pool buffer size'] = float(len(getattr(self, "_avbl_pool_buffer", [])))
             self.evr_pool, self.evr_patch_pool, self.eqr_pool = saved_pool
             self._clear_query_patch_cache()
-        # update
+        # update (skip non-finite; clip grads — LLaVA S2 AVBL blew up at step ~84)
+        if not torch.isfinite(loss):
+            log_dict['Nonfinite loss skipped'] = 1.0
+            self.opt.zero_grad()
+            self.lr_scheduler.step()
+            log_dict['Learning rate'] = float(self.lr_scheduler.get_last_lr()[0])
+            return float('nan'), log_dict
         loss.backward()
+        grad_norm = float(torch.nn.utils.clip_grad_norm_(
+            [p for g in self.opt.param_groups for p in g['params'] if p.requires_grad],
+            max_norm=1.0,
+        ))
+        log_dict['Grad norm'] = grad_norm
         self.opt.step()
         self.opt.zero_grad()
         self.lr_scheduler.step()

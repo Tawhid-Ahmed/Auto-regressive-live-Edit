@@ -1,0 +1,108 @@
+{
+  "source": "E:/MSC/MSc thesis project/LiveEdit/LiveEdit/doc/results/cvpr2027/g5/routing_health_s2_s3_bs2.json",
+  "reliability": {
+    "n": 50,
+    "vis_sim_prot": {
+      "mean": 9.899,
+      "median": 8.54,
+      "p10": 1.724,
+      "p90": 20.86
+    },
+    "own_vis_sim": {
+      "mean": 40.726,
+      "median": 38.521
+    },
+    "own_margin": {
+      "mean": 30.827,
+      "neg_pct": 2.0,
+      "pos_pct": 98.0
+    },
+    "vision_ok": {
+      "mean_n": 16.62,
+      "mean_pct": 33.24,
+      "foreign_mean_n": 15.64
+    },
+    "own_retrieved_pct": 98.0,
+    "own_in_vision_ok_pct": 98.0,
+    "corr_prot_vok_pct": -0.354,
+    "corr_own_vis_vok_pct": 0.285,
+    "prot_buckets": {
+      "prot_near_0": {
+        "n": 11,
+        "mean_margin": 30.772,
+        "mean_vok_pct": 39.27
+      },
+      "prot_5_15": {
+        "n": 26,
+        "mean_margin": 30.343,
+        "mean_vok_pct": 35.23
+      },
+      "prot_gt_15": {
+        "n": 13,
+        "mean_margin": 31.841,
+        "mean_vok_pct": 24.15
+      }
+    }
+  },
+  "image_swap": {
+    "n": 50,
+    "vis_sim_prot": {
+      "mean": -2.538,
+      "median": 6.039,
+      "p10": -19.426,
+      "p90": 13.328
+    },
+    "own_vis_sim": {
+      "mean": 4.193,
+      "median": 4.479
+    },
+    "own_margin": {
+      "mean": 6.731,
+      "neg_pct": 32.0,
+      "pos_pct": 68.0
+    },
+    "vision_ok": {
+      "mean_n": 19.3,
+      "mean_pct": 38.6,
+      "foreign_mean_n": 18.62
+    },
+    "own_retrieved_pct": 68.0,
+    "own_in_vision_ok_pct": 68.0,
+    "corr_prot_vok_pct": -0.537,
+    "corr_own_vis_vok_pct": -0.084,
+    "prot_buckets": {
+      "prot_lt_-5": {
+        "n": 21,
+        "mean_margin": 8.815,
+        "mean_vok_pct": 47.33
+      },
+      "prot_near_0": {
+        "n": 3,
+        "mean_margin": 0.828,
+        "mean_vok_pct": 38.0
+      },
+      "prot_5_15": {
+        "n": 25,
+        "mean_margin": 5.791,
+        "mean_vok_pct": 31.6
+      },
+      "prot_gt_15": {
+        "n": 1,
+        "mean_margin": 4.177,
+        "mean_vok_pct": 32.0
+      }
+    }
+  },
+  "paired": {
+    "n": 50,
+    "own_vision_ok_both_pct": 68.0,
+    "own_vision_ok_flips_off_under_swap_pct": 30.0,
+    "mean_margin_drop_swap_minus_rel": -24.096,
+    "text_argmax_stable_under_swap_pct": 50.0
+  },
+  "verdict_hints": {
+    "prototype_collapsed_if": "rel vis_sim_prot mean near/below 0 while foreign_vision_ok high",
+    "foreign_inflation_if": "foreign_mean_n high with healthy prot",
+    "own_stays_hot_on_swap_if": "own_vision_ok_both_pct high and mean_margin_drop small"
+  }
+}

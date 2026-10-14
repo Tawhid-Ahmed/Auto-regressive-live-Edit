@@ -99,10 +99,10 @@ Non-exclusive flags, reported alongside: `own_fired`, `partner_fired`, `foreign_
 | G2b margin / abstain sweep | Oct 11 - Oct 16 | **not triggered** (G0 was PASS, not WEAK) | - | [G2b](#g2b-can-stale-leakage-be-fixed-at-inference) |
 | G3 pool-size curve | Oct 14 - Oct 24 | **complete (Oct 6)** | **PASS** — DEK advantage holds; **HIGH FLAG** pair-closed hn ~84% (M6) | [G3](#g3-does-the-lifelong-scaling-claim-survive) |
 | G4 other editors | Oct 17 - Oct 28 | not started | - | [G4](#g4-does-the-protocol-transfer-to-other-editors) |
-| G5 second backbone | Oct 15 (fixed) | **LLaVA extract done (Oct 11)** — provisional **WEAK**; Phase C BLIP-2 re-extract open | WEAK (LLaVA-only) | [G5](#g5-second-backbone-decision) |
+| G5 second backbone | Oct 15 (fixed) | **accepted WEAK (2026-10-14/15)**; Phase C deferred; M8 next | **WEAK** | [G5](#g5-second-backbone-decision) |
 | G6 writing checkpoint | Oct 27 (fixed) | not started | - | [G6](#g6-writing-checkpoint) |
 
-Current track: **G5 on lab RTX 4090 for CVPR main track** (strong LLaVA L0 → S2 → DEK → eval; then re-extract BLIP-2 under the same protocol; decision due Oct 15). Plan A (DEK) unchanged for BLIP-2. **Deferred → later**: M6, `emits_y_i`, EVQA pair-closed, 5-seed, G4, MSCKE, CARML tau.
+Current track: **G5 accepted WEAK** (LLaVA does not reproduce BLIP-2 Rel-held DEK). Next: **M8** (routing key bank; discuss before implement) + Phase C when BLIP-2 S2 ckpt is available. Plan A (DEK) unchanged for BLIP-2. **Deferred → later**: M6, `emits_y_i`, EVQA pair-closed, G4, MSCKE, CARML tau.
 
 ---
 
@@ -118,10 +118,14 @@ Nothing here is implemented until it is marked *decided*. Decided items stay in 
 | M4 | G0 | `image_swap` stored as `image_rephrase` when classification clobbers `probe`. | Fix key order in `tools/log_grounding_diagnostics.py`; keep scorer repair for old logs. | **decided, applied Oct 4** |
 | M5 | G0 | Partner-absent rates flatten abstain-heavy methods (VLKEB 27–31% absent; EVQA `_sub_` hard-neg ~98% absent). | For G3 (and any new pool builds), use **pair-closed sampling** so every edit's image-swap and hard-negative partners are also in the pool. Report the natural partner-absent fraction once as a supplementary side experiment. | **implemented** (Oct 6; `tools/build_pair_closed_pool.py`; used for G3) |
 | M6 | G3 | Pair-closed VLKEB DEK_and hard-negative `total_leak` stays **~84–86%** at n∈{100,300,1000} (vs L0 100%; vs natural-side DEK 44%). G3 still PASS on relative advantage / swap scaling, but absolute hn under honest partners is weak for a M1 headline. | **HIGH FLAG**: treat pair-closed hn as an open method gap. Candidate next tries (later): tighter vision scope / top-K, train-tuned CARML-style, margin/abstain on hn only, or hard-neg–aware training. Keep DEK as Plan A for swap+reliability until a candidate beats DEK on hn **without** killing rel. | **deferred — later** (Oct 6; G5 first) |
+| M7 | G5 / LLaVA L0 diagnosis | Lab LLaVA L0 used `-bs 1`, so soft routing was vacuous (relative loss always 0; abstract pos ≡ neg; train text top-1 own **4%**). Query slice OK; longer `eps` at `bs=1` will not fix it. BLIP-2 L0 used `-bs 4`. | Retrain LLaVA L0 with **`bs≥2`** (prefer **4**; fall back to **2** if 4090 OOM). Then S2 → DEK → same-protocol extract. **Reject** “more epochs at `bs=1`”. Results: [`G5_LLAVA_M7_BS_RETRAIN.md`](results/cvpr2027/g5/G5_LLAVA_M7_BS_RETRAIN.md). | **done 2026-10-11** (L0 `bs=2` PASS; S2/DEK first pass still `bs=1`) |
+| M8 | G5 / LLaVA DEK root cause | After M7 L0, S2/DEK at `bs=1` opened the vision gate; S3 S2 at `bs=2` improved but health still FAIL; S2-tune A (stronger AVBL) made vision-ok **worse** (33→62%). At `bs=2` routing still has only **1** in-batch foreign (BLIP-2 uses 3). | **Proposed:** FIFO memory bank of detached routing keys into soft-routing / hard-routing / AVBL softmaxes (extend `--avbl_pool_buffer` beyond DINO/refuse). Acceptance: S2 health gate PASS then DEK Rel hit ≥ 80% with hn `total_leak` ≤ L0 − 20 pp. **Do not implement until marked decided.** Write-up: [`G5_LLAVA_DEK_ROOT_CAUSE.md`](results/cvpr2027/g5/G5_LLAVA_DEK_ROOT_CAUSE.md). | **proposed — discuss** (2026-10-14) |
 
 ---
 
 ## Active flags (read before next GPU / paper claim)
+
+Full Bad→improvement backlog for main-track confidence (BLIP-2 + LLaVA): [`CVPR2027_MAIN_TRACK_IMPROVEMENTS.md`](CVPR2027_MAIN_TRACK_IMPROVEMENTS.md).
 
 | Flag | Level | Source | Status | What it blocks or forces |
 |---|---|---|---|---|
@@ -133,7 +137,9 @@ Nothing here is implemented until it is marked *decided*. Decided items stay in 
 | Untuned CARML-style row | low | G2 | later | Label or train-tune before naming CARML. |
 | MSCKE public-code check | low | G2 carry | later | ≤1 day when spare. |
 | G3 single seed / VLKEB only | medium | G3 | later | EVQA pair-closed + more orders optional. |
-| G5 due Oct 15 | calendar | plan | **active now** | Second-backbone setup → decision. |
+| G5 = WEAK (Oct 15) | calendar | G5 | **accepted** | No LLaVA Rel-held DEK claim; BLIP-2 Plan A unchanged. |
+| LLaVA S2 vision gate open at `bs≥2` | **HIGH** | G5 / M8 | **proposed — discuss** | Blocks LLaVA DEK; S2-tune A exhausted; M8 next. |
+| LLaVA L0 soft routing vacuous (`bs=1`) | **HIGH** | G5 / M7 | **closed (M7 done)** | L0 `bs=2` healthy; residual issue is S2. |
 
 ## G0: honest re-scoring of existing logs
 
@@ -432,10 +438,10 @@ _(pending)_
 
 ## G5: second backbone decision
 
-**Date**: decision due **Oct 15, 2026** (fixed). Setup started Oct 6; **CVPR budget locked Oct 10**.
-**Status**: **LLaVA ladder + extract done (Oct 11)**; provisional write-up **WEAK** — Phase C BLIP-2 re-extract still open. Preconditions: G0 PASS (met), G2 PASS (met).
-**Artifacts**: `doc/results/cvpr2027/g5/` — especially [`G5_GATE_WRITEUP_LLAVA.md`](results/cvpr2027/g5/G5_GATE_WRITEUP_LLAVA.md) + `G5_RESULTS_TABLES.md`. Paper LLaVA numbers use **lab** `records/lab_g5/`, not home/USB AAAI LLaVA ckpts.
-**Ladder** (CVPR): LLaVA-1.5-7B on lab RTX 4090 → strong L0 → S2 → DEK → dual extract with BLIP-2. Qwen2-VL-2B fallback only if LLaVA blocked.
+**Date**: decision due **Oct 15, 2026** (fixed). Setup started Oct 6; **CVPR budget locked Oct 10**. **Accepted 2026-10-14.**
+**Status**: **WEAK** (board accepted). Phase C deferred; M8 proposed. Preconditions: G0 PASS (met), G2 PASS (met).
+**Artifacts**: [`G5_GATE_WRITEUP_LLAVA.md`](results/cvpr2027/g5/G5_GATE_WRITEUP_LLAVA.md) (canonical), [`G5_LLAVA_DEK_ROOT_CAUSE.md`](results/cvpr2027/g5/G5_LLAVA_DEK_ROOT_CAUSE.md), `G5_RESULTS_TABLES.md`. Paper LLaVA numbers use **lab** `records/lab_g5/`, not home/USB AAAI LLaVA ckpts.
+**Ladder** (CVPR): LLaVA-1.5-7B on lab RTX 4090 → strong L0 → S2 → DEK attempt → root-cause → S2-tune A FAIL → WEAK.
 
 ### CVPR training + extraction plan (Oct 10)
 
@@ -464,24 +470,28 @@ AAAI-era LLaVA `dn=500×3` was a deadline shortcut. Oct 10 `eps=1` lab L0 is **s
 - Oct 10 lab: model load OK after weight repair; detached `eps=1` L0 used for env/data path check only.
 
 ### Result
-**LLaVA-only provisional: WEAK** (full write-up: [`results/cvpr2027/g5/G5_GATE_WRITEUP_LLAVA.md`](results/cvpr2027/g5/G5_GATE_WRITEUP_LLAVA.md)).
+**WEAK (accepted 2026-10-15).** Full write-up: [`G5_GATE_WRITEUP_LLAVA.md`](results/cvpr2027/g5/G5_GATE_WRITEUP_LLAVA.md).
 
-- VLKEB DEK vs L0: swap `total_leak` 100→**36** (−64 pp), hard-neg 98→**46** (−52 pp); Rel hit 79→**1%** (collapse via abstain).
-- Easy-VQA: swap 100→**13**; hn 100→**91**; Rel hit 71→**1%**.
-- 5-seed VLKEB: DEK swap **35.0±7.8**, hn **41.2±10.2**, Rel hit **0.6±0.5**.
-- Final G5 PASS/WEAK/FAIL on the board waits on Phase C (BLIP-2 re-extract) or an explicit Oct-15 accept of WEAK.
+- LLaVA does **not** reproduce BLIP-2 G0 (Rel held + lower `total_leak`).
+- M7 L0 at `bs=2` is routing-healthy; S2 re-opens the vision gate (`bs=1` catastrophic; `bs=2` still FAIL; S2-tune A worse).
+- Historical DEK binary leak drop (swap 100→36, Rel 79→1%) is from the **open-gate / abstain** ladder — **do not** quote as a Rel-held method win; weight-aware audit reverses swap.
+- Phase C dual extract **deferred** (BLIP-2 short S2 ckpt missing; F4 confound remains).
+- BLIP-2 Plan A unchanged.
 
 ### Good
-- Fresh lab L0×20→S2→DEK + B1/E1–E4 extracts complete; tables in `G5_RESULTS_TABLES.md`.
-- Leak reduction on a second backbone is large and multi-seed stable.
+- Root cause closed enough for a board call (F3 + S2 regression + failed S2-tune A).
+- Lab L0 M7 PASS under the health gate.
+- Limitation is concrete and actionable (M8), not a mystery failure.
 
 ### Bad
-- Reliability hit collapse blocks a clean second-backbone PASS (not the BLIP-2 G0 pattern).
-- Phase C still open — no same-protocol BLIP-2 dual column yet.
+- No Rel-held LLaVA DEK for a second primary table.
+- S2 at `bs=2` still under-negatived vs BLIP-2; AVBL knob cranking exhausted.
+- Phase C open → no fair dual-backbone table yet.
 
 ### Carry-forward
-- **Phase C** BLIP-2 re-extract, then finalize G5 board status by **Oct 15**.
-- Paper: if citing LLaVA now, frame as leak stress + Rel collapse / abstain; no LLaVA Rel/only-own claim.
+- **M8** (proposed): batch-independent routing negatives — discuss before implement.
+- **Phase C** when BLIP-2 S2 ckpt is recovered; fill dual table.
+- Paper: LLaVA = WEAK limitation; lead with BLIP-2; disclose M7/`bs=1` S2 defect; no LLaVA DEK Rel/leak claim.
 - M6 and other flags stay **deferred — later**.
 
 ---
